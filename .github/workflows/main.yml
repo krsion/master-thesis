@@ -16,14 +16,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+      - name: Install rsync
+        run: apt update && apt install -y rsync
       - name: Build the thesis
-        run: latexmk thesis && latexmk abstract-cz && latexmk abstract-en
+        run: make
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Thesis
           path: |
-            *.pdf
+            build/*.pdf
 
   verify:
     name: Verify PDF/A

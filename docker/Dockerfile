@@ -17,6 +17,8 @@ RUN apt-get -qq update && apt-get install -y \
   texlive-science \
   texlive \
   ghostscript \
+  pandoc \
+  rsync \
   latexmk \
   make
 

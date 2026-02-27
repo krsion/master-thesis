@@ -13,15 +13,15 @@ latexmk:
   stage: build
   image: aergus/latex
   script: |
-    latexmk thesis && latexmk abstract-cz && latexmk abstract-en;
+    apt update && apt install -y rsync && make
   artifacts:
     paths:
-      - thesis.pdf
-      - abstract-cz.pdf
-      - abstract-en.pdf
+      - build/thesis.pdf
+      - build/abstract-cz.pdf
+      - build/abstract-en.pdf
 
 verapdf:
   stage: verify
   image: ghcr.io/mff-cuni-cz/cuni-thesis-validator
   script: |
-    verify *.pdf |tee /dev/stderr |grep -qE 'nonCompliant="0"'
+    verify build/*.pdf |tee /dev/stderr |grep -qE 'nonCompliant="0" failedJobs="0"'
