@@ -1,7 +1,17 @@
 % Metadata to be stored in PDF, see documentation of the pdfx package for more details.
 
-\Author{Name Surname}
-\Title{Thesis title}
-\Keywords{keywords\sep more such\sep yet another}
+\Author{$author$}
+\Title{$if(lang-en)$$title-en$$else$$title-cs$$endif$}
+\Keywords{%
+$if(lang-en)$
+$for(keywords-en)$
+$keywords-en$$sep$\sep
+$endfor$
+$else$
+$for(keywords-cs)$
+$keywords-cs$$sep$\sep
+$endfor$
+$endif$
+}
 \Subject{Abstract of thesis}
 \Publisher{Charles University}

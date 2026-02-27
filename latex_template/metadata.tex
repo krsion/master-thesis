@@ -1,93 +1,96 @@
-
-
-%%% Choose a language %%%
-
 \newif\ifEN
-\ENtrue   % uncomment this for english
-%\ENfalse   % uncomment this for czech
+$if(lang-en)$
+\ENtrue
+$else$
+\ENfalse
+$endif$
 
 %%% Configuration of the title page %%%
 
-\def\ThesisTitleStyle{mff} % MFF style
-%\def\ThesisTitleStyle{cuni} % uncomment for old-style with cuni.cz logo
-%\def\ThesisTitleStyle{natur} % uncomment for nature faculty logo
+\def\ThesisTitleStyle{$title-style$}
 
-\def\UKFaculty{Faculty of Mathematics and Physics}
-%\def\UKFaculty{Faculty of Science}
+\def\UKFaculty{$uk-faculty$}
 
 \def\UKName{Charles University in Prague} % this is not used in the "mff" style
 
 % Thesis type names, as used in several places in the title
+$if(bachelor)$
 \def\ThesisTypeTitle{\ifEN BACHELOR THESIS \else BAKALÁŘSKÁ PRÁCE \fi}
-%\def\ThesisTypeTitle{\ifEN MASTER THESIS \else DIPLOMOVÁ PRÁCE \fi}
-%\def\ThesisTypeTitle{\ifEN RIGOROUS THESIS \else RIGORÓZNÍ PRÁCE \fi}
-%\def\ThesisTypeTitle{\ifEN DOCTORAL THESIS \else DISERTAČNÍ PRÁCE \fi}
 \def\ThesisGenitive{\ifEN bachelor \else bakalářské \fi}
-%\def\ThesisGenitive{\ifEN master \else diplomové \fi}
-%\def\ThesisGenitive{\ifEN rigorous \else rigorózní \fi}
-%\def\ThesisGenitive{\ifEN doctoral \else disertační \fi}
 \def\ThesisAccusative{\ifEN bachelor \else bakalářskou \fi}
-%\def\ThesisAccusative{\ifEN master \else diplomovou \fi}
-%\def\ThesisAccusative{\ifEN rigorous \else rigorózní \fi}
-%\def\ThesisAccusative{\ifEN doctoral \else disertační \fi}
-
+$endif$
+$if(master)$
+\def\ThesisTypeTitle{\ifEN MASTER THESIS \else DIPLOMOVÁ PRÁCE \fi}
+\def\ThesisGenitive{\ifEN master \else diplomové \fi}
+\def\ThesisAccusative{\ifEN master \else diplomovou \fi}
+$endif$
+$if(rigorous)$
+\def\ThesisTypeTitle{\ifEN RIGOROUS THESIS \else RIGORÓZNÍ PRÁCE \fi}
+\def\ThesisGenitive{\ifEN rigorous \else rigorózní \fi}
+\def\ThesisAccusative{\ifEN rigorous \else rigorózní \fi}
+$endif$
+$if(doctoral)$
+\def\ThesisTypeTitle{\ifEN DOCTORAL THESIS \else DISERTAČNÍ PRÁCE \fi}
+\def\ThesisGenitive{\ifEN doctoral \else disertační \fi}
+\def\ThesisAccusative{\ifEN doctoral \else disertační \fi}
+$endif$
 
 
 %%% Fill in your details %%%
 
-% (Note: \xxx is a "ToDo label" which makes the unfilled visible. Remove it.)
-\def\ThesisTitle{\xxx{Thesis title}}
-\def\ThesisAuthor{\xxx{Your Name Surname}}
-\def\YearSubmitted{\xxx{YEAR}}
+\def\ThesisTitle{$if(lang-en)$$title-en$$else$$title-cs$$endif$}
+\def\ThesisAuthor{$author$}
+\def\YearSubmitted{$year$}
 
 % department assigned to the thesis
-\def\Department{\xxx{Name of the department}}
+\def\Department{$if(lang-en)$$department-en$$else$$department-cs$$endif$}
 % Is it a department (katedra), or an institute (ústav)?
-\def\DeptType{\xxx{Department}}
+\def\DeptType{$if(lang-en)$$deparment-type-en$$else$$deparment-type-cs$$endif$}
 
-\def\Supervisor{\xxx{Supername Supersurname}}
-\def\SupervisorsDepartment{\xxx{department}}
+\def\Supervisor{$supervisor$}
+\def\SupervisorsDepartment{$if(lang-en)$$supervisors-department-en$$else$$supervisors-department-cs$$endif$}
 
 % Study programme and specialization
-\def\StudyProgramme{\xxx{study programme}}
-\def\StudyBranch{\xxx{study branch}}
+\def\StudyProgramme{$if(lang-en)$$study-programme-en$$else$$study-programme-cs$$endif$}
+\def\StudyBranch{$if(lang-en)$$study-branch-en$$else$$study-branch-cs$$endif$}
 
-\def\Dedication{%
-Dedication. \xxx{It is nice to say thanks to supervisors, friends, family, book authors and food providers.}
-}
+\def\Dedication{$dedication$}
 
-\def\AbstractEN{%
-\xxx{Abstracts are an abstract form of art. Use the most precise, shortest sentences that state what problem the thesis addresses, how it is approached, pinpoint the exact result achieved, and describe the applications and significance of the results. Highlight anything novel that was discovered or improved by the thesis. Maximum length is 200 words, but try to fit into 120. Abstracts are often used for deciding if a reviewer will be suitable for the thesis; a well-written abstract thus increases the probability of getting a reviewer who will like the thesis.}
-% ABSTRACT IS NOT A COPY OF YOUR THESIS ASSIGNMENT!
-}
-
-\def\AbstractCS{%
-\xxx{You will need to submit both Czech and English abstract to the SIS, no matter what language you use in the thesis. If writing in English, translate the contents of \texttt{\textbackslash{}AbstractEN} into this field. In case you do not speak czech, your supervisor should be able to help you with the translation.}
-}
+\def\AbstractEN{$abstract-en$}
+\def\AbstractCS{$abstract-cs$}
 
 % 3 to 5 keywords (recommended), each enclosed in curly braces.
 % Keywords are useful for indexing and searching for the theses by topic.
 \def\Keywords{%
-\xxx{{key} {words}}
+\ifEN%
+$for(keywords-en)$
+{$keywords-en$}
+$endfor$
+\else%
+$for(keywords-cs)$
+{$keywords-cs$}
+$endfor$
+\fi%
 }
 
-% If your abstracts are long and do not fit in the infopage, you can make the
-% fonts a bit smaller by this setting. (Also, you should try to compress your abstract more.)
-% Alternatively, consider increasing the size of the page by uncommenting the
-% geometry modification in thesis.tex.
+$if(info-page-small-font)$
+\def\InfoPageFont{\small}
+$else$
 \def\InfoPageFont{}
-%\def\InfoPageFont{\small}  %uncomment to decrease font size
+$endif$
 
 \ifEN\relax\else
 % If you are writing a czech thesis, you additionally need to fill in the
 % english translation of the metadata here!
-\def\ThesisTitleEN{\xxx{Thesis title in English}}
-\def\DepartmentEN{\xxx{Name of the department in English}}
-\def\DeptTypeEN{\xxx{Department}}
-\def\SupervisorsDepartmentEN{\xxx{Superdepartment}}
-\def\StudyProgrammeEN{\xxx{study programme}}
-\def\StudyBranchEN{\xxx{study branch}}
+\def\ThesisTitleEN{$title-en$}
+\def\DepartmentEN{$department-en$}
+\def\DeptTypeEN{$deparment-type-en$}
+\def\SupervisorsDepartmentEN{$supervisors-department-en$}
+\def\StudyProgrammeEN{$study-programme-en$}
+\def\StudyBranchEN{$study-branch-en$}
 \def\KeywordsEN{%
-\xxx{{key} {words}}
+$for(keywords-en)$
+{$keywords-en$}
+$endfor$
 }
 \fi

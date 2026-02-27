@@ -1,5 +1,5 @@
 % Metadata k uložení do PDF, podrobnější popis viz dokumentace balíčku pdfx.
 
-\Author{Jméno Příjmení}
-\Title{Název práce}
+\Author{$author$}
+\Title{$title-cs$}
 \Publisher{Univerzita Karlova}

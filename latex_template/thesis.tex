@@ -108,7 +108,9 @@
 
 \usepackage[noabbrev]{cleveref}
 
+$if(todos)$
 \input{todos} % remove this before compiling the final version
+$endif$
 
 \input{macros} % use this file for various custom definitions
 
@@ -119,18 +121,20 @@
 
 \tableofcontents
 
-\include{intro}
-\include{ch1}
-\include{ch2}
-\include{ch3}
-\include{conclusion}
+$if(chapters)$
+$for(chapters)$
+\include{$chapters$}
+$endfor$
+$endif$
+
 \include{bibliography}
 
+$if(appendicies)$
 \appendix
-\include{howto}
-
-% if your attachments are complicated, describe them in a separate appendix
-%\include{attachments}
+$for(appendicies)$
+\include{$appendicies$}
+$endfor$
+$endif$
 
 \openright
 \end{document}
