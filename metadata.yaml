@@ -1,0 +1,73 @@
+---
+# enable various forms of TODOs like macro \xxx during the build, turn off before compiling the final version
+todos: true
+
+lang-en: true # false - czech language
+title-style: 'mff' # 'mff' (MFF style), 'cuni' (old-style with cuni.cz logo), 'natur' (nature faculty logo)
+uk-faculty: 'Faculty of Mathematics and Physics' # or 'Faculty of Science'
+
+# type of thesis, unfortunately there is no better way to set this
+bachelor: true
+master: false
+rigorous: false
+doctoral: false
+
+# Note: \xxx is a "ToDo label" which makes the unfilled visible. Remove it.
+# \xxx macro in author and title-* will lead to a failed build of abstracts
+author: Name Surname
+# Title thesis
+title-cs: Název práce
+title-en: Thesis title
+year: \xxx{YEAR}
+
+# department assigned to the thesis
+department-en: \xxx{Name of the department}
+# Is it a department (katedra), or an institute (ústav)?
+deparment-type-en: \xxx{Department}
+supervisor: \xxx{Supername Supersurname}
+supervisors-department-en: \xxx{department}
+
+study-programme-en: \xxx{study programme}
+study-branch-en: \xxx{study branch}
+# If your abstracts are long and do not fit in the infopage, you can make the
+# fonts a bit smaller by this setting. (Also, you should try to compress your abstract more.)
+# Alternatively, consider increasing the size of the page by uncommenting the
+# geometry modification in thesis.tex.
+info-page-small-font: false
+
+keywords-en:
+  - key
+  - words
+chapters:
+  - 1-intro
+  - 2-ch1
+  - 3-ch2
+  - 4-ch3
+  - 5-conclusion
+
+appendicies:
+  - appendix-howto
+  # if your attachments are complicated, describe them in a separate appendix
+  # - attachments
+
+dedication: |
+  Dedication.
+  \xxx{It is nice to say thanks to supervisors, friends, family, book authors and food providers.}
+# ABSTRACT IS NOT A COPY OF YOUR THESIS ASSIGNMENT!
+abstract-en: |
+  \xxx{Abstracts are an abstract form of art. Use the most precise, shortest sentences that state what problem the thesis addresses, how it is approached, pinpoint the exact result achieved, and describe the applications and significance of the results.
+  Highlight anything novel that was discovered or improved by the thesis. Maximum length is 200 words, but try to fit into 120.
+  Abstracts are often used for deciding if a reviewer will be suitable for the thesis; a well-written abstract thus increases the probability of getting a reviewer who will like the thesis.}
+abstract-cs: |
+  \xxx{You will need to submit both Czech and English abstract to the SIS, no matter what language you use in the thesis. If writing in English, translate the contents of \texttt{\textbackslash{}AbstractEN} into this field. In case you do not speak czech, your supervisor should be able to help you with the translation.}
+
+# these properties are only used when thesis is written in czech:
+department-cs: \xxx{Název katedry či ústavu}
+deparment-type-cs: \xxx{Katedra}
+supervisors-department-cs: \xxx{Katedra}
+study-programme-cs: \xxx{Studijní program}
+study-branch-cs: \xxx{Studijní specializace}
+keywords-cs:
+  - klíčová
+  - slova
+---
