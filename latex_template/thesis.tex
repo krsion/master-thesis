@@ -108,6 +108,12 @@
 
 \usepackage[noabbrev]{cleveref}
 
+$if(additional_packages)$
+$for(additional_packages)$
+\usepackage{$additional_packages$}
+$endfor$
+$endif$
+
 $if(todos)$
 \input{todos} % remove this before compiling the final version
 $endif$

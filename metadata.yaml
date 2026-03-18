@@ -71,6 +71,9 @@ keywords-cs:
   - klíčová
   - slova
 
+# Possible to include additional latex packages, e.g. multirow for tables
+additional_packages:
+  - multirow
 
 ### This configutation below most likely you don't need to change
 
