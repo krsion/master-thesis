@@ -27,7 +27,7 @@ $(BUILD_DIR)/%.xmpdata: latex_template/%.xmpdata metadata.yaml | $(BUILD_DIR)
 	$(BUILD_TEMPLATE)
 
 # general building of chapters
-$(BUILD_DIR)/%.tex: %.md | $(BUILD_DIR)
+$(BUILD_DIR)/%.tex: %.md citation.lua | $(BUILD_DIR)
 	pandoc $(PANDOCOPTS) -f markdown -t latex -o $@ $<
 
 $(BUILD_DIR):
