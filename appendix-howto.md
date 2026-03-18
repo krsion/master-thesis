@@ -20,7 +20,7 @@ cd coolsoft
 make
 ```
 
-The program can be used as a C++ library, the simplest use is demonstrated in \cref{lst:ex}. A demonstration program that processes demonstration data is available in directory `demo/`, you can run the program on a demonstration dataset as follows:
+The program can be used as a C++ library, the simplest use is demonstrated in [@lst:ex]. A demonstration program that processes demonstration data is available in directory `demo/`, you can run the program on a demonstration dataset as follows:
 ```
 cd demo/
 ./bin/cool_process_data data/demo1

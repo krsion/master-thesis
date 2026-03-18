@@ -2,7 +2,7 @@ NAME=thesis
 ABSTRACT=abstract
 LATEXMKOPTS=-pdflua #you can also use -pdf for forcing pdflatex, if required
 LATEXMK=latexmk $(LATEXMKOPTS)
-PANDOCOPTS=--top-level-division=chapter --listings --biblatex
+PANDOCOPTS=--top-level-division=chapter --listings --lua-filter crossref-gen.lua --filter pandoc-crossref --biblatex
 BUILD_DIR := ./build
 CHAPTERS=$(addprefix $(BUILD_DIR)/, $(basename $(wildcard *.md)))
 LATEX_TEMPLATE=$(addprefix $(BUILD_DIR)/, $(notdir $(wildcard latex_template/*.tex latex_template/*.xmpdata)))
@@ -28,8 +28,8 @@ $(BUILD_DIR)/%.xmpdata: latex_template/%.xmpdata metadata.yaml | $(BUILD_DIR)
 	$(BUILD_TEMPLATE)
 
 # general building of chapters
-$(BUILD_DIR)/%.tex: %.md metadata.yaml | $(BUILD_DIR)
-	pandoc $(PANDOCOPTS) -f markdown -t latex -o $@ --metadata-file=metadata.yaml $<
+$(BUILD_DIR)/%.tex: %.md crossref-gen.lua metadata.yaml | $(BUILD_DIR)
+	pandoc $(PANDOCOPTS) -f markdown -t latex --metadata-file=metadata.yaml -o $@ $<
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)

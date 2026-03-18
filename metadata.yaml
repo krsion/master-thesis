@@ -38,7 +38,7 @@ info-page-small-font: false
 keywords-en:
   - key
   - words
-chapters:
+thesis_chapters:
   - 1-intro
   - 2-ch1
   - 3-ch2
@@ -86,4 +86,9 @@ biblatex_citation_style: numeric
 # biblatex have many citation styles like: numeric, authoryear-comp, alphabetic,
 # iso-numeric, iso-alphabetic and many others
 # for more information see: https://www.overleaf.com/learn/latex/Biblatex_citation_styles
+
+# configuration of pandoc-crossref
+cref: true
+chapters: true
+listings: true
 ---

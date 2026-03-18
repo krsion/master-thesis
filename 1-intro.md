@@ -30,3 +30,15 @@ Other examples of syntax:
 - [@glasman2010science, pp. iv, vi-xi, (xv)-(xvii) with suffix here]
 
 Additionally, you can use \LaTeX{} macros like `\citetitle` for printing book name.
+
+## Cross-referencing {- #chap:refs}
+
+For cross-referencing in Markdown, the citation syntax is used; when a colon `:` appears in the citation, it is interpreted as a reference to something in the text. For example, `[@chap:refs]` will be replaced by "Section 1.2" (or whatever the section number is) and will link to the section with label `chap:refs`. You can also use `\cref{chap:refs}` or `\Cref{chap:refs}` in \LaTeX{} for the same purpose.
+
+Examples:
+- `[@chap:refs]` is translated to `\cref{chap:refs}` and it will produce: [@chap:refs]
+- `[@Chap:refs]` (note the first letter is capital) is translated to `\Cref{chap:refs}` and it will produce: [@Chap:refs]
+- Of course, you can create references to more things like `[@Fig:f;@Fig:g]` will produce: [@Fig:f;@Fig:g]
+    - The capitalization of the first letter matters only for the first reference. The output of the `[@Fig:f;@fig:g]` will be the same as `[@Fig:f;@Fig:g]`
+
+This is done by custom lua filter `crossref-gen.lua`.
