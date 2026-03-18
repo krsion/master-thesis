@@ -61,7 +61,9 @@ abstract-en: |
 abstract-cs: |
   \xxx{You will need to submit both Czech and English abstract to the SIS, no matter what language you use in the thesis. If writing in English, translate the contents of \texttt{\textbackslash{}AbstractEN} into this field. In case you do not speak czech, your supervisor should be able to help you with the translation.}
 
-# these properties are only used when thesis is written in czech:
+###
+# These properties are only used when thesis is written in czech:
+###
 department-cs: \xxx{Název katedry či ústavu}
 deparment-type-cs: \xxx{Katedra}
 supervisors-department-cs: \xxx{Katedra}
@@ -70,6 +72,9 @@ study-branch-cs: \xxx{Studijní specializace}
 keywords-cs:
   - klíčová
   - slova
+###
+# End of czech-specific properties
+###
 
 # Possible to include additional latex packages, e.g. multirow for tables
 additional_packages:
