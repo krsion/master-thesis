@@ -36,12 +36,12 @@ After the program starts, control the data avenger with standard `WSAD` controls
 #include <iostream>
 
 int main() {
-	int i;
-	if(i = cool::ProcessAllData()) // returns 0 on error
-		std::cout << i << std::endl;
-	else
-		std::cerr << "error!" << std::endl;
-	return 0;
+  int i;
+  if(i = cool::ProcessAllData()) // returns 0 on error
+    std::cout << i << std::endl;
+  else
+    std::cerr << "error!" << std::endl;
+  return 0;
 }
 ```
 ```{=latex}
