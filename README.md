@@ -17,7 +17,7 @@ What's new:
 
 See also:
 - the [**pre-built
-  PDF**](https://exaexa.github.io/better-mff-thesis/thesis.pdf) for
+  PDF**](https://truemiskin.github.io/better-mff-thesis-md/thesis.pdf) for
   preview&details
 - the official template at
   [gitlab.mff.cuni.cz/teaching/thesis-templates](https://gitlab.mff.cuni.cz/teaching/thesis-templates/thesis-en)
