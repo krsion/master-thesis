@@ -1,4 +1,4 @@
-name: Thesis build
+name: build and verify PDFs
 
 on:
   push:
