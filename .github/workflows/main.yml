@@ -16,8 +16,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
-      - name: Install rsync
-        run: apt update && apt install -y rsync
+      - name: Install rsync, update old pandoc
+        run: apt update && apt install -y rsync pandoc
       - name: Build the thesis
         run: make
       - name: Upload artifacts
