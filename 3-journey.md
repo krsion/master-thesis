@@ -6,6 +6,8 @@ This chapter describes the iterative process of finding the right collaborative 
 
 Automerge [@automerge] is a widely-used CRDT library developed by Ink & Switch [@inkandswitch], a research lab where Martin Kleppmann is a key contributor. It provides JSON-like data structures --- maps, lists, text, and counters --- with automatic conflict resolution. It was the natural first choice: the Ink & Switch team has authored many of the foundational papers on local-first software and CRDTs that this thesis builds upon.
 
+Automerge's API is designed so that developers do not need to understand CRDTs. The programmer simply edits a JSON-like document through a `change()` callback, and Automerge handles conflict resolution, history tracking, and synchronization internally. With the `automerge-repo` and `@automerge/automerge-react` packages, syncing a document between peers requires just a few lines of code --- the React hook re-renders automatically when remote changes arrive. This low barrier to entry made Automerge an attractive starting point --- it is designed for developers who want collaborative editing without investing deeply in CRDT theory.
+
 ### Internal representation
 
 To represent Denicek's tagged document trees in Automerge, we used a *flat map* architecture. Each node was stored as an entry in a dictionary (`Record<string, Node>`), identified by a unique string ID. Parent-child relationships were stored separately as `children` arrays containing child IDs:
