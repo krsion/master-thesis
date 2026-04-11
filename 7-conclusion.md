@@ -10,7 +10,7 @@ The implementation was validated on six formative examples demonstrating custom 
 
 ## Future work {#sec:future}
 
-**Optimized materialization.** The current replay-from-scratch approach replays all events on every materialization. An incremental version that caches the materialized state at known frontiers and only replays new events would improve performance for long-lived documents. The current implementation could serve as a *reference oracle* for testing the optimized version: generate random edit sequences, run both implementations, and compare outputs.
+**Optimized materialization.** The current replay-from-scratch approach replays all events on every materialization. An incremental version that caches the materialized state at known frontiers and only replays new events would improve performance for long-lived documents. The current implementation could serve as a *reference oracle* for validating the optimized version: generate random edit sequences, run both implementations, and compare outputs. This approach could be further strengthened by model-guided fuzzing [@ozkan2025modelfuzz], which uses an abstract formal model (such as the reference implementation) to guide test generation and achieve higher coverage of subtle concurrency-related bugs than random fuzzing alone.
 
 **Formal convergence analysis.** The OT transformation rules have been tested empirically but not formally verified. A formal analysis --- potentially using a model checker or proof assistant --- would strengthen the convergence guarantees.
 
