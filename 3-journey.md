@@ -43,7 +43,7 @@ When two peers concurrently wrap the same node, both execute these three steps i
 - Both peers removed `"li1"` from the original parent --- this converges correctly.
 - Both peers added `"li1"` to the wrapper's `children` --- but if the wrappers are different (because the deterministic ID scheme failed, or the wraps target different parent types), the node ends up referenced from *two parents*, breaking the tree invariant that each node has exactly one parent.
 
-The deterministic ID workaround was fragile: it did not scale to nested wraps, and any mismatch in the wrapper creation logic would produce an inconsistent tree. We also discovered issues with concurrent wrap and edit: while the wrapped node's data was correctly updated (both peers could modify the `nodes` dictionary entry independently), the tree structure could become inconsistent.
+The deterministic ID workaround was fragile: it did not scale to nested wraps, and any mismatch in the wrapper creation logic would produce an inconsistent tree. Automatic cleanup of duplicate parent references is not possible either --- a node appearing in two `children` arrays is *observationally indistinguishable* from an intentional structure where the user added the same reference to two lists. Any cleanup algorithm would risk deleting legitimate user data.
 
 These problems motivated the move to Loro, which provides a native movable tree CRDT.
 
