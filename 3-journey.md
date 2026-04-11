@@ -17,10 +17,8 @@ To represent Denicek's tagged document trees in Automerge, we used a *flat map* 
     "n1": { "kind": "element", "tag": "div",
             "children": ["n2", "n3"] },
     "n2": { "kind": "element", "tag": "ul",
-            "children": ["n4"] },
-    "n3": { "kind": "value", "value": "Hello" },
-    "n4": { "kind": "element", "tag": "li",
-            "children": ["n5"] }
+            "children": [] },
+    "n3": { "kind": "value", "value": "Hello" }
   }
 }
 ```
