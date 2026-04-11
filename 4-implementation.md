@@ -90,6 +90,14 @@ The key transformation rules are:
 - **Delete**: if a concurrent edit targets a field that was deleted, the edit becomes a no-op conflict.
 - **PushFront**: shifts numeric indices in concurrent selectors (e.g., `items/0` becomes `items/1`).
 
+### Wildcard edits and concurrent insertions {#sec:wildcard-concurrent}
+
+A notable property of the OT-based replay approach is how wildcard edits interact with concurrent insertions. When Alice applies `updateTag("speakers/*", "tr")` --- changing the tag of every item in the list --- and Bob concurrently inserts a new item via `pushBack("speakers", ...)`, the OT transformation ensures that Alice's wildcard edit also affects Bob's newly inserted item.
+
+This happens because during deterministic replay, Bob's `pushBack` is applied first (or after, depending on topological order), and Alice's wildcard `*` expands to include *all items that exist at the point of replay* --- including Bob's concurrent insertion. The result is that the newly added item also receives the tag update, even though it did not exist when Alice made her edit.
+
+This semantics is uncommon in CRDTs. In most CRDT-based systems, an operation only affects the items that existed at the time the operation was created. Newly inserted items are not retroactively affected by concurrent bulk operations. The replay-based approach naturally achieves the "edit-all-including-concurrent-additions" semantics because the wildcard is expanded at replay time, not at creation time.
+
 ## Undo and redo {#sec:undo}
 
 Each `Edit` subclass implements a `computeInverse(preDoc)` method that returns the inverse edit. For example, the inverse of `RecordAddEdit("field", value)` is `RecordDeleteEdit("field")`, and the inverse of `WrapRecordEdit` is `UnwrapRecordEdit`.

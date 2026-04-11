@@ -118,6 +118,8 @@ This is the key demonstration of the system's convergence properties. Two peers 
 
 When they reconnect and sync, the event DAG shows a *concurrent fork*: Alice's structural edits (5 events) and Bob's insertions (2 events) branch from the same parent event and merge at the frontier.
 
+This example demonstrates the *wildcard-affects-concurrent-insertions* property described in [@Sec:wildcard-concurrent]: Alice's wildcard edits (`updateTag("speakers/*", ...)`, `wrapList("speakers/*", ...)`) expand at replay time to include Bob's concurrently inserted items. The result is that Bob's new speakers are automatically wrapped in `<tr>` lists and receive the split formula cells, even though they were inserted as plain `<li>` items into a `<ul>` list. This semantics is a direct consequence of the replay-based OT approach and is uncommon in traditional CRDTs.
+
 The OT transformation rules handle this correctly:
 
 - Bob's `pushBack` edits originally target a `<ul>` list and insert `<li>` items. After merging with Alice's events, the OT transforms them: `updateTag` changes the inserted items' tags, `wrapList` wraps them in `<tr>` lists, and `pushBack` adds the split formula cells.
