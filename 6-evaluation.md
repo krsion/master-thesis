@@ -26,14 +26,14 @@ All six formative examples described in [@Chap:formative] are implemented and pa
 
 : Formative example test results. {#tbl:formative-results}
 
-| Example | Test file | Features demonstrated |
-|---------|-----------|----------------------|
-| Hello World | `hello-world-formative.test.ts` | Custom primitive edits, wildcard replay |
-| Counter | `counter-formative.test.ts` | Formula engine, recording/replay |
-| Conference List | `conference-list-formative.test.ts` | Composer pattern, concurrent pushBack |
-| Conference Table | `conference-list-formative.test.ts` | Structural transformation, split formulas |
-| Conference Budget | `conference-budget-formative.test.ts` | Formula references, concurrent additions |
-| Todo App | `todo-formative.test.ts` | Multi-step recording, pushFront + copy |
+| Example | Test file | Features |
+|---------|-----------|----------|
+| Hello World | `hello-world` | Custom edits, wildcard replay |
+| Counter | `counter` | Formulas, recording/replay |
+| Conf. List | `conference-list` | Recorded adds, concurrent pushBack |
+| Conf. Table | `conference-list` | Structural transform, split formulas |
+| Conf. Budget | `conference-budget` | Formula references, concurrent adds |
+| Todo App | `todo` | Multi-step recording, copy |
 
 The conference table example with concurrent editing is the most significant result: it demonstrates that OT correctly transforms concurrent list insertions through structural changes (tag updates, wraps, formula additions), producing a consistent merged table from independently edited list and table structures.
 
