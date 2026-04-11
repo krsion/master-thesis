@@ -10,20 +10,20 @@ graph TB
 [[<span style='color:#0a3069'>'John, john@ex.com'</span>]]
 </pre>"]
 
+    S3["<pre style='text-align:left'>
+<span style='color:#6e7781'>// ref inserted before the value</span>
+[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'John, john@ex.com'</span>]]
+</pre>"]
+
+    S4["<pre style='text-align:left'>
+<span style='color:#6e7781'>// new item added to the list</span>
+[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'John, john@ex.com'</span>],
+ <span style='color:#0a3069'>'Ada, ada@ex.com'</span>]
+</pre>"]
+
     S1 -- "wrapList list/0" --> S2
-
-    subgraph diverge["Loro vs mydenicek: how is the ref stored?"]
-        LORO["<pre style='text-align:left'>
-<span style='color:#6e7781'>// Loro: absolute node ID</span>
-[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }, <span style='color:#0a3069'>'John'</span>]]
-</pre>"]
-        CUSTOM["<pre style='text-align:left'>
-<span style='color:#6e7781'>// mydenicek: relative path</span>
-[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'John'</span>]]
-</pre>"]
-    end
-
-    S2 -- "pushFront list/0 (ref to sibling)" --> diverge
+    S2 -- "pushFront list/0 (ref ../1)" --> S3
+    S3 -- "pushBack list ('Ada, ada@ex.com')" --> S4
 
     subgraph replayLoro["Replay wrapList + pushFront on list/1 (Loro)"]
         RL["<pre style='text-align:left'>
@@ -41,8 +41,8 @@ graph TB
 </pre>"]
     end
 
-    LORO -- "replay wrapList + pushFront on list/1" --> RL
-    CUSTOM -- "replay wrapList + pushFront on list/1" --> RC
+    S4 -- "replay wrapList + pushFront on list/1" --> RL
+    S4 -- "replay wrapList + pushFront on list/1" --> RC
 
     style RL fill:#fce8e6,stroke:#ea4335,stroke-width:2px
     style RC fill:#e6f4ea,stroke:#34a853,stroke-width:2px
