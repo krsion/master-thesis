@@ -163,7 +163,7 @@ Programming by demonstration is implemented through event recording and replay:
 
 Strict indices (`!0`) are essential for replay: a regular index `0` would be shifted by the later `pushFront` (alice:2), causing the copy to target the wrong item. The strict index `!0` refers to position 0 *at the time of the original edit*, which OT does not shift through later insertions.
 
-This approach is simple but has quadratic cost: each replay traverses the entire event history to resolve the edit. A history with many replays (e.g., clicking the "Add Speaker" button 100 times) causes each subsequent replay to traverse all previous events including earlier replays. This is acceptable for research purposes but would need optimization for production use, as discussed in [@Sec:future].
+To avoid re-materializing the entire history on every replay, the event graph caches the resolved edit list from the last full materialization. Subsequent replay calls scan the cached list instead of replaying from scratch. The cache is invalidated when new events are added. This reduces the cost of N consecutive replays from N full materializations to one materialization plus N scans of the cached list.
 
 ## Sync protocol {#sec:sync}
 
