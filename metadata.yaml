@@ -72,7 +72,6 @@ keywords-cs:
 
 additional_packages:
   - multirow
-  - minted
 
 ### This configutation below most likely you don't need to change
 
