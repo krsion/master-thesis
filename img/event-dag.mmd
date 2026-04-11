@@ -1,0 +1,35 @@
+graph TD
+    E0["alice:0<br/>add heading"]
+    E1["alice:1<br/>add speakers"]
+    E2["alice:2<br/>pushBack Ada"]
+    E3["alice:3<br/>pushBack Grace"]
+
+    E4["alice:4<br/>updateTag table"]
+    E5["alice:5<br/>updateTag td"]
+    E6["alice:6<br/>wrapList tr"]
+    E7["alice:7<br/>wrapRecord split-first"]
+    E8["alice:8<br/>pushBack split-rest"]
+
+    B0["bob:0<br/>pushBack Alan"]
+    B1["bob:1<br/>pushBack Margaret"]
+
+    E9["alice:9<br/>set title<br/><i>(merge commit)</i>"]
+
+    E0 --> E1 --> E2 --> E3
+    E3 --> E4 --> E5 --> E6 --> E7 --> E8
+    E3 --> B0 --> B1
+    E8 --> E9
+    B1 --> E9
+
+    style E0 fill:#e8f0fe,stroke:#0078d4
+    style E1 fill:#e8f0fe,stroke:#0078d4
+    style E2 fill:#e8f0fe,stroke:#0078d4
+    style E3 fill:#e8f0fe,stroke:#0078d4
+    style E4 fill:#e8f0fe,stroke:#0078d4
+    style E5 fill:#e8f0fe,stroke:#0078d4
+    style E6 fill:#e8f0fe,stroke:#0078d4
+    style E7 fill:#e8f0fe,stroke:#0078d4
+    style E8 fill:#e8f0fe,stroke:#0078d4
+    style B0 fill:#e6f4ea,stroke:#34a853
+    style B1 fill:#e6f4ea,stroke:#34a853
+    style E9 fill:#fff4e5,stroke:#f5a623,stroke-width:2px

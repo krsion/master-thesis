@@ -1,0 +1,20 @@
+graph TD
+    subgraph "Before rename"
+        B1["speakers/0/name = 'Ada'"]
+        B2["Concurrent edit targets:<br/><b>speakers</b>/0/name"]
+    end
+
+    subgraph "Rename: speakers → talks"
+        R["rename('speakers', 'talks')"]
+    end
+
+    subgraph "After OT transform"
+        A1["talks/0/name = 'Ada'"]
+        A2["Transformed edit targets:<br/><b>talks</b>/0/name ✅"]
+    end
+
+    B1 --> R --> A1
+    B2 --> R --> A2
+
+    style R fill:#e8f0fe,stroke:#0078d4,stroke-width:2px
+    style A2 fill:#e6f4ea,stroke:#34a853

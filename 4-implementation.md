@@ -4,7 +4,11 @@ This chapter describes the architecture and implementation of mydenicek --- a cu
 
 ## Architecture overview {#sec:architecture}
 
-The system is organized in four layers:
+The system is organized in four layers, as shown in [@Fig:architecture].
+
+![Architecture of the mydenicek monorepo. The web application depends on React bindings and the sync server, both of which depend on the core CRDT engine.](img/architecture.png){#fig:architecture width=70%}
+
+The layers are:
 
 - **`packages/core`** (`@mydenicek/core`) --- the CRDT engine. Contains the document model, event DAG, edit types, OT transformation rules, undo/redo, formula engine, and recording/replay. Zero external runtime dependencies; pure TypeScript.
 - **`packages/react`** (`@mydenicek/react`) --- React bindings. The `useDenicek` hook provides reactive document state, mutation helpers, and sync lifecycle management.
@@ -36,6 +40,10 @@ The event DAG is the core data structure of the CRDT. Each edit creates an immut
 - **Parents** --- the set of event IDs that form the *frontier* at the time the event was created. These are the most recent events the peer had seen. An event with multiple parents represents a state that has merged concurrent branches.
 - **Edit** --- the actual edit operation (add, delete, rename, set, pushBack, wrapRecord, etc.) with its target selector and arguments.
 - **Vector clock** --- a map from peer ID to the highest sequence number seen from that peer. The vector clock enables causal ordering: event A *happens-before* event B if A's vector clock is dominated by B's. Two events are *concurrent* if neither dominates the other.
+
+[@Fig:event-dag] shows an example event DAG with two peers. Alice creates a conference list and refactors it to a table (blue events). Bob concurrently adds speakers (green events). Event `alice:9` is a merge commit with two parents, reducing the frontier to a single point.
+
+![Example event DAG with concurrent editing. Alice (blue) refactors a list to a table while Bob (green) adds speakers. The merge commit has two parents.](img/event-dag.png){#fig:event-dag width=80%}
 
 ### Materialization
 
@@ -70,7 +78,11 @@ The system supports the following edit types:
 | `CopyEdit` | Copy a subtree from a source to a target | Any |
 | `ApplyPrimitiveEdit` | Apply a registered custom edit | Primitive |
 
-Each structural edit (rename, wrap, delete) has a `transformSelector` method that rewrites the selector of a concurrent edit. The key transformation rules are:
+Each structural edit (rename, wrap, delete) has a `transformSelector` method that rewrites the selector of a concurrent edit. [@Fig:ot-rename] illustrates the rename transformation.
+
+![OT rename transformation. A concurrent edit targeting `speakers/0/name` is transformed to `talks/0/name` after a rename operation.](img/ot-rename.png){#fig:ot-rename width=70%}
+
+The key transformation rules are:
 
 - **Rename**: if a concurrent edit targets `speakers/0/name` and a rename changes `speakers` to `talks`, the concurrent edit's selector is transformed to `talks/0/name`.
 - **WrapRecord**: if a concurrent edit targets `speakers/0/value` and a wrap turns `value` into `{$tag: "wrapper", value: <original>}`, the concurrent edit's selector gains a segment: `speakers/0/value/value`.
@@ -104,6 +116,12 @@ Programming by demonstration is implemented through event recording and replay:
 The replay mechanism uses the same OT infrastructure as materialization --- the difference is that during replay, only the single replayed event is transformed, not the entire history.
 
 ## Sync protocol {#sec:sync}
+
+The sync protocol uses WebSocket connections with a simple message exchange, illustrated in [@Fig:sync-protocol].
+
+![Sync protocol sequence diagram. Alice and Bob connect to the server, exchange initial documents and events, and converge to the same state.](img/sync-protocol.png){#fig:sync-protocol width=80%}
+
+The protocol consists of three phases:
 
 The sync protocol uses WebSocket connections with a simple message exchange:
 

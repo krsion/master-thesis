@@ -35,7 +35,9 @@ The lack of atomic move operations led to a fundamental problem with the *wrap* 
 2. Remove `"li1"` from the original parent's `children` array
 3. Add `"li1"` to `wrapper`'s `children` array
 
-When two peers concurrently wrap the same node, both execute these three steps independently. After merging:
+When two peers concurrently wrap the same node, both execute these three steps independently, as shown in [@Fig:concurrent-wrap]. After merging:
+
+![The concurrent wrap problem in Automerge. Both Alice and Bob wrap the same node, resulting in the node appearing under two parents.](img/concurrent-wrap.png){#fig:concurrent-wrap width=85%}
 
 - Both peers created a wrapper node. We used a deterministic ID scheme (`wrapper-${wrappedNodeId}`) so that both peers create the "same" wrapper, and Automerge's LWW resolution picks one tag.
 - Both peers removed `"li1"` from the original parent --- this converges correctly.

@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant Alice
+    participant Server
+    participant Bob
+
+    Alice->>Server: hello(roomId)
+    Server-->>Alice: initialDocument (if room exists)
+
+    Alice->>Server: sync(events, frontiers)
+    Server-->>Alice: sync(missingEvents, frontiers)
+
+    Bob->>Server: hello(roomId)
+    Server-->>Bob: initialDocument
+
+    Bob->>Server: sync(events, frontiers)
+    Server-->>Bob: sync(missingEvents, frontiers)
+
+    Note over Alice,Bob: Both connected, editing concurrently
+
+    Alice->>Server: sync([alice:4, alice:5], frontiers)
+    Server-->>Bob: sync([alice:4, alice:5], frontiers)
+
+    Bob->>Server: sync([bob:0, bob:1], frontiers)
+    Server-->>Alice: sync([bob:0, bob:1], frontiers)
+
+    Note over Alice,Bob: Both peers converge to same state
