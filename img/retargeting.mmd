@@ -1,28 +1,56 @@
 graph TB
-    S1["{ $tag: li,
-      children: [ 'John, john@ex.com' ] }"]
-    S2["{ $tag: tr,
-      0: { $tag: split-first,
-           source: 'John, john@ex.com' } }"]
-    S3["{ $tag: tr,
-      0: { $tag: split-first,
-           source: 'John, john@ex.com' },
-      1: { $tag: split-rest,
-           ref: '../0/source' } }"]
+    S1["<pre>
+{
+  $tag: 'li',
+  $children: [
+    'John, john@ex.com'
+  ]
+}
+</pre>"]
+    S2["<pre>
+{
+  $tag: 'tr',
+  0: {
+    $tag: 'split-first',
+    source: 'John, john@ex.com'
+  }
+}
+</pre>"]
+    S3["<pre>
+{
+  $tag: 'tr',
+  0: {
+    $tag: 'split-first',
+    source: 'John, john@ex.com'
+  },
+  1: {
+    $tag: 'split-rest',
+    ref: '../0/source'
+  }
+}
+</pre>"]
 
     S1 -- "wrapRecord list/0" --> S2
     S2 -- "pushBack list/0 (create ref node)" --> S3
 
     subgraph replay["Replay same edits on list/1"]
-        S4["{ $tag: tr,
-          0: { $tag: split-first,
-               source: 'Ada, ada@ex.com' },
-          1: { $tag: split-rest,
-               ref: ??? } }"]
+        S4["<pre>
+{
+  $tag: 'tr',
+  0: {
+    $tag: 'split-first',
+    source: 'Ada, ada@ex.com'
+  },
+  1: {
+    $tag: 'split-rest',
+    ref: ???
+  }
+}
+</pre>"]
         OK["mydenicek: ref = '../0/source'
-resolves to Ada ✅"]
+→ resolves to Ada ✅"]
         BAD["Loro: ref = nodeId_abc
-resolves to John from row 0 ❌"]
+→ resolves to John from row 0 ❌"]
     end
 
     S3 -- "replay on list/1" --> S4
