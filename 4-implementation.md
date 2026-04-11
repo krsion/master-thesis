@@ -194,16 +194,25 @@ The command bar at the bottom provides a terminal-style interface for executing 
 
 On first load, the application initializes a template document (a conference list) and registers application-specific primitive edits and recorded action sequences. When joining an existing room, the application fetches the current document state from the sync server instead of using the template.
 
-## Continuous integration and deployment {#sec:ci-deploy}
+## Continuous integration {#sec:ci}
 
-The project uses GitHub Actions for continuous integration and deployment. Every push to the `main` branch triggers five parallel CI jobs: formatting check, linting (including JSDoc validation), type checking, tests (206+ unit tests, 6 formative example tests, sync tests), and build verification. All five must pass before any deployment proceeds.
+The project uses GitHub Actions for continuous integration. Every push to the `main` branch triggers five parallel CI jobs: formatting check, linting (including JSDoc validation), type checking, tests (206+ unit tests, 6 formative example tests, sync tests), and build verification. All five must pass before any deployment proceeds.
 
-After CI passes, three deployment steps run:
-
-**Web application to GitHub Pages.** The Vite build output (`apps/mywebnicek/dist`) is deployed as a static site to GitHub Pages. The application is a single-page app that connects to the sync server via WebSocket.
-
-**Sync server to Azure Container Apps.** The sync server runs as a Docker container on Azure Container Apps. Container Apps was preferred over Azure App Service because it supports scale-to-zero --- the sync server is a lightweight WebSocket relay that is only needed when users are actively collaborating, and Container Apps incurs no cost when idle. App Service, by contrast, requires an always-running plan even with no traffic. The deployment builds a Docker image via Azure Container Registry, then deploys it using a Bicep infrastructure-as-code template. Event data is persisted to an Azure Files share mounted into the container --- Azure Files was chosen over Blob Storage because it provides a POSIX file system interface, allowing the sync server to read and write JSON files directly without needing a storage SDK.
-
-**End-to-end tests.** After both deployments complete, Playwright browser tests run against the live site to verify that two browser peers can connect, sync edits, and produce consistent document states.
+After CI passes, the web application is deployed to GitHub Pages as a static site, and the sync server is deployed to Azure (see [@Sec:hosting]). After both deployments complete, Playwright browser tests run against the live site to verify that two browser peers can connect, sync edits, and produce consistent document states.
 
 JSR package publishing is a separate manual workflow (`deno publish`) triggered on demand, since package versions should be bumped deliberately rather than on every push.
+
+## Hosting {#sec:hosting}
+
+**Web application.** The Vite build output is deployed as a static site to GitHub Pages. The application is a single-page app that connects to the sync server via WebSocket.
+
+**Sync server.** The sync server runs as a Docker container on Azure Container Apps. Several Azure hosting options were considered:
+
+- **Azure App Service** provides managed web hosting but requires an always-running plan even with no traffic. The sync server is a lightweight WebSocket relay that is only needed when users are actively collaborating, making always-on hosting wasteful.
+- **Azure Container Instances (ACI)** supports running containers on demand, but does not support scale-to-zero --- a container instance is billed for the entire time it is running, and must be explicitly started and stopped. ACI also lacks built-in HTTPS ingress and automatic restarts.
+- **Azure Kubernetes Service (AKS)** provides full container orchestration, but requires managing a Kubernetes cluster --- significant operational overhead for a single container running a research prototype.
+- **Azure Container Apps** combines the simplicity of ACI with automatic scale-to-zero, built-in HTTPS ingress, and managed infrastructure. It incurs no cost when idle and scales up automatically when WebSocket connections arrive.
+
+Container Apps was chosen as the best fit: minimal operational overhead, zero cost at rest, and sufficient for a single-container research deployment.
+
+The deployment builds a Docker image via Azure Container Registry, then deploys it using a Bicep infrastructure-as-code template. Event data is persisted to an Azure Files share mounted into the container --- Azure Files was chosen over Blob Storage or Table Storage because it provides a POSIX file system interface, allowing the sync server to read and write JSON files directly without needing a storage SDK.
