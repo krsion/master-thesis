@@ -194,7 +194,7 @@ The command bar at the bottom provides a terminal-style interface for executing 
 
 On first load, the application initializes a template document (a conference list) and registers application-specific primitive edits and recorded action sequences. When joining an existing room, the application fetches the current document state from the sync server instead of using the template.
 
-## Continuous integration {#sec:ci}
+## Continuous integration and deployment {#sec:ci}
 
 The project uses GitHub Actions for continuous integration. Every push to the `main` branch triggers five parallel CI jobs: formatting check, linting (including JSDoc validation), type checking, tests (206+ unit tests, 6 formative example tests, sync tests), and build verification. All five must pass before any deployment proceeds.
 
