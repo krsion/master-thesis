@@ -168,10 +168,28 @@ Every sync message includes the sender's current *frontiers* --- the set of even
 
 ## Web application {#sec:webapp}
 
-The web application (`apps/mywebnicek`) provides three synchronized views of the document:
+The web application (`apps/mywebnicek`) serves as both a demonstration of the CRDT engine and a tool for interactively exploring collaborative editing scenarios. It is built with React 19 and Microsoft's Fluent UI component library, and connects to the sync server via WebSocket.
+
+### Integration with the core engine
+
+The application uses the `useDenicek` hook from `@mydenicek/react`, which wraps the core `Denicek` instance and provides:
+
+- **Reactive document state** --- the hook re-renders the component whenever the document changes, whether from local edits or remote events arriving via sync.
+- **Sync lifecycle** --- the hook manages the WebSocket connection, automatically sending local events to the server and ingesting remote events. Connection status (connected, connecting, disconnected) is displayed in the header.
+- **Peer identity** --- each browser tab generates a unique peer ID (stored in `sessionStorage` to survive page refreshes) that identifies events in the causal DAG.
+
+### User interface
+
+The interface provides three synchronized panels, each showing a different aspect of the same document state:
 
 - **Rendered view** --- the document tree rendered as HTML elements based on node tags. Formula nodes display their evaluated results. Buttons trigger replay of recorded edit sequences.
-- **Raw JSON view** --- syntax-highlighted JSON representation of the plain document tree.
+- **Raw JSON view** --- syntax-highlighted JSON representation of the materialized document tree, useful for understanding the exact structure.
 - **Event graph view** --- an SVG visualization of the causal DAG showing events as nodes, causal dependencies as edges, peer colors, and frontier indicators. Clicking an event shows its details (edit type, selector, vector clock).
 
-The command bar at the bottom provides a terminal-style interface for executing edits. The syntax is `/selector command args` --- for example, `/speakers updateTag table` or `/speakers/*/0/contact splitFirst , `. Tab completion suggests path segments and valid commands for the selected node type. Registered primitive edits are automatically available as commands.
+### Command bar
+
+The command bar at the bottom provides a terminal-style interface for executing edits. The syntax is `/selector command args` --- for example, `/speakers updateTag table` or `/speakers/*/0/contact splitFirst , `. Tab completion suggests path segments based on the current document structure, and valid commands for the selected node type. All registered primitive edits (including application-defined ones like `splitFirst` and `splitRest`) are automatically available as commands via `listRegisteredPrimitiveEdits()`.
+
+### Document initialization
+
+On first load, the application initializes a template document (a conference list) and registers application-specific primitive edits and recorded action sequences. When joining an existing room, the application fetches the current document state from the sync server instead of using the template.
