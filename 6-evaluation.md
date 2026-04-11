@@ -4,7 +4,9 @@ This chapter evaluates the mydenicek implementation against the original goals, 
 
 ## Specification divergence {#sec:divergence}
 
-The original project specification prescribed Loro CRDTs as the synchronization substrate with ID-addressed nodes. The implementation diverged to a custom OT-based event DAG with path-addressed selectors. The key divergences are summarized in the following table:
+The original project specification prescribed Loro CRDTs as the synchronization substrate with ID-addressed nodes. The implementation diverged to a custom OT-based event DAG with path-addressed selectors. The key divergences are summarized in [@Tbl:divergence].
+
+: Specification vs. implementation divergences. {#tbl:divergence}
 
 | Aspect | Specification | Implementation |
 |--------|--------------|----------------|
@@ -20,7 +22,9 @@ The divergence was justified by the findings described in [@Chap:journey]: the D
 
 ## Formative example results {#sec:results}
 
-All six formative examples described in [@Chap:formative] are implemented and pass their respective tests:
+All six formative examples described in [@Chap:formative] are implemented and pass their respective tests, as shown in [@Tbl:formative-results].
+
+: Formative example test results. {#tbl:formative-results}
 
 | Example | Test file | Features demonstrated |
 |---------|-----------|----------------------|

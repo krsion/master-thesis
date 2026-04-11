@@ -61,7 +61,9 @@ The *frontier* is the set of event IDs that have no descendants --- the "tips" o
 
 ## Edit types and OT rules {#sec:edit-types}
 
-The system supports the following edit types:
+The system supports the following edit types, listed in [@Tbl:edit-types].
+
+: Edit types supported by the mydenicek CRDT engine. {#tbl:edit-types}
 
 | Edit type | Description | Target |
 |-----------|-------------|--------|
