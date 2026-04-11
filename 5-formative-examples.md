@@ -2,26 +2,102 @@
 
 This chapter demonstrates the mydenicek system through six formative examples. Each example illustrates a different aspect of the system's capabilities and is backed by a passing test in the repository. The examples progress from simple operations to complex concurrent structural transformations.
 
-## Hello World: Custom Primitive Edits and Replay
+## Hello World: custom primitive edits and replay {#sec:hello-world}
 
-\todo{Capitalize example: register custom edit, apply to one item, replay with wildcard to all items. Shows extensibility and wildcard replay.}
+The first example demonstrates two fundamental capabilities: *custom primitive edits* and *wildcard replay*.
 
-## Counter: Formulas and Programming by Demonstration
+We start with a list of messages with inconsistent capitalization. A custom primitive edit `capitalize` is registered that title-cases a string. The edit is applied to one message on a "recorded" peer, then the events are synced to a "replay" peer. The replay peer replays the same edit targeting `messages/*` --- the wildcard causes the capitalize transformation to be applied to every item in the list.
 
-\todo{Start with value=0. Record: wrapRecord in x-formula-plus, rename to left, add right=1. Button replays these 3 edits. Each click creates nested formula tree. Shows formula recomputation + recording/replay.}
+```typescript
+// Register a custom primitive edit
+registerPrimitiveEdit("capitalize", (value) => {
+  if (typeof value !== "string") throw new Error("expects string");
+  return value.toLowerCase().split(" ")
+    .map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
+});
 
-## Conference List: The Composer Pattern
+// Apply to one message, sync, then replay on all
+const eventId = recordedPeer.applyPrimitiveEdit("messages/0", "capitalize");
+sync(recordedPeer, replayPeer);
+replayPeer.replayEditFromEventId(eventId, "messages/*");
+// Result: all messages title-cased
+```
 
-\todo{Flat list with "Name, email" entries. Add button: pushFront empty item + copy from input. Two peers add speakers concurrently --- both appear after sync. Shows basic concurrent list editing.}
+This example shows that the CRDT is extensible --- users can register domain-specific transformations that participate in the event DAG and can be replayed like any other edit.
 
-## Conference Table: Structural Transformation
+## Counter: formulas and programming by demonstration {#sec:counter}
 
-\todo{Start from the conference list. Alice refactors: updateTag table, updateTag td, wrapList tr, wrapRecord split-first, pushBack split-rest with $ref. Shows schema evolution --- structural edits transform a flat list into a two-column table with formula-based splitting.}
+The counter example demonstrates the *formula engine* and *recording/replay* (programming by demonstration).
 
-## Conference Table: Concurrent Editing
+The document starts with a simple `counter/value = 0`. We record three edits that implement "increment":
 
-\todo{The key demo: Alice refactors list to table (offline). Bob adds speakers to list (offline, concurrent). After merge: Bob's items appear as table rows --- OT transformed li->tr/td through Alice's structural changes. Show the 4 screenshots: initial, Alice, Bob, merged. Event graph shows the concurrent fork.}
+1. `wrapRecord("counter/value", "value", "x-formula-plus")` --- wraps the value in a formula node tagged `x-formula-plus`
+2. `rename("counter/value", "value", "left")` --- renames the wrapped value to `left` (the first operand)
+3. `add("counter/value", "right", 1)` --- adds `right = 1` (the second operand)
 
-## Conference Budget: Formulas with References
+These three event IDs are stored as replay steps in a button node. Each time the button is "clicked" (the steps are replayed), a new `x-formula-plus` layer wraps the previous result:
 
-\todo{Table with speaker fees. Sum formula references all fee cells via wildcard $ref. Concurrent add of a new speaker --- the sum formula automatically includes the new row. Shows formula + concurrent editing integration.}
+```
+0 → { $tag: "x-formula-plus", left: 0, right: 1 }     = 1
+  → { $tag: "x-formula-plus",
+      left: { $tag: "x-formula-plus", left: 0, right: 1 },
+      right: 1 }                                        = 2
+```
+
+The formula engine evaluates the nested structure recursively: `((0 + 1) + 1) = 2`. This pattern works for any operation --- multiplication, concatenation, or custom formulas.
+
+## Conference List: the composer pattern {#sec:conf-list}
+
+The conference list demonstrates the *composer pattern* --- a reusable UI pattern where an input field and a button work together to add items to a list.
+
+The document contains a list of speakers (each with a `"Name, email"` string), an input field, and an "Add" button. We record two edits:
+
+1. `pushFront("conferenceList/items", { $tag: "li", text: "" })` --- insert an empty item at the front
+2. `copy("conferenceList/items/!0/text", "conferenceList/composer/input/value")` --- copy the input's current value into the new item
+
+The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, OT transforms this index if concurrent insertions have shifted it.
+
+When the button is replayed, it creates a new item and fills it with whatever text is currently in the input field. Two peers can concurrently add speakers --- after sync, both items appear in the list.
+
+## Conference Table: structural transformation {#sec:conf-table}
+
+The conference table example is the most complex formative example. It demonstrates *schema evolution* --- refactoring a flat list into a structured table using only the edit operations available in the CRDT.
+
+Starting from the conference list (a `<ul>` with `<li>` items containing `"Name, email"` strings), Alice performs the following structural transformation:
+
+1. `updateTag("speakers", "table")` --- change the list tag from `ul` to `table`
+2. `updateTag("speakers/*", "td")` --- change each item's tag from `li` to `td`
+3. `wrapList("speakers/*", "tr")` --- wrap each `<td>` in a `<tr>` list
+4. `wrapRecord("speakers/*/0/contact", "source", "split-first")` --- wrap the contact string in a `split-first` formula node
+5. `pushBack("speakers/*", ...)` --- add a second `<td>` with a `split-rest` formula referencing the first cell's contact source via `$ref: "../../0/contact/source"`
+
+After this transformation, each table row has two cells:
+
+- **Name cell**: the `split-first` formula evaluates the original `"Ada Lovelace, ada@example.com"` and returns `"Ada Lovelace"`
+- **Email cell**: the `split-rest` formula references the same source string and returns `"ada@example.com"`
+
+The wildcard `*` in steps 2--5 ensures that the transformation is applied to every row simultaneously. All five edits are recorded as events in the DAG.
+
+## Conference Table: concurrent editing {#sec:conf-concurrent}
+
+This is the key demonstration of the system's convergence properties. Two peers start from the same conference list, disconnect, and make concurrent edits:
+
+- **Alice** (offline) performs the structural transformation described above --- refactoring the list into a table with split-first/split-rest formula columns.
+- **Bob** (offline) adds two new speakers to the list via `pushBack`.
+
+When they reconnect and sync, the event DAG shows a *concurrent fork*: Alice's structural edits (5 events) and Bob's insertions (2 events) branch from the same parent event and merge at the frontier.
+
+The OT transformation rules handle this correctly:
+
+- Bob's `pushBack` edits originally target a `<ul>` list and insert `<li>` items. After merging with Alice's events, the OT transforms them: `updateTag` changes the inserted items' tags, `wrapList` wraps them in `<tr>` lists, and `pushBack` adds the split formula cells.
+- The result is a table containing all four speakers --- the original two from the initial document plus Bob's two concurrent additions --- each with correctly split name and email columns.
+
+The event graph visualization in the web application shows this fork-and-merge pattern clearly: two branches of events with different peer colors converging at a merge point.
+
+## Conference Budget: formulas with references {#sec:conf-budget}
+
+The conference budget example demonstrates formulas that reference other nodes via `$ref` paths, combined with concurrent editing.
+
+The document contains a table of speakers with fee columns. A `sum` formula references all fee cells via a wildcard path (`/speakers/*/fee`). When a new speaker is added concurrently by another peer, the wildcard reference automatically includes the new row --- the sum formula produces the correct total without any manual update.
+
+This example validates that the formula engine correctly handles references that resolve to different sets of nodes as the document evolves through concurrent edits.
