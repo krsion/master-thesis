@@ -61,11 +61,11 @@ Loro addressed the three main problems we had with Automerge:
 
 ### The retargeting problem {#sec:retargeting}
 
-Despite solving the structural issues, Loro proved incompatible with Denicek's *programming by demonstration* model. The problem is in how recorded edits reference nodes.
+Despite solving the structural issues, Loro proved incompatible with Denicek's *programming by demonstration* model. The core problem is replaying edits that *create* nodes containing relative references.
 
-In Denicek, users record edits and replay them. A recorded edit might say: "push a new item to the speakers list, then copy the value from the input field into the new item." The copy operation needs a *relative reference* --- it refers to `../input/value`, meaning "the input field that is a sibling of the list I just pushed to."
+In Denicek, users record edits and replay them. A recorded edit might say: "push a new item to the speakers list, then copy the value from the input field into the new item." The copy operation creates a node with a *relative reference* --- it refers to `../input/value`, meaning "the input field that is a sibling of the list I just pushed to."
 
-Loro uses opaque node IDs. A recorded edit would reference `nodeId_abc123` --- the specific ID of the input field at recording time. This works for simple replay, but breaks when the document structure changes between recording and replay.
+Loro uses opaque node IDs. When replaying the creation of such a reference node, the recorded ID `nodeId_abc123` points to the specific input field that existed at recording time. This works for simple replay, but breaks when the edit sequence is replayed in a different context --- the reference node must be created with a path that resolves relative to its *new* position, not the original one.
 
 Consider the conference table example from [@Chap:formative]. Alice records a sequence of edits on the first row of a speakers table:
 
