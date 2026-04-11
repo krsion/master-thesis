@@ -6,24 +6,24 @@ This chapter describes the architecture and implementation of mydenicek --- a co
 
 The system is organized in four layers, as shown in [@Fig:architecture].
 
-![Architecture of the mydenicek monorepo. The web application depends on React bindings and the sync server, both of which depend on the core CRDT engine.](img/architecture.png){#fig:architecture width=70%}
+![Architecture of the mydenicek monorepo. The web application depends on React bindings and the sync server, both of which depend on the core collaborative editing engine.](img/architecture.png){#fig:architecture width=70%}
 
 The layers are:
 
-- **`packages/core`** (`@mydenicek/core` [@mydenicek_core]) --- the CRDT engine. Contains the document model, event DAG, edit types, OT transformation rules, undo/redo, formula engine, and recording/replay. Zero external runtime dependencies; pure TypeScript.
+- **`packages/core`** (`@mydenicek/core` [@mydenicek_core]) --- the collaborative editing engine. Contains the document model, event DAG, edit types, OT transformation rules, undo/redo, formula engine, and recording/replay. Zero external runtime dependencies; pure TypeScript.
 - **`packages/react`** (`@mydenicek/react` [@mydenicek_react]) --- React bindings. The `useDenicek` hook provides reactive document state, mutation helpers, and sync lifecycle management.
 - **`packages/sync-server`** (`@mydenicek/sync-server` [@mydenicek_sync]) --- sync protocol. WebSocket-based client and server for exchanging events between peers. The server operates in *relay mode*: it stores and forwards events without materializing documents or understanding edit semantics.
 - **`apps/mywebnicek`** --- web application. React 19 + Fluent UI interface with a terminal-style command bar, rendered document view, raw JSON view, and event graph DAG visualization.
 
-The layered design ensures that the CRDT engine has no knowledge of the UI or transport layer, and the sync server has no knowledge of edit types. Custom primitive edits (such as `splitFirst` and `splitRest`) are registered only in the application layer and do not need to be known by the server.
+The layered design ensures that the core engine has no knowledge of the UI or transport layer, and the sync server has no knowledge of edit types. Custom primitive edits (such as `splitFirst` and `splitRest`) are registered only in the application layer and do not need to be known by the server.
 
 ## Technology choices {#sec:tech-choices}
 
-**TypeScript.** Local-first applications target the browser, where JavaScript is the dominant language. TypeScript adds static type safety, which is particularly valuable in a CRDT engine where subtle type errors (e.g., confusing a selector path with a plain string, or passing the wrong event structure) can cause silent convergence failures.
+**TypeScript.** Local-first applications target the browser, where JavaScript is the dominant language. TypeScript adds static type safety, which is particularly valuable in a collaborative editing engine where subtle type errors (e.g., confusing a selector path with a plain string, or passing the wrong event structure) can cause silent convergence failures.
 
 **Deno.** Deno is a JavaScript and TypeScript runtime created by Ryan Dahl, the original creator of Node.js. Unlike Node.js, Deno runs TypeScript natively without a compilation step and includes a built-in formatter, linter, and test runner. This eliminates the configuration overhead of separate tools (ESLint, Prettier, Jest, tsconfig) that a Node.js project would require.
 
-**React.** React is a widely-used JavaScript library for building user interfaces, developed by Meta. The core CRDT engine is framework-agnostic, but the `@mydenicek/react` package provides React-specific bindings because React is the most mainstream frontend framework, making the library accessible to the widest audience.
+**React.** React is a widely-used JavaScript library for building user interfaces, developed by Meta. The core engine is framework-agnostic, but the `@mydenicek/react` package provides React-specific bindings because React is the most mainstream frontend framework, making the library accessible to the widest audience.
 
 **JSR.** JSR (JavaScript Registry) is a package registry developed by the Deno team as an alternative to npm. It accepts TypeScript source directly (npm requires pre-compiled JavaScript), which simplifies the publishing workflow. The three mydenicek packages are published on JSR.
 
@@ -73,7 +73,7 @@ The *frontier* is the set of event IDs that have no descendants --- the "tips" o
 
 The system supports the following edit types, listed in [@Tbl:edit-types].
 
-: Edit types supported by the mydenicek CRDT engine. {#tbl:edit-types}
+: Edit types supported by the mydenicek engine. {#tbl:edit-types}
 
 | Edit type | Description | Target |
 |-----------|-------------|--------|
@@ -168,7 +168,7 @@ Every sync message includes the sender's current *frontiers* --- the set of even
 
 ## Web application {#sec:webapp}
 
-The web application (`apps/mywebnicek`) serves as both a demonstration of the CRDT engine and a tool for interactively exploring collaborative editing scenarios. It is built with React 19 and Microsoft's Fluent UI component library, and connects to the sync server via WebSocket.
+The web application (`apps/mywebnicek`) serves as both a demonstration of the core engine and a tool for interactively exploring collaborative editing scenarios. It is built with React 19 and Microsoft's Fluent UI component library, and connects to the sync server via WebSocket.
 
 ### Integration with the core engine
 
