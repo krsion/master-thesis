@@ -1,6 +1,6 @@
 # Implementation {#chap:implementation}
 
-This chapter describes the architecture and implementation of mydenicek --- a custom OT-based CRDT engine for collaborative editing of tagged document trees. The implementation is a Deno monorepo published on JSR as `@mydenicek/core`, `@mydenicek/react`, and `@mydenicek/sync-server`.
+This chapter describes the architecture and implementation of mydenicek --- a collaborative editing engine for tagged document trees. As motivated in [@Chap:journey], the engine uses operational transformation on an event DAG rather than layering on top of an existing CRDT library. The implementation is a Deno monorepo published on JSR as `@mydenicek/core`, `@mydenicek/react`, and `@mydenicek/sync-server`.
 
 ## Architecture overview {#sec:architecture}
 
