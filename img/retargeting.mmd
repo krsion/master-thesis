@@ -1,13 +1,13 @@
-graph LR
+graph TB
     subgraph before["Before wrapRecord"]
-        direction TB
+        direction LR
         B0["speakers/0 (tr)"]
         B0C["contact (td)<br/>'Ada, ada@...'"]
         B0 --> B0C
     end
 
     subgraph record["① Record on row 0"]
-        direction TB
+        direction LR
         R0["speakers/0 (tr)"]
         R0a["0 (td) split-first"]
         R0s["source<br/>'Ada, ada@...'"]
@@ -18,7 +18,7 @@ graph LR
     end
 
     subgraph replay["② Replay on row 1"]
-        direction TB
+        direction LR
         R1["speakers/1 (tr)"]
         R1a["0 (td) split-first"]
         R1s["source<br/>'Bob, bob@...'"]
@@ -30,8 +30,8 @@ graph LR
 
     before --> record --> replay
 
-    R0b -. "Loro: nodeId_abc<br/>→ row 0 source ❌" .-> R0s
-    R1b -. "mydenicek: ../../0/contact/source<br/>→ row 1 source ✅" .-> R1s
+    R0b -. "Loro: nodeId_abc → row 0 source ❌" .-> R0s
+    R1b -. "mydenicek: ../../0/contact/source → row 1 source ✅" .-> R1s
 
     style R0b fill:#fce8e6,stroke:#ea4335,stroke-width:2px
     style R1b fill:#e6f4ea,stroke:#34a853,stroke-width:2px
