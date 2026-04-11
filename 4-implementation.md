@@ -21,10 +21,10 @@ The layered design ensures that the CRDT engine has no knowledge of the UI or tr
 
 Documents are modeled as tagged trees with four node types:
 
-- **Record** --- a set of named fields, each containing a child node, plus a structural tag. Example: `{ $tag: "tr", name: { $tag: "td", text: "Ada" }, email: { $tag: "td", text: "ada@example.com" } }`.
-- **List** --- an ordered sequence of child nodes with a structural tag. Example: `{ $tag: "ul", $items: [item1, item2, item3] }`.
+- **Record** --- a set of named fields, each containing a child node, plus a structural tag.
+- **List** --- an ordered sequence of child nodes with a structural tag.
 - **Primitive** --- a scalar value: string, number, or boolean.
-- **Reference** --- a pointer to another node via a relative or absolute path. Example: `{ $ref: "../../0/contact/source" }`.
+- **Reference** --- a pointer to another node via a relative or absolute path.
 
 Nodes are addressed by *selectors* --- slash-separated paths that describe how to navigate the tree from the root. The selector `speakers/0/name` navigates to the `speakers` field, then to the first list item (index 0), then to the `name` field. Selectors support three special forms:
 

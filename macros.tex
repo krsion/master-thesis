@@ -9,7 +9,7 @@
 
 % The maximum stretching of a space. Increasing this makes the text a bit more
 % sloppy, but may prevent the overflows by moving words to next line.
-\emergencystretch=1em
+\emergencystretch=3em
 
 \ifEN
 \theoremstyle{plain}
@@ -120,5 +120,10 @@
 
 % Fix pandoc's \def\LTcaptype{none} for uncaptioned longtables
 \newcounter{none}
+
+% Allow line breaks in inline code at / and .
+\usepackage{url}
+\let\oldtexttt\texttt
+\renewcommand{\texttt}[1]{\oldtexttt{\hspace{0pt}#1}}
 
 \newcommand{\passthrough}[1]{#1}

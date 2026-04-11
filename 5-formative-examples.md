@@ -32,23 +32,31 @@ The counter example demonstrates the *formula engine* and *recording/replay* (pr
 The document starts with a simple `counter/value = 0`. We record three edits that implement "increment":
 
 ```typescript
-const wrapId = dk.wrapRecord("counter/value", "value", "x-formula-plus");
-const renameId = dk.rename("counter/value", "value", "left");
-const addRightId = dk.add("counter/value", "right", 1);
+const wrapId = dk.wrapRecord(
+  "counter/value", "value", "x-formula-plus");
+const renameId = dk.rename(
+  "counter/value", "value", "left");
+const addRightId = dk.add(
+  "counter/value", "right", 1);
 
-// Store event IDs as replay steps in the button
-dk.pushBack("counter/btn/steps", { $tag: "step", eventId: wrapId });
-dk.pushBack("counter/btn/steps", { $tag: "step", eventId: renameId });
-dk.pushBack("counter/btn/steps", { $tag: "step", eventId: addRightId });
+// Store event IDs as replay steps
+dk.pushBack("counter/btn/steps",
+  { $tag: "step", eventId: wrapId });
+dk.pushBack("counter/btn/steps",
+  { $tag: "step", eventId: renameId });
+dk.pushBack("counter/btn/steps",
+  { $tag: "step", eventId: addRightId });
 ```
 
 These three event IDs are stored as replay steps in a button node. Each time the button is "clicked" (the steps are replayed), a new `x-formula-plus` layer wraps the previous result:
 
 ```
-0 → { $tag: "x-formula-plus", left: 0, right: 1 }     = 1
+0 → { $tag: "x-formula-plus",
+      left: 0, right: 1 }           = 1
   → { $tag: "x-formula-plus",
-      left: { $tag: "x-formula-plus", left: 0, right: 1 },
-      right: 1 }                                        = 2
+      left: { $tag: "x-formula-plus",
+              left: 0, right: 1 },
+      right: 1 }                     = 2
 ```
 
 The formula engine evaluates the nested structure recursively: `((0 + 1) + 1) = 2`. This pattern works for any operation --- multiplication, concatenation, or custom formulas.
@@ -91,14 +99,17 @@ alice.updateTag("speakers/*", "td");
 // 2. Wrap each <td> in a <tr> list
 alice.wrapList("speakers/*", "tr");
 
-// 3. Wrap contact in split-first formula (name column)
-alice.wrapRecord("speakers/*/0/contact", "source", "split-first");
+// 3. Wrap contact in split-first formula
+alice.wrapRecord(
+  "speakers/*/0/contact", "source", "split-first");
 
-// 4. Add email column with split-rest referencing wrapped source
+// 4. Add email column with split-rest
 alice.pushBack("speakers/*", {
   $tag: "td",
-  email: { $tag: "split-rest",
-           source: { $ref: "../../0/contact/source" } }
+  email: {
+    $tag: "split-rest",
+    source: { $ref: "../../0/contact/source" }
+  }
 });
 ```
 
