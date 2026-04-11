@@ -57,11 +57,16 @@ For collaborative editing of tree-structured documents, Kleppmann and Beresford 
 
 ## Eg-walker {#sec:egwalker}
 
-Eg-walker [@gentle2025egwalker] is a collaborative editing algorithm that combines ideas from both OT and CRDTs. Like CRDTs, it stores operations in a *causal event graph* --- a directed acyclic graph where each event records its causal dependencies (which events it has seen). Like OT, it uses index-based addressing and transforms operations during replay.
+Eg-walker [@gentle2025egwalker] is a collaborative text editing algorithm that takes the best of both OT and CRDTs. The paper observes a fundamental trade-off in existing approaches:
 
-The key insight is that OT transformation does not need to happen at the time an operation is received. Instead, all operations are stored in the event graph, and when the document needs to be materialized, the operations are replayed in a deterministic topological order with transformations applied locally. This avoids the need for a central server (the event graph can be merged peer-to-peer) while keeping the simplicity of index-based operations (no per-character metadata needed in the steady state).
+- **OT** is simple and memory-efficient --- operations use plain integer indices, and the document state is just the text itself with no per-character metadata. However, merging long-diverged branches (e.g., after offline editing) requires transforming each operation against all concurrent operations, which is at least O(n²) and can take hours for large editing histories.
+- **CRDTs** handle arbitrarily diverged branches efficiently because each character carries a unique identifier that is unaffected by concurrent operations. However, these identifiers (and tombstones for deleted characters) must be loaded into memory whenever the document is opened, consuming an order of magnitude more memory than OT in the steady state.
 
-Eg-walker was designed for text editing (character insertions and deletions). This thesis applies the same principle to tree-structured documents --- selectors replace character indices, and structural edit transformations (rename, wrap, delete) replace the character-level insert/delete transforms.
+Eg-walker overcomes this trade-off by storing operations in a *causal event graph* --- a directed acyclic graph where each event records its causal dependencies. In the common case of sequential (non-concurrent) editing, operations are applied directly using plain indices, like OT --- no per-character metadata is needed. Only when the algorithm encounters concurrent events (a fork in the event graph) does it temporarily build the CRDT-style state needed to merge them. After the concurrent region is resolved, the CRDT state is discarded.
+
+The key insight is that OT transformation does not need to happen at the time an operation is received. Instead, all operations are stored in the event graph, and when the document needs to be materialized, the operations are replayed in a deterministic topological order with transformations applied locally. This avoids the need for a central server (the event graph can be merged peer-to-peer) while keeping the simplicity of index-based operations in the steady state.
+
+Eg-walker was designed for text editing (character insertions and deletions). This thesis applies the same principle to tree-structured documents --- selectors replace character indices, and structural edit transformations (rename, wrap, delete) replace the character-level insert/delete transforms. Unlike Eg-walker, our approach does not switch between OT and CRDT modes --- it always replays the full event history with OT. This is simpler to implement but less performant for long histories, as discussed in [@Chap:evaluation].
 
 ## Related Systems {#sec:related}
 
