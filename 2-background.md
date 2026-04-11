@@ -57,11 +57,21 @@ For collaborative editing of tree-structured documents, Kleppmann and Beresford 
 
 ## Causality and frontiers {#sec:causality}
 
-A fundamental concept in distributed collaborative editing is *causality* --- the relationship between events produced by different peers. If Alice creates event `alice:1` after seeing Bob's event `bob:0`, then `bob:0` *happens-before* `alice:1`. If two events were created without knowledge of each other, they are *concurrent*. [@Fig:causality] illustrates these relationships.
+A fundamental concept in distributed collaborative editing is *causality* --- the relationship between events produced by different peers. Lamport's *happens-before* relation defines a partial order over events in a distributed system:
+
+> **Definition (happens-before).** Event $a$ *happens-before* event $b$, written $a \to b$, if and only if:
+>
+> 1. $a$ and $b$ were produced by the same peer, and $a$ was produced before $b$; or
+> 2. $a$ was produced by one peer and $b$ was produced by another peer *after* receiving $a$; or
+> 3. there exists an event $c$ such that $a \to c$ and $c \to b$ (transitivity).
+>
+> Two events $a$ and $b$ are *concurrent*, written $a \parallel b$, if neither $a \to b$ nor $b \to a$.
+
+[@Fig:causality] illustrates these relationships in an event graph.
 
 ![Causality in an event graph. `alice:0 → alice:1` is a happens-before relationship (Alice created them sequentially). `alice:1 ∥ bob:0` are concurrent --- neither peer had seen the other's event when creating their own.](img/causality.png){#fig:causality width=70%}
 
-Causality is tracked using *vector clocks*: each event carries a map from peer ID to the highest sequence number seen from that peer. Event A happens-before event B if and only if A's vector clock is component-wise less than or equal to B's. Two events are concurrent if neither vector clock dominates the other.
+Causality is tracked using *vector clocks*: each event carries a map from peer ID to the highest sequence number seen from that peer. Event $a$ happens-before event $b$ if and only if $a$'s vector clock is component-wise less than or equal to $b$'s. Two events are concurrent if neither vector clock dominates the other.
 
 The *frontier* is the set of events with no descendants --- the "tips" of the DAG, representing the most recent state each peer has reached. [@Fig:frontier] shows a frontier with two events from different peers.
 
