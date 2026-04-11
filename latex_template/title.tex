@@ -132,7 +132,29 @@ V \hbox to 6em{\dotfill} dne \hbox to 6em{\dotfill}
 \ifEN Keywords: \else Klíčová slova: \fi
 \Keywords
 
-\vss}\ifEN\relax\else\nobreak\vbox to 0.49\vsize{\InfoPageFont
+\vss}\ifEN\nobreak\vbox to 0.49\vsize{\InfoPageFont
+\setlength\parindent{0mm}
+\setlength\parskip{5mm}
+
+Název práce:
+$title-cs$
+
+Autor:
+\ThesisAuthor
+
+$deparment-type-cs$:
+$department-cs$
+
+Vedoucí diplomové práce:
+\Supervisor, $supervisors-department-cs$
+
+Abstrakt:
+\AbstractCS
+
+Klíčová slova:
+$for(keywords-cs)$$keywords-cs$$sep$, $endfor$
+
+\vss}\else\nobreak\vbox to 0.49\vsize{\InfoPageFont
 \setlength\parindent{0mm}
 \setlength\parskip{5mm}
 
