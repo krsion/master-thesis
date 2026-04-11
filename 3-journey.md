@@ -4,7 +4,7 @@ This chapter describes the iterative process of finding the right collaborative 
 
 ## Attempt 1: Automerge {#sec:automerge}
 
-Automerge [@automerge] is a mature, widely-used CRDT library that provides JSON-like data structures --- maps, lists, text, and counters --- with automatic conflict resolution. It was the natural first choice: it has a large community, good documentation, and support for both JavaScript and Rust runtimes.
+Automerge [@automerge] is a widely-used CRDT library developed by Ink & Switch, a research lab where Martin Kleppmann is a key contributor. It provides JSON-like data structures --- maps, lists, text, and counters --- with automatic conflict resolution. It was the natural first choice: the Ink & Switch team has authored many of the foundational papers on local-first software and CRDTs that this thesis builds upon.
 
 ### Internal representation
 
