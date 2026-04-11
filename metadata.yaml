@@ -7,83 +7,74 @@ title-style: 'mff' # 'mff' (MFF style), 'cuni' (old-style with cuni.cz logo), 'n
 uk-faculty: 'Faculty of Mathematics and Physics' # or 'Faculty of Science'
 
 # type of thesis, unfortunately there is no better way to set this
-bachelor: true
-master: false
+bachelor: false
+master: true
 rigorous: false
 doctoral: false
 
-# Note: \xxx is a "ToDo label" which makes the unfilled visible. Remove it.
-# \xxx macro in author and title-* will lead to a failed build of abstracts
-author: Name Surname
-# Title thesis
-title-cs: Název práce
-title-en: Thesis title
-year: \xxx{YEAR}
+author: Bc. Ondřej Krsička
+title-cs: Využití CRDT pro kolaborativní editaci v systému Denicek
+title-en: Using CRDTs to Enable Collaborative Editing in Denicek
+year: 2026
 
-# department assigned to the thesis
-department-en: \xxx{Name of the department}
-# Is it a department (katedra), or an institute (ústav)?
-deparment-type-en: \xxx{Department}
-supervisor: \xxx{Supername Supersurname}
-supervisors-department-en: \xxx{department}
+department-en: Department of Software Engineering
+deparment-type-en: Department
+supervisor: Mgr. Tomáš Petříček, Ph.D.
+supervisors-department-en: Department of Software Engineering
 
-study-programme-en: \xxx{study programme}
-study-branch-en: \xxx{study branch}
-# If your abstracts are long and do not fit in the infopage, you can make the
-# fonts a bit smaller by this setting. (Also, you should try to compress your abstract more.)
-# Alternatively, consider increasing the size of the page by uncommenting the
-# geometry modification in thesis.tex.
+study-programme-en: Computer Science
+study-branch-en: Software and Data Engineering
 info-page-small-font: false
 
 keywords-en:
-  - key
-  - words
+  - CRDT
+  - collaborative editing
+  - operational transformation
+  - local-first software
+  - end-user programming
+  - Denicek
 thesis_chapters:
   - 1-intro
-  - 2-ch1
-  - 3-ch2
-  - 4-ch3
-  - 5-conclusion
+  - 2-background
+  - 3-journey
+  - 4-implementation
+  - 5-formative-examples
+  - 6-evaluation
+  - 7-conclusion
 
-appendicies:
-  - appendix-howto
-  # if your attachments are complicated, describe them in a separate appendix
-  # - attachments
+appendicies: []
 
 dedication: |
-  Dedication.
-  \xxx{It is nice to say thanks to supervisors, friends, family, book authors and food providers.}
-# ABSTRACT IS NOT A COPY OF YOUR THESIS ASSIGNMENT!
+  I would like to thank my supervisor Mgr. Tomáš Petříček, Ph.D. for his guidance, patience, and the original Denicek system that inspired this work.
 abstract-en: |
-  \xxx{Abstracts are an abstract form of art. Use the most precise, shortest sentences that state what problem the thesis addresses, how it is approached, pinpoint the exact result achieved, and describe the applications and significance of the results.
-  Highlight anything novel that was discovered or improved by the thesis. Maximum length is 200 words, but try to fit into 120.
-  Abstracts are often used for deciding if a reviewer will be suitable for the thesis; a well-written abstract thus increases the probability of getting a reviewer who will like the thesis.}
+  Denicek is a computational substrate for document-oriented end-user programming where users program by recording and replaying edit sequences over tree-structured documents. The original implementation uses Operational Transformation (OT) for collaborative editing, which is error-prone and difficult to extend. This thesis investigates the use of Conflict-free Replicated Data Types (CRDTs) to enable more robust collaborative editing in Denicek. We evaluate three approaches --- Automerge, Loro, and a custom OT-based event DAG inspired by Eg-walker --- and describe the trade-offs of each with respect to Denicek's requirements: path-based addressing, wildcards, structural edits, and programming by demonstration. The result is a new implementation of the Denicek core that stores edits in a causal event graph with vector clocks and uses deterministic topological replay with selector-based operational transformation to achieve convergence. The implementation is validated on six formative examples including a counter, conference speaker list, and list-to-table refactoring with concurrent edits from multiple peers.
 abstract-cs: |
-  \xxx{You will need to submit both Czech and English abstract to the SIS, no matter what language you use in the thesis. If writing in English, translate the contents of \texttt{\textbackslash{}AbstractEN} into this field. In case you do not speak czech, your supervisor should be able to help you with the translation.}
+  Denicek je výpočetní substrát pro document-oriented end-user programming, ve kterém uživatelé programují nahráváním a replayováním editačních sekvencí nad stromově strukturovanými dokumenty. Současná implementace využívá Operational Transformation (OT) pro kolaborativní editaci, která je error-prone a obtížně rozšiřitelná. Tato práce zkoumá využití Conflict-free Replicated Data Types (CRDT) pro robustnější kolaborativní editaci v systému Denicek. Hodnotíme tři přístupy --- Automerge, Loro a vlastní OT-based event DAG inspirovaný Eg-walkerem --- a popisujeme trade-offs každého z nich s ohledem na požadavky systému Denicek: path-based addressing, wildcards, strukturální editace a programming by demonstration. Výsledkem je nová implementace core systému Denicek, která ukládá editace do kauzálního event grafu s vector clocks a používá deterministický topologický replay se selector-based OT pro dosažení konvergence. Implementace je validována na šesti formativních příkladech včetně counteru, seznamu konferenčních řečníků a refaktorizace seznamu na tabulku s konkurentními editacemi více peerů.
 
 ###
 # These properties are only used when thesis is written in czech:
 ###
-department-cs: \xxx{Název katedry či ústavu}
-deparment-type-cs: \xxx{Katedra}
-supervisors-department-cs: \xxx{Katedra}
-study-programme-cs: \xxx{Studijní program}
-study-branch-cs: \xxx{Studijní specializace}
+department-cs: Katedra softwarového inženýrství
+deparment-type-cs: Katedra
+supervisors-department-cs: Katedra softwarového inženýrství
+study-programme-cs: Informatika
+study-branch-cs: Softwarové a datové inženýrství
 keywords-cs:
-  - klíčová
-  - slova
+  - CRDT
+  - kolaborativní editace
+  - operační transformace
+  - local-first software
+  - programování koncovými uživateli
+  - Denicek
 ###
 # End of czech-specific properties
 ###
 
-# Possible to include additional latex packages, e.g. multirow for tables
 additional_packages:
   - multirow
+  - minted
 
 ### This configutation below most likely you don't need to change
 
 biblatex_citation_style: numeric
-# biblatex have many citation styles like: numeric, authoryear-comp, alphabetic,
-# iso-numeric, iso-alphabetic and many others
-# for more information see: https://www.overleaf.com/learn/latex/Biblatex_citation_styles
 ---
