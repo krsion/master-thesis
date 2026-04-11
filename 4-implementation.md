@@ -193,3 +193,17 @@ The command bar at the bottom provides a terminal-style interface for executing 
 ### Document initialization
 
 On first load, the application initializes a template document (a conference list) and registers application-specific primitive edits and recorded action sequences. When joining an existing room, the application fetches the current document state from the sync server instead of using the template.
+
+## Continuous integration and deployment {#sec:ci-deploy}
+
+The project uses GitHub Actions for continuous integration and deployment. Every push to the `main` branch triggers five parallel CI jobs: formatting check, linting (including JSDoc validation), type checking, tests (206+ unit tests, 6 formative example tests, sync tests), and build verification. All five must pass before any deployment proceeds.
+
+After CI passes, three deployment steps run:
+
+**Web application to GitHub Pages.** The Vite build output (`apps/mywebnicek/dist`) is deployed as a static site to GitHub Pages. The application is a single-page app that connects to the sync server via WebSocket.
+
+**Sync server to Azure Container Apps.** The sync server runs as a Docker container on Azure Container Apps --- a serverless container platform that scales to zero when idle and scales up on demand. This was chosen over a dedicated VM because the sync server is a lightweight WebSocket relay with minimal resource requirements and no persistent compute needs. The deployment builds a Docker image via Azure Container Registry, then deploys it using a Bicep infrastructure-as-code template. The container stores event data in Azure Blob Storage for persistence across restarts.
+
+**End-to-end tests.** After both deployments complete, Playwright browser tests run against the live site to verify that two browser peers can connect, sync edits, and produce consistent document states.
+
+JSR package publishing is a separate manual workflow (`deno publish`) triggered on demand, since package versions should be bumped deliberately rather than on every push.
