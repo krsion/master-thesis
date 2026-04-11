@@ -1,48 +1,50 @@
 %%{init: {'themeVariables': {'fontFamily': 'monospace'}}}%%
 graph TB
     S1["<pre style='text-align:left'>
-<span style='color:#6e7781'>// list with one item</span>
-[<span style='color:#0a3069'>'John, john@ex.com'</span>]
+// list with one item
+['John, john@ex.com']
 </pre>"]
 
     S2["<pre style='text-align:left'>
-<span style='color:#6e7781'>// value wrapped into sub-list</span>
-[[<span style='color:#0a3069'>'John, john@ex.com'</span>]]
+// value wrapped into sub-list
+[['John, john@ex.com']]
 </pre>"]
 
     S3["<pre style='text-align:left'>
-<span style='color:#6e7781'>// ref inserted before the value</span>
-[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'John, john@ex.com'</span>]]
+// ref inserted before the value
+[['../1', 'John, john@ex.com']]
 </pre>"]
 
     S4["<pre style='text-align:left'>
-<span style='color:#6e7781'>// new item added to the front</span>
-[<span style='color:#0a3069'>'Ada, ada@ex.com'</span>,
- [{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'John, john@ex.com'</span>]]
+// new item added to the front
+['Ada, ada@ex.com',
+ ['../1', 'John, john@ex.com']]
 </pre>"]
 
     S1 -- "wrapList list/0" --> S2
     S2 -- "pushFront list/0 (ref ../1)" --> S3
-    S3 -- "pushFront list ('Ada, ada@ex.com')" --> S4
+    S3 -- "pushFront list ('Ada')" --> S4
 
-    subgraph replayLoro["Replay wrapList + pushFront ref on list/0 (Loro)"]
-        RL["<pre style='text-align:left'>
-[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }, <span style='color:#0a3069'>'Ada'</span>],
- [{ <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }, <span style='color:#0a3069'>'John'</span>]]
-<span style='color:#cf222e'>Both refs point to John! ❌</span>
+    RL["<pre style='text-align:left'>
+Loro: replay wrapList + pushFront ref on list/0
+
+[[nodeId_abc, 'Ada'],
+ [nodeId_abc, 'John']]
+
+Both refs point to John! ❌
 </pre>"]
-    end
 
-    subgraph replayCustom["Replay wrapList + pushFront ref on list/0 (mydenicek)"]
-        RC["<pre style='text-align:left'>
-[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'Ada'</span>],
- [{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'John'</span>]]
-<span style='color:#34a853'>Each ref points to its own row ✅</span>
+    RC["<pre style='text-align:left'>
+mydenicek: replay wrapList + pushFront ref on list/0
+
+[['../1', 'Ada'],
+ ['../1', 'John']]
+
+Each ref points to its own row ✅
 </pre>"]
-    end
 
-    S4 -- "replay wrapList + pushFront ref on list/0" --> RL
-    S4 -- "replay wrapList + pushFront ref on list/0" --> RC
+    S4 --> RL
+    S4 --> RC
 
     style RL fill:#fce8e6,stroke:#ea4335,stroke-width:2px
     style RC fill:#e6f4ea,stroke:#34a853,stroke-width:2px
