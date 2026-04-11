@@ -9,7 +9,7 @@ Denicek [@petricek2025denicek] is a computational substrate for document-oriente
 
 The original Denicek implementation uses Operational Transformation (OT) for collaborative editing. While OT is a well-established technique, it is error-prone and difficult to extend with new types of structural edits such as wrapping nodes in new parent elements or renaming fields.
 
-This thesis investigates the use of Conflict-free Replicated Data Types (CRDTs) to enable more robust collaborative editing in Denicek. We evaluate three approaches --- Automerge, Loro, and a custom OT-based event DAG --- and describe the trade-offs of each with respect to Denicek's unique requirements. The result is a new implementation called *mydenicek*, validated on six formative examples that demonstrate the system's end-user programming capabilities.
+This thesis investigates approaches to more robust collaborative editing in Denicek, drawing on concepts from both CRDTs and OT. We evaluate three approaches --- Automerge, Loro, and a custom OT-based event DAG --- and describe the trade-offs of each with respect to Denicek's unique requirements. The result is a new implementation called *mydenicek* that stores edits in a causal event graph (a CRDT) and uses OT during replay to transform selectors through concurrent structural changes. The implementation is validated on six formative examples that demonstrate the system's end-user programming capabilities.
 
 ## Thesis structure {-}
 

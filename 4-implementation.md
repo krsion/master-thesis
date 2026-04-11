@@ -123,8 +123,6 @@ The sync protocol uses WebSocket connections with a simple message exchange, ill
 
 The protocol consists of three phases:
 
-The sync protocol uses WebSocket connections with a simple message exchange:
-
 1. **Connect.** The client sends a `hello` message with the room ID. If the room exists, the server responds with the initial document.
 2. **Sync.** The client sends its pending events and current frontiers. The server responds with events the client has not seen (computed via `eventsSince(clientFrontiers)`).
 3. **Ongoing.** As either peer produces new events, they are exchanged via the same sync message format.

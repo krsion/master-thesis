@@ -15,7 +15,7 @@ Denicek provides four key end-user programming experiences:
 - **Collaborative editing.** Multiple peers can edit the same document concurrently, and the system merges their edits deterministically.
 - **Formula recomputation.** Nodes can contain formulas that reference other nodes via relative paths. When the referenced data changes, the formula result is recomputed.
 
-The original Denicek uses Operational Transformation to handle concurrent edits. This thesis replaces OT with an approach based on CRDTs.
+The original Denicek uses Operational Transformation to handle concurrent edits. This thesis explores alternatives drawing on both CRDT and OT concepts, ultimately arriving at an approach inspired by Eg-walker [@gentle2025egwalker] that combines a CRDT event graph with OT-based selector transformation during replay.
 
 ## Operational Transformation {#sec:ot}
 

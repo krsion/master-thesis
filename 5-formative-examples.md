@@ -31,9 +31,16 @@ The counter example demonstrates the *formula engine* and *recording/replay* (pr
 
 The document starts with a simple `counter/value = 0`. We record three edits that implement "increment":
 
-1. `wrapRecord("counter/value", "value", "x-formula-plus")` --- wraps the value in a formula node tagged `x-formula-plus`
-2. `rename("counter/value", "value", "left")` --- renames the wrapped value to `left` (the first operand)
-3. `add("counter/value", "right", 1)` --- adds `right = 1` (the second operand)
+```typescript
+const wrapId = dk.wrapRecord("counter/value", "value", "x-formula-plus");
+const renameId = dk.rename("counter/value", "value", "left");
+const addRightId = dk.add("counter/value", "right", 1);
+
+// Store event IDs as replay steps in the button
+dk.pushBack("counter/btn/steps", { $tag: "step", eventId: wrapId });
+dk.pushBack("counter/btn/steps", { $tag: "step", eventId: renameId });
+dk.pushBack("counter/btn/steps", { $tag: "step", eventId: addRightId });
+```
 
 These three event IDs are stored as replay steps in a button node. Each time the button is "clicked" (the steps are replayed), a new `x-formula-plus` layer wraps the previous result:
 
@@ -46,14 +53,25 @@ These three event IDs are stored as replay steps in a button node. Each time the
 
 The formula engine evaluates the nested structure recursively: `((0 + 1) + 1) = 2`. This pattern works for any operation --- multiplication, concatenation, or custom formulas.
 
-## Conference List: the composer pattern {#sec:conf-list}
+## Conference List: adding items with recorded edits {#sec:conf-list}
 
-The conference list demonstrates the *composer pattern* --- a reusable UI pattern where an input field and a button work together to add items to a list.
+The conference list demonstrates how recorded edits work with an input field and a button to add items to a list.
 
 The document contains a list of speakers (each with a `"Name, email"` string), an input field, and an "Add" button. We record two edits:
 
-1. `pushFront("conferenceList/items", { $tag: "li", text: "" })` --- insert an empty item at the front
-2. `copy("conferenceList/items/!0/text", "conferenceList/composer/input/value")` --- copy the input's current value into the new item
+```typescript
+// Record the "add speaker" recipe
+const pushId = dk.pushFront("conferenceList/items",
+  { $tag: "li", text: "" });
+const copyId = dk.copy("conferenceList/items/!0/text",
+  "conferenceList/composer/input/value");
+
+// Store as replay steps in the button
+dk.pushBack("conferenceList/composer/addAction/steps",
+  { $tag: "step", eventId: pushId });
+dk.pushBack("conferenceList/composer/addAction/steps",
+  { $tag: "step", eventId: copyId });
+```
 
 The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, OT transforms this index if concurrent insertions have shifted it.
 
@@ -65,11 +83,24 @@ The conference table example is the most complex formative example. It demonstra
 
 Starting from the conference list (a `<ul>` with `<li>` items containing `"Name, email"` strings), Alice performs the following structural transformation:
 
-1. `updateTag("speakers", "table")` --- change the list tag from `ul` to `table`
-2. `updateTag("speakers/*", "td")` --- change each item's tag from `li` to `td`
-3. `wrapList("speakers/*", "tr")` --- wrap each `<td>` in a `<tr>` list
-4. `wrapRecord("speakers/*/0/contact", "source", "split-first")` --- wrap the contact string in a `split-first` formula node
-5. `pushBack("speakers/*", ...)` --- add a second `<td>` with a `split-rest` formula referencing the first cell's contact source via `$ref: "../../0/contact/source"`
+```typescript
+// 1. Change tags: ul → table, li → td
+alice.updateTag("speakers", "table");
+alice.updateTag("speakers/*", "td");
+
+// 2. Wrap each <td> in a <tr> list
+alice.wrapList("speakers/*", "tr");
+
+// 3. Wrap contact in split-first formula (name column)
+alice.wrapRecord("speakers/*/0/contact", "source", "split-first");
+
+// 4. Add email column with split-rest referencing wrapped source
+alice.pushBack("speakers/*", {
+  $tag: "td",
+  email: { $tag: "split-rest",
+           source: { $ref: "../../0/contact/source" } }
+});
+```
 
 After this transformation, each table row has two cells:
 
