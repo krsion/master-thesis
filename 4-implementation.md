@@ -6,7 +6,7 @@ This chapter describes the architecture and implementation of mydenicek --- a co
 
 The system is organized in four layers, as shown in [@Fig:architecture].
 
-![Architecture of the mydenicek monorepo. The web application depends on React bindings and the sync server, both of which depend on the core collaborative editing engine.](img/architecture.png){#fig:architecture width=70%}
+![Architecture of the mydenicek monorepo. The web application depends on React bindings and the sync-server package, both of which depend on the core engine. The deployed sync server (apps/sync-server) also uses the sync-server package.](img/architecture.png){#fig:architecture width=70%}
 
 The layers are:
 

@@ -11,13 +11,18 @@ graph TD
     subgraph "apps/mywebnicek"
         APP["Web Application<br/><i>React 19, command bar,<br/>event graph, formative examples</i>"]
     end
+    subgraph "apps/sync-server"
+        SERVER["Sync Server<br/><i>Deno HTTP + WebSocket,<br/>Azure Container Apps</i>"]
+    end
 
     APP --> REACT
     APP --> SYNC
     REACT --> CORE
     SYNC --> CORE
+    SERVER --> SYNC
 
     style CORE fill:#e8f0fe,stroke:#0078d4,stroke-width:2px
     style REACT fill:#e6f4ea,stroke:#34a853,stroke-width:2px
     style SYNC fill:#fff4e5,stroke:#f5a623,stroke-width:2px
     style APP fill:#fce8e6,stroke:#ea4335,stroke-width:2px
+    style SERVER fill:#f3e8ff,stroke:#8b5cf6,stroke-width:2px
