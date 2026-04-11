@@ -45,7 +45,7 @@ thesis_chapters:
 appendicies: []
 
 dedication: |
-  I would like to thank my supervisor Mgr. Tomáš Petříček, Ph.D. for his guidance, patience, and the original Denicek system that inspired this work.
+  I would like to thank my supervisor Mgr. Tomáš Petříček, Ph.D. for his guidance and patience throughout this project.
 abstract-en: |
   Denicek is a computational substrate for document-oriented end-user programming where users program by recording and replaying edit sequences over tree-structured documents. The original implementation uses Operational Transformation (OT) for collaborative editing, which is error-prone and difficult to extend. This thesis investigates the use of Conflict-free Replicated Data Types (CRDTs) to enable more robust collaborative editing in Denicek. We evaluate three approaches --- Automerge, Loro, and a custom OT-based event DAG inspired by Eg-walker --- and describe the trade-offs of each with respect to Denicek's requirements: path-based addressing, wildcards, structural edits, and programming by demonstration. The result is a new implementation of the Denicek core that stores edits in a causal event graph with vector clocks and uses deterministic topological replay with selector-based operational transformation to achieve convergence. The implementation is validated on six formative examples including a counter, conference speaker list, and list-to-table refactoring with concurrent edits from multiple peers.
 abstract-cs: |
@@ -72,6 +72,8 @@ keywords-cs:
 
 additional_packages:
   - multirow
+  - longtable
+  - booktabs
 
 ### This configutation below most likely you don't need to change
 

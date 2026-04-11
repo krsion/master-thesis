@@ -118,4 +118,7 @@
 
 \usepackage{longtable, booktabs, array}
 
+% Fix pandoc's \def\LTcaptype{none} for uncaptioned longtables
+\newcounter{none}
+
 \newcommand{\passthrough}[1]{#1}
