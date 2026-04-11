@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant A as Alice
+    participant S as Server
+    participant B as Bob
+
+    Note over A,B: Normal sync
+    A->>S: sync(events=[a:0,a:1], frontiers=[a:1])
+    S->>B: sync(events=[a:0,a:1], frontiers=[a:1])
+    B->>S: sync(events=[b:0], frontiers=[a:1,b:0])
+    S->>A: sync(events=[b:0], frontiers=[a:1,b:0])
+
+    Note over A,B: Message lost! Bob doesn't receive a:2
+    A->>S: sync(events=[a:2], frontiers=[a:2,b:0])
+    S--xB: ✗ lost
+
+    Note over A,B: Bob sends his frontiers → server detects gap
+    B->>S: sync(events=[], frontiers=[a:1,b:0])
+    Note over S: Bob has a:1 but a:2 exists → resend
+    S->>B: sync(events=[a:2], frontiers=[a:2,b:0])
+    Note over A,B: Bob catches up ✅

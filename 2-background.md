@@ -55,6 +55,20 @@ Common CRDT building blocks relevant to this thesis include:
 
 For collaborative editing of tree-structured documents, Kleppmann and Beresford [@kleppmann2017crdt] proposed a JSON CRDT that uses unique identifiers for each node and supports insert, delete, and move operations. This work identified the *move operation problem*: in a flat JSON structure without native move support, moving a node requires deleting it from one location and inserting it at another --- two separate operations that can interleave with concurrent edits, potentially losing data.
 
+## Causality and frontiers {#sec:causality}
+
+A fundamental concept in distributed collaborative editing is *causality* --- the relationship between events produced by different peers. If Alice creates event `alice:1` after seeing Bob's event `bob:0`, then `bob:0` *happens-before* `alice:1`. If two events were created without knowledge of each other, they are *concurrent*. [@Fig:causality] illustrates these relationships.
+
+![Causality in an event graph. `alice:0 → alice:1` is a happens-before relationship (Alice created them sequentially). `alice:1 ∥ bob:0` are concurrent --- neither peer had seen the other's event when creating their own.](img/causality.png){#fig:causality width=70%}
+
+Causality is tracked using *vector clocks*: each event carries a map from peer ID to the highest sequence number seen from that peer. Event A happens-before event B if and only if A's vector clock is component-wise less than or equal to B's. Two events are concurrent if neither vector clock dominates the other.
+
+The *frontier* is the set of events with no descendants --- the "tips" of the DAG, representing the most recent state each peer has reached. [@Fig:frontier] shows a frontier with two events from different peers.
+
+![Frontier of an event DAG. Events `alice:2` and `bob:0` are both frontier events --- neither has a descendant. A new event created by either peer will have both as parents.](img/frontier.png){#fig:frontier width=55%}
+
+When a peer creates a new event, the current frontier becomes the event's parents. After both peers sync and one makes a new edit, the resulting event has *multiple parents* --- one from each branch --- merging the frontier back to a single point. This is analogous to a merge commit in version control.
+
 ## Eg-walker {#sec:egwalker}
 
 Eg-walker [@gentle2025egwalker] is a collaborative text editing algorithm that takes the best of both OT and CRDTs. The paper observes a fundamental trade-off in existing approaches:
