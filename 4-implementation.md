@@ -156,14 +156,14 @@ References (`$ref`) in formula arguments are resolved relative to the formula's 
 Programming by demonstration is implemented through event recording and replay:
 
 1. **Recording.** When a user performs an edit, the resulting event ID is stored in a list of *replay steps* --- typically attached to a button node in the document.
-2. **Replay.** When the user triggers a replay, the system re-executes the recorded edits as if they were *concurrent* with all events that happened after the recording. Each step's event ID is passed to `resolveReplayEdit`, which walks the causal history back to the recording point and transforms the replayed edit forward through every later structural change. This is illustrated in [@Fig:replay]: the replay events (orange) fork from the recording point, concurrent with later edits (green), and merge at the end.
-3. **Batch replay.** When replaying multiple steps as a batch (e.g., all steps of an "Add Speaker" button), same-batch events are excluded from retargeting each other. This prevents cascading transformations within a single replay sequence.
+2. **Replay.** When the user triggers a replay, the system replays the full event history in topological order. When it reaches the source event, it captures its edit. It then continues replaying --- each later *structural* edit (rename, wrap, delete) transforms the captured edit's selector via OT. The final transformed edit is committed as a new event at the current frontier. [@Fig:replay] illustrates this: the recorded edits targeted `items`, but a later rename changed `items` to `speakers`, so the replayed edits target `speakers`.
+3. **Batch replay.** When replaying multiple steps as a batch (e.g., all steps of an "Add Speaker" button), all source edits are resolved before any are committed. This prevents the replayed steps from retargeting each other.
 
-![Replay as concurrent re-execution. The recorded edits (blue) are replayed as new events (orange) that fork from the recording point, making them concurrent with the later edits (green). The strict index `!0` ensures the copy targets the item just created by the replay, not the item from the later edit.](img/replay.png){#fig:replay width=95%}
+![Replay retargets through later structural edits. The recorded edits (blue) targeted `items`. A later rename (green) changed `items` to `speakers`. The replayed edits (orange) are committed at the tip of the DAG with the transformed selector `speakers`.](img/replay.png){#fig:replay width=50%}
 
-Strict indices (`!0`) are essential for replay: a regular index `0` would be shifted by the concurrent `pushFront` on the other branch, causing the copy to target the wrong item. The strict index `!0` refers to position 0 *at the recording point*, which OT does not shift through concurrent insertions.
+Strict indices (`!0`) are essential for replay: a regular index `0` would be shifted by the later `pushFront` (alice:2), causing the copy to target the wrong item. The strict index `!0` refers to position 0 *at the time of the original edit*, which OT does not shift through later insertions.
 
-The replay mechanism uses the same OT infrastructure as materialization --- the difference is that during replay, only the single replayed event is transformed, not the entire history.
+This approach is simple but has quadratic cost: each replay traverses the entire event history to resolve the edit. A history with many replays (e.g., clicking the "Add Speaker" button 100 times) causes each subsequent replay to traverse all previous events including earlier replays. This is acceptable for research purposes but would need optimization for production use, as discussed in [@Sec:future].
 
 ## Sync protocol {#sec:sync}
 
