@@ -10,23 +10,38 @@ graph TB
 [['John, john@ex.com']]
 </pre>"]
 
-    S3["<pre style='text-align:left'>
-// ref inserted before the value
+    S1 -- "wrapList list/0" --> S2
+
+    LORO1["<pre style='text-align:left'>
+// Loro: absolute node ID
+[[nodeId_abc, 'John, john@ex.com']]
+</pre>"]
+
+    CUSTOM1["<pre style='text-align:left'>
+// mydenicek: relative path
 [['../1', 'John, john@ex.com']]
 </pre>"]
 
-    S4["<pre style='text-align:left'>
-// new item added to the front
+    S2 -- "pushFront list/0 (Loro)" --> LORO1
+    S2 -- "pushFront list/0 (mydenicek)" --> CUSTOM1
+
+    LORO2["<pre style='text-align:left'>
+// add Ada to front of list
+['Ada, ada@ex.com',
+ [nodeId_abc, 'John, john@ex.com']]
+</pre>"]
+
+    CUSTOM2["<pre style='text-align:left'>
+// add Ada to front of list
 ['Ada, ada@ex.com',
  ['../1', 'John, john@ex.com']]
 </pre>"]
 
-    S1 -- "wrapList list/0" --> S2
-    S2 -- "pushFront list/0 (ref ../1)" --> S3
-    S3 -- "pushFront list ('Ada')" --> S4
+    LORO1 -- "pushFront list ('Ada')" --> LORO2
+    CUSTOM1 -- "pushFront list ('Ada')" --> CUSTOM2
 
     RL["<pre style='text-align:left'>
-Loro: replay wrapList + pushFront ref on list/0
+Replay wrapList + pushFront ref on list/0
 
 [[nodeId_abc, 'Ada'],
  [nodeId_abc, 'John']]
@@ -35,7 +50,7 @@ Both refs point to John! ❌
 </pre>"]
 
     RC["<pre style='text-align:left'>
-mydenicek: replay wrapList + pushFront ref on list/0
+Replay wrapList + pushFront ref on list/0
 
 [['../1', 'Ada'],
  ['../1', 'John']]
@@ -43,8 +58,12 @@ mydenicek: replay wrapList + pushFront ref on list/0
 Each ref points to its own row ✅
 </pre>"]
 
-    S4 --> RL
-    S4 --> RC
+    LORO2 -- "replay on list/0" --> RL
+    CUSTOM2 -- "replay on list/0" --> RC
 
     style RL fill:#fce8e6,stroke:#ea4335,stroke-width:2px
     style RC fill:#e6f4ea,stroke:#34a853,stroke-width:2px
+    style LORO1 fill:#fce8e6,stroke:#ea4335,stroke-width:1px
+    style CUSTOM1 fill:#e6f4ea,stroke:#34a853,stroke-width:1px
+    style LORO2 fill:#fce8e6,stroke:#ea4335,stroke-width:1px
+    style CUSTOM2 fill:#e6f4ea,stroke:#34a853,stroke-width:1px
