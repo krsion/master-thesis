@@ -57,7 +57,7 @@ Loro addressed the three main problems we had with Automerge:
 
 - **Atomic move.** `LoroTree` supports native move operations. Concurrent moves to different parents are resolved by Last-Writer-Wins, and the node always ends up under exactly one parent.
 - **Tree structure.** Nodes are organized as a proper tree, not a flat map. Parent-child relationships are maintained by the CRDT itself.
-- **Active development.** Loro implements recent research and is well-documented with good TypeScript support.
+- **Latest research.** Loro implements recent algorithms including the Fugue text CRDT, and provides well-documented TypeScript bindings.
 
 ### The retargeting problem {#sec:retargeting}
 
