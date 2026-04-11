@@ -37,19 +37,27 @@ graph TB
     S2 --> LORO
     S2 --> CUSTOM
 
-    subgraph replayLoro["Replay on new item (Loro)"]
+    subgraph replayLoro["After replay on new item (Loro)"]
         RL["<pre style='text-align:left'>
-[<span style='color:#0a3069'>'Ada, ada@ex.com'</span>,
- { <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }]
-<span style='color:#cf222e'>→ points to John (row 0)! ❌</span>
+{
+  <span style='color:#0550ae'>$children</span>: [
+    [<span style='color:#0a3069'>'John'</span>, { <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }],
+    [<span style='color:#0a3069'>'Ada'</span>, { <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }]
+  ]
+}
+<span style='color:#cf222e'>Both rows reference John! ❌</span>
 </pre>"]
     end
 
-    subgraph replayCustom["Replay on new item (mydenicek)"]
+    subgraph replayCustom["After replay on new item (mydenicek)"]
         RC["<pre style='text-align:left'>
-[<span style='color:#0a3069'>'Ada, ada@ex.com'</span>,
- { <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../0'</span> }]
-<span style='color:#34a853'>→ points to Ada (own row) ✅</span>
+{
+  <span style='color:#0550ae'>$children</span>: [
+    [<span style='color:#0a3069'>'John'</span>, { <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../0'</span> }],
+    [<span style='color:#0a3069'>'Ada'</span>, { <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../0'</span> }]
+  ]
+}
+<span style='color:#34a853'>Each row references itself ✅</span>
 </pre>"]
     end
 
