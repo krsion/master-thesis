@@ -55,7 +55,7 @@ Loro [@loro] is a newer CRDT library that implements the latest research in coll
 
 Loro addressed the three main problems we had with Automerge:
 
-- **Atomic move.** The `LoroTree` data type supports native `move(nodeId, newParentId)` operations. Concurrent moves to different parents are resolved by Last-Writer-Wins on the parent field, and the node always ends up under exactly one parent.
+- **Atomic move.** `LoroTree` supports native move operations (`move(nodeId, newParentId)`). Concurrent moves to different parents are resolved by Last-Writer-Wins on the parent field, and the node always ends up under exactly one parent.
 - **Tree structure.** Nodes are organized as a proper tree, not a flat map. Parent-child relationships are maintained by the CRDT itself.
 - **Active development.** Loro implements recent research and is well-documented with good TypeScript support.
 
