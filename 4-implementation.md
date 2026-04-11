@@ -10,9 +10,9 @@ The system is organized in four layers, as shown in [@Fig:architecture].
 
 The layers are:
 
-- **`packages/core`** (`@mydenicek/core`) --- the CRDT engine. Contains the document model, event DAG, edit types, OT transformation rules, undo/redo, formula engine, and recording/replay. Zero external runtime dependencies; pure TypeScript.
-- **`packages/react`** (`@mydenicek/react`) --- React bindings. The `useDenicek` hook provides reactive document state, mutation helpers, and sync lifecycle management.
-- **`packages/sync-server`** (`@mydenicek/sync-server`) --- sync protocol. WebSocket-based client and server for exchanging events between peers. The server operates in *relay mode*: it stores and forwards events without materializing documents or understanding edit semantics.
+- **`packages/core`** (`@mydenicek/core` [@mydenicek_core]) --- the CRDT engine. Contains the document model, event DAG, edit types, OT transformation rules, undo/redo, formula engine, and recording/replay. Zero external runtime dependencies; pure TypeScript.
+- **`packages/react`** (`@mydenicek/react` [@mydenicek_react]) --- React bindings. The `useDenicek` hook provides reactive document state, mutation helpers, and sync lifecycle management.
+- **`packages/sync-server`** (`@mydenicek/sync-server` [@mydenicek_sync]) --- sync protocol. WebSocket-based client and server for exchanging events between peers. The server operates in *relay mode*: it stores and forwards events without materializing documents or understanding edit semantics.
 - **`apps/mywebnicek`** --- web application. React 19 + Fluent UI interface with a terminal-style command bar, rendered document view, raw JSON view, and event graph DAG visualization.
 
 The layered design ensures that the CRDT engine has no knowledge of the UI or transport layer, and the sync server has no knowledge of edit types. Custom primitive edits (such as `splitFirst` and `splitRest`) are registered only in the application layer and do not need to be known by the server.
