@@ -33,7 +33,7 @@ Denicek provides two categories of edit operations. *Data edits* modify the cont
 *Structural edits* change the shape of the document tree:
 
 - `rename(target, oldField, newField)` --- rename a record field
-- `updateTag(target, newTag)` --- change a node's structural tag (e.g., `ul` → `table`)
+- `updateTag(target, newTag)` --- change a node's structural tag (e.g., `ul` to `table`)
 - `wrapRecord(target, field, tag)` --- wrap a node in a new parent record, moving the original value into a named field
 - `wrapList(target, tag)` --- wrap a node in a new parent list
 
@@ -101,7 +101,7 @@ A fundamental concept in distributed collaborative editing is *causality* --- th
 
 [@Fig:causality] illustrates these relationships in an event graph.
 
-![Causality in an event graph. `alice:0 → alice:1` is a happens-before relationship (Alice created them sequentially). `alice:1 ∥ bob:0` are concurrent --- neither peer had seen the other's event when creating their own.](img/causality.png){#fig:causality width=70%}
+![Causality in an event graph. alice:0 happens-before alice:1 (Alice created them sequentially). alice:1 and bob:0 are concurrent --- neither peer had seen the other's event when creating their own.](img/causality.png){#fig:causality width=70%}
 
 Causality is tracked using *vector clocks*: each event carries a map from peer ID to the highest sequence number seen from that peer. Event $a$ happens-before event $b$ if and only if $a$'s vector clock is component-wise less than or equal to $b$'s. Two events are concurrent if neither vector clock dominates the other.
 
@@ -126,10 +126,10 @@ Eg-walker was designed for text editing (character insertions and deletions). Th
 
 ## Related systems {#sec:related}
 
-Several existing systems and libraries are relevant to this thesis. Automerge [@automerge] and Loro [@loro] are CRDT libraries that we evaluate in detail in [@Chap:journey] as potential backends for Denicek. Grove [@grove2025] is a calculus for collaborative structure editing that operates on abstract syntax trees. It models all edits as commutative operations (a CmRDT), eliminating patch synthesis and three-way merge. While Grove targets collaborative code editing rather than document-oriented end-user programming, it shares the goal of conflict-free concurrent editing on tree structures. Webstrates [@klokmose2015webstrates] is a platform for shareable dynamic media that inspired the naming lineage: Webstrates → myWebstrates → Denicek → myDenicek.
+Several existing systems and libraries are relevant to this thesis. Automerge [@automerge] and Loro [@loro] are CRDT libraries that we evaluate in detail in [@Chap:journey] as potential backends for Denicek. Grove [@grove2025] is a calculus for collaborative structure editing that operates on abstract syntax trees. It models all edits as commutative operations (a CmRDT), eliminating patch synthesis and three-way merge. While Grove targets collaborative code editing rather than document-oriented end-user programming, it shares the goal of conflict-free concurrent editing on tree structures. Webstrates [@klokmose2015webstrates] is a platform for shareable dynamic media that inspired the naming lineage: Webstrates, myWebstrates, Denicek, myDenicek.
 
 ## The for-each problem {#sec:foreach}
 
-Weidner [@weidner2023foreach] identify a common pattern in collaborative apps: operations that apply a mutation to every element in a range, such as "bold all selected text" or "change the tag of every list item." The naive approach --- iterating over elements at the time of the operation --- misses elements inserted concurrently by other peers. For example, if Alice bolds a paragraph while Bob concurrently types a new sentence within it, Bob's sentence is not bolded. The authors call this the *forEachPrior* semantics and propose a dedicated CRDT for-each operation that correctly applies the mutation to both existing and concurrently inserted elements.
+Weidner [@weidner2023foreach] identifies a common pattern in collaborative apps: operations that apply a mutation to every element in a range, such as "bold all selected text" or "change the tag of every list item." The naive approach --- iterating over elements at the time of the operation --- misses elements inserted concurrently by other peers. For example, if Alice bolds a paragraph while Bob concurrently types a new sentence within it, Bob's sentence is not bolded. The author calls this the *forEachPrior* semantics and proposes a dedicated CRDT for-each operation that correctly applies the mutation to both existing and concurrently inserted elements.
 
 This problem is directly relevant to mydenicek's wildcard selector (`speakers/*`). As discussed in [@Sec:wildcard-concurrent], the replay-based approach achieves the same "for-each-including-concurrent-insertions" semantics without a dedicated CRDT operation: the wildcard is expanded at replay time to include all elements that exist at that point, including those inserted concurrently. Weidner's for-each operation is designed for CRDT-based systems where the document state is maintained by CRDT data structures. In mydenicek, the document state is reconstructed by replaying an event graph with OT --- a fundamentally different architecture that achieves the for-each semantics as a natural consequence of replay-time wildcard expansion rather than as an explicit CRDT operation.

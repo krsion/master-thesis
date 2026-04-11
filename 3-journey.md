@@ -88,7 +88,7 @@ Loro resolves conflicts using its internal CRDT semantics --- LWW for map values
 
 Instead, we chose to build a single coherent system where path-based selectors are the native addressing mode and OT operates directly on them. This eliminates the translation layer and gives us full control over conflict resolution semantics.
 
-## The Custom Approach {#sec:custom}
+## The custom approach {#sec:custom}
 
 Inspired by Eg-walker [@gentle2025egwalker], we built a custom OT-based event DAG that combines the robustness of CRDTs (peer-to-peer sync without a central server) with the simplicity of OT (path-based addressing, no per-node metadata).
 

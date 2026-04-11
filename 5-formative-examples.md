@@ -51,12 +51,12 @@ dk.pushBack("counter/btn/steps",
 These three event IDs are stored as replay steps in a button node. Each time the button is "clicked" (the steps are replayed), a new `x-formula-plus` layer wraps the previous result:
 
 ```
-0 → { $tag: "x-formula-plus",
-      left: 0, right: 1 }           = 1
-  → { $tag: "x-formula-plus",
-      left: { $tag: "x-formula-plus",
-              left: 0, right: 1 },
-      right: 1 }                     = 2
+0 -> { $tag: "x-formula-plus",
+       left: 0, right: 1 }           = 1
+  -> { $tag: "x-formula-plus",
+       left: { $tag: "x-formula-plus",
+               left: 0, right: 1 },
+       right: 1 }                     = 2
 ```
 
 The formula engine evaluates the nested structure recursively: `((0 + 1) + 1) = 2`. This pattern works for any operation --- multiplication, concatenation, or custom formulas.
@@ -94,7 +94,7 @@ The conference table example is the most complex formative example. It demonstra
 Starting from the conference list (a `<ul>` with `<li>` items containing `"Name, email"` strings), Alice performs the following structural transformation:
 
 ```typescript
-// 1. Change tags: ul → table, li → td
+// 1. Change tags: ul -> table, li -> td
 alice.updateTag("speakers", "table");
 alice.updateTag("speakers/*", "td");
 
