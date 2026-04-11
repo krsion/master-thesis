@@ -17,7 +17,7 @@ The layers are:
 
 The layered design ensures that the CRDT engine has no knowledge of the UI or transport layer, and the sync server has no knowledge of edit types. Custom primitive edits (such as `splitFirst` and `splitRest`) are registered only in the application layer and do not need to be known by the server.
 
-### Technology choices
+## Technology choices {#sec:tech-choices}
 
 **TypeScript.** Local-first applications target the browser, where JavaScript is the dominant language. TypeScript adds static type safety, which is particularly valuable in a CRDT engine where subtle type errors (e.g., confusing a selector path with a plain string, or passing the wrong event structure) can cause silent convergence failures.
 
@@ -108,7 +108,7 @@ A notable property of the OT-based replay approach is how wildcard edits interac
 
 This happens because during deterministic replay, Bob's `pushBack` is applied first (or after, depending on topological order), and Alice's wildcard `*` expands to include *all items that exist at the point of replay* --- including Bob's concurrent insertion. The result is that the newly added item also receives the tag update, even though it did not exist when Alice made her edit.
 
-This semantics is uncommon in CRDTs. In most CRDT-based systems, an operation only affects the items that existed at the time the operation was created. Newly inserted items are not retroactively affected by concurrent bulk operations. Weidner [@weidner2023foreach] describe this as the *for-each* problem and propose a dedicated CRDT operation to address it. In mydenicek, the replay-based approach naturally achieves the "for-each-including-concurrent-additions" semantics because the wildcard is expanded at replay time, not at creation time --- no special for-each CRDT is needed.
+This semantics is uncommon in CRDTs. In most CRDT-based systems, an operation only affects the items that existed at the time the operation was created. Newly inserted items are not retroactively affected by concurrent bulk operations. Weidner [@weidner2023foreach] describes this as the *for-each* problem and proposes a dedicated CRDT operation to address it. In mydenicek, the replay-based approach naturally achieves the "for-each-including-concurrent-additions" semantics because the wildcard is expanded at replay time, not at creation time --- no special for-each CRDT is needed.
 
 ## Undo and redo {#sec:undo}
 
@@ -147,7 +147,7 @@ The protocol consists of three phases:
 2. **Sync.** The client sends its pending events and current frontiers. The server responds with events the client has not seen (computed via `eventsSince(clientFrontiers)`).
 3. **Ongoing.** As either peer produces new events, they are exchanged via the same sync message format.
 
-The server maintains a `SyncRoom` for each room, containing a `Denicek` instance in *relay mode*. In relay mode, the event graph stores and forwards events without materializing the document --- the `validateEventAgainstCausalState` step is skipped. This means the server does not need to know about custom primitive edits or formula evaluators; it only needs to understand the event structure.
+The server maintains a `SyncRoom` for each room, containing a `Denicek` instance in *relay mode*. In relay mode, the server stores and forwards events without materializing the document --- the `validateEventAgainstCausalState` step is skipped. This means the server does not need to know about custom primitive edits or formula evaluators; it only needs to understand the event structure.
 
 Initial documents are validated by hash: the first client to sync with a room sets the room's initial document hash, and subsequent clients must match it.
 
@@ -188,7 +188,11 @@ The interface provides three synchronized panels, each showing a different aspec
 
 ### Command bar
 
-The command bar at the bottom provides a terminal-style interface for executing edits. The syntax is `/selector command args` --- for example, `/speakers updateTag table` or `/speakers/*/0/contact splitFirst , `. Tab completion suggests path segments based on the current document structure, and valid commands for the selected node type. All registered primitive edits (including application-defined ones like `splitFirst` and `splitRest`) are automatically available as commands via `listRegisteredPrimitiveEdits()`.
+The command bar at the bottom provides a terminal-style interface for executing edits. The syntax is:
+
+    /selector command args
+
+For example, `/speakers updateTag table` changes the tag of the speakers node, and `/speakers/*/0/contact splitFirst ,` applies the `splitFirst` edit to every row's contact field. Tab completion suggests path segments based on the current document structure, and valid commands for the selected node type. All registered primitive edits (including application-defined ones like `splitFirst` and `splitRest`) are automatically available as commands via `listRegisteredPrimitiveEdits()`.
 
 ### Document initialization
 
@@ -216,3 +220,5 @@ JSR package publishing is a separate manual workflow (`deno publish`) triggered 
 Container Apps was chosen as the best fit: minimal operational overhead, zero cost at rest, and sufficient for a single-container research deployment.
 
 The deployment builds a Docker image via Azure Container Registry, then deploys it using a Bicep infrastructure-as-code template. Event data is persisted to an Azure Files share mounted into the container --- Azure Files was chosen over Blob Storage or Table Storage because it provides a POSIX file system interface, allowing the sync server to read and write JSON files directly without needing a storage SDK.
+
+The source code is available at `https://github.com/krsion/mydenicek` and the live demo is deployed at `https://krsion.github.io/mydenicek`.
