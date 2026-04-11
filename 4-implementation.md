@@ -44,7 +44,7 @@ JSR package publishing is a separate workflow (`deno publish`) triggered manuall
 
 - **Azure App Service** provides managed web hosting but requires an always-running plan even with no traffic. The sync server is a lightweight WebSocket relay that is only needed when users are actively collaborating, making always-on hosting wasteful.
 - **Azure Container Instances (ACI)** supports running containers on demand, but does not support scale-to-zero --- a container instance is billed for the entire time it is running, and must be explicitly started and stopped. ACI also lacks built-in HTTPS ingress and automatic restarts.
-- **Azure Kubernetes Service (AKS)** provides full container orchestration, but requires managing a Kubernetes cluster --- significant operational overhead for a single container running a research prototype.
+- **Azure Kubernetes Service (AKS)** provides full container orchestration for architectures where multiple containers communicate together. Running a single container on AKS would introduce unnecessary complexity (cluster management, networking, scaling policies) with no benefit.
 - **Azure Container Apps** combines the simplicity of ACI with automatic scale-to-zero, built-in HTTPS ingress, and managed infrastructure. It incurs no cost when idle and scales up automatically when WebSocket connections arrive.
 
 Container Apps was chosen as the best fit: minimal operational overhead, zero cost at rest, and sufficient for a single-container research deployment.
