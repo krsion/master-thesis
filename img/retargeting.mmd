@@ -14,7 +14,7 @@ graph TB
 
     LORO1["<pre style='text-align:left'>
 // Loro: absolute node ID
-[[nodeId_abc, 'John, john@ex.com']]
+[[johns_node_id, 'John, john@ex.com']]
 </pre>"]
 
     CUSTOM1["<pre style='text-align:left'>
@@ -28,7 +28,7 @@ graph TB
     LORO2["<pre style='text-align:left'>
 // add Ada to front of list
 ['Ada, ada@ex.com',
- [nodeId_abc, 'John, john@ex.com']]
+ [johns_node_id, 'John, john@ex.com']]
 </pre>"]
 
     CUSTOM2["<pre style='text-align:left'>
@@ -43,8 +43,8 @@ graph TB
     RL["<pre style='text-align:left'>
 Replay wrapList + pushFront ref on list/0
 
-[[nodeId_abc, 'Ada'],
- [nodeId_abc, 'John']]
+[[johns_node_id, 'Ada'],
+ [johns_node_id, 'John']]
 
 Both refs point to John! ❌
 </pre>"]
