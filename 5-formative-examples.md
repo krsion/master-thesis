@@ -17,7 +17,8 @@ registerPrimitiveEdit("capitalize", (value) => {
 });
 
 // Apply to one message, sync, then replay on all
-const eventId = recordedPeer.applyPrimitiveEdit("messages/0", "capitalize");
+const eventId = recordedPeer.applyPrimitiveEdit(
+  "messages/0", "capitalize");
 sync(recordedPeer, replayPeer);
 replayPeer.replayEditFromEventId(eventId, "messages/*");
 // Result: all messages title-cased
@@ -59,7 +60,7 @@ These three event IDs are stored as replay steps in a button node. Each time the
        right: 1 }                     = 2
 ```
 
-The formula engine evaluates the nested structure recursively: `((0 + 1) + 1) = 2`. This pattern works for any operation --- multiplication, concatenation, or custom formulas.
+The formula engine evaluates the nested structure recursively, computing `((0+1)+1) = 2`. This pattern works for any operation --- multiplication, concatenation, or custom formulas.
 
 ## Conference List: adding items with recorded edits {#sec:conf-list}
 
@@ -117,10 +118,10 @@ alice.pushBack("speakers/*", {
 
 After this transformation, each table row has two cells:
 
-- **Name cell**: the `split-first` formula evaluates the original `"Ada Lovelace, ada@example.com"` and returns `"Ada Lovelace"`
-- **Email cell**: the `split-rest` formula references the same source string and returns `"ada@example.com"`
+- **Name cell**: the `split-first` formula evaluates the original `"Ada Lovelace, ada@ex.com"` and returns `"Ada Lovelace"`
+- **Email cell**: the `split-rest` formula references the same source string and returns `"ada@ex.com"`
 
-The wildcard `*` in steps 2--5 ensures that the transformation is applied to every row simultaneously. All five edits are recorded as events in the DAG.
+The wildcard `*` in all four steps ensures that the transformation is applied to every row simultaneously. All edits are recorded as events in the DAG.
 
 ## Conference Table: concurrent editing {#sec:conf-concurrent}
 
