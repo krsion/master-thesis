@@ -63,3 +63,5 @@ Eg-walker was designed for text editing (character insertions and deletions). Th
 **Grove** [@shen2006grove] is an OT-based approach specifically designed for tree-structured documents. It provides transformation functions for tree operations including insert, delete, and update. However, it does not support the full range of structural edits needed by Denicek (wrap, unwrap, rename).
 
 **Webstrates** [@klokmose2015webstrates] is a system for shareable dynamic media built on web technologies. Denicek can be seen as a spiritual successor to the *myWebstrates* variant, and the name *mydenicek* follows the same naming pattern: Webstrates → myWebstrates → Denicek → myDenicek.
+
+**For-each operations.** Weidner and Kleppmann [@weidner2023foreach] identify the problem of applying an operation to all elements of a list, including elements inserted concurrently. They propose a dedicated CRDT `for-each` operation. Our wildcard selector mechanism achieves the same semantics naturally through replay-time expansion, as discussed in [@Sec:wildcard-concurrent].
