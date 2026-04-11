@@ -1,22 +1,39 @@
 graph LR
-    subgraph "Before"
-        B["speakers/0/contact<br/>'Ada Lovelace, ada@...'"]
+    subgraph before["Before wrapRecord"]
+        direction TB
+        B0["speakers/0 (tr)"]
+        B0C["contact (td)<br/>'Ada, ada@...'"]
+        B0 --> B0C
     end
 
-    subgraph "Loro: ID-based reference"
-        L1["Record on row 0:<br/>wrapRecord → split-first"]
-        L2["pushBack split-rest<br/>ref: <b>nodeId_abc</b>"]
-        L3["Replay on row 1:<br/>ref still → <b>nodeId_abc</b> (row 0!) ❌"]
+    subgraph record["① Record on row 0"]
+        direction TB
+        R0["speakers/0 (tr)"]
+        R0a["0 (td) split-first"]
+        R0s["source<br/>'Ada, ada@...'"]
+        R0b["1 (td) split-rest"]
+        R0 --> R0a
+        R0a --> R0s
+        R0 --> R0b
     end
 
-    subgraph "mydenicek: path-based reference"
-        M1["Record on row 0:<br/>wrapRecord → split-first"]
-        M2["pushBack split-rest<br/>ref: <b>../../0/contact/source</b>"]
-        M3["Replay on row 1:<br/>ref → <b>../../0/contact/source</b> (row 1!) ✅"]
+    subgraph replay["② Replay on row 1"]
+        direction TB
+        R1["speakers/1 (tr)"]
+        R1a["0 (td) split-first"]
+        R1s["source<br/>'Bob, bob@...'"]
+        R1b["1 (td) split-rest"]
+        R1 --> R1a
+        R1a --> R1s
+        R1 --> R1b
     end
 
-    B --> L1 --> L2 --> L3
-    B --> M1 --> M2 --> M3
+    before --> record --> replay
 
-    style L3 fill:#fce8e6,stroke:#ea4335,stroke-width:2px
-    style M3 fill:#e6f4ea,stroke:#34a853,stroke-width:2px
+    R0b -. "Loro: nodeId_abc<br/>→ row 0 source ❌" .-> R0s
+    R1b -. "mydenicek: ../../0/contact/source<br/>→ row 1 source ✅" .-> R1s
+
+    style R0b fill:#fce8e6,stroke:#ea4335,stroke-width:2px
+    style R1b fill:#e6f4ea,stroke:#34a853,stroke-width:2px
+    style R0s fill:#fff3cd,stroke:#ffc107,stroke-width:2px
+    style R1s fill:#e6f4ea,stroke:#34a853,stroke-width:2px
