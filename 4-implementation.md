@@ -1,39 +1,126 @@
 # Implementation {#chap:implementation}
 
-This chapter describes the architecture and implementation of the mydenicek system --- a custom OT-based CRDT engine for collaborative editing of tagged document trees.
+This chapter describes the architecture and implementation of mydenicek --- a custom OT-based CRDT engine for collaborative editing of tagged document trees. The implementation is a Deno monorepo published on JSR as `@mydenicek/core`, `@mydenicek/react`, and `@mydenicek/sync-server`.
 
-## Architecture Overview
+## Architecture overview {#sec:architecture}
 
-\todo{Monorepo structure: packages/core, packages/react, packages/sync-server, apps/mywebnicek. Diagram showing the layers. Published on JSR.}
+The system is organized in four layers:
 
-## Document Model
+- **`packages/core`** (`@mydenicek/core`) --- the CRDT engine. Contains the document model, event DAG, edit types, OT transformation rules, undo/redo, formula engine, and recording/replay. Zero external runtime dependencies; pure TypeScript.
+- **`packages/react`** (`@mydenicek/react`) --- React bindings. The `useDenicek` hook provides reactive document state, mutation helpers, and sync lifecycle management.
+- **`packages/sync-server`** (`@mydenicek/sync-server`) --- sync protocol. WebSocket-based client and server for exchanging events between peers. The server operates in *relay mode*: it stores and forwards events without materializing documents or understanding edit semantics.
+- **`apps/mywebnicek`** --- web application. React 19 + Fluent UI interface with a terminal-style command bar, rendered document view, raw JSON view, and event graph DAG visualization.
 
-\todo{Four node types: Record (named fields + tag), List (ordered items + tag), Primitive (string/number/boolean), Reference ($ref with relative paths). PlainNode type. Selectors: /path/to/field, wildcards /items/*, strict indices /items/!0.}
+The layered design ensures that the CRDT engine has no knowledge of the UI or transport layer, and the sync server has no knowledge of edit types. Custom primitive edits (such as `splitFirst` and `splitRest`) are registered only in the application layer and do not need to be known by the server.
 
-## Event DAG
+## Document model {#sec:doc-model}
 
-\todo{Events: immutable, identified by EventId (peer:seq). Parents: the frontier at creation time. Vector clocks for causal ordering. Kahn's algorithm for deterministic topological sort with EventId tie-breaking. Materialization: replay all events in topological order against the initial document.}
+Documents are modeled as tagged trees with four node types:
 
-## Edit Types and OT Rules
+- **Record** --- a set of named fields, each containing a child node, plus a structural tag. Example: `{ $tag: "tr", name: { $tag: "td", text: "Ada" }, email: { $tag: "td", text: "ada@example.com" } }`.
+- **List** --- an ordered sequence of child nodes with a structural tag. Example: `{ $tag: "ul", $items: [item1, item2, item3] }`.
+- **Primitive** --- a scalar value: string, number, or boolean.
+- **Reference** --- a pointer to another node via a relative or absolute path. Example: `{ $ref: "../../0/contact/source" }`.
 
-\todo{List of edit types: add, delete, rename, set, pushBack, pushFront, popBack, popFront, updateTag, wrapRecord, wrapList, copy, applyPrimitiveEdit. For each structural edit, describe the OT transformation rule: how it rewrites selectors of concurrent edits. Focus on the most interesting ones: rename transforms paths, wrap adds/removes path segments.}
+Nodes are addressed by *selectors* --- slash-separated paths that describe how to navigate the tree from the root. The selector `speakers/0/name` navigates to the `speakers` field, then to the first list item (index 0), then to the `name` field. Selectors support three special forms:
 
-## Undo and Redo
+- **Wildcards** (`*`): `speakers/*` expands to all children of the `speakers` list. An edit targeting `speakers/*` is applied to every item.
+- **Strict indices** (`!0`): `speakers/!0` refers to the item at index 0 *at the time of the edit*. Unlike plain `0`, strict indices are not shifted by concurrent insertions --- they always refer to the original position.
+- **Parent navigation** (`..`): used in references to navigate up the tree. `../../0/contact` goes up two levels, then navigates to `0/contact`.
 
-\todo{Each Edit computes its own inverse. Undo creates a new event with the inverse edit. Redo re-applies the undone edit. All inverses are regular events that sync normally.}
+## Event DAG {#sec:event-dag}
 
-## Formula Engine
+The event DAG is the core data structure of the CRDT. Each edit creates an immutable *event* containing:
 
-\todo{Tag-based formula evaluators: x-formula-plus, split-first, split-rest. References via $ref with relative path resolution. evaluateAllFormulas walks the plain tree and evaluates all formula nodes.}
+- **EventId** --- a unique identifier `peer:seq`, where `peer` is the peer's string identifier and `seq` is a monotonically increasing sequence number. For example, `alice:3` is Alice's third event.
+- **Parents** --- the set of event IDs that form the *frontier* at the time the event was created. These are the most recent events the peer had seen. An event with multiple parents represents a state that has merged concurrent branches.
+- **Edit** --- the actual edit operation (add, delete, rename, set, pushBack, wrapRecord, etc.) with its target selector and arguments.
+- **Vector clock** --- a map from peer ID to the highest sequence number seen from that peer. The vector clock enables causal ordering: event A *happens-before* event B if A's vector clock is dominated by B's. Two events are *concurrent* if neither dominates the other.
 
-## Recording and Replay
+### Materialization
 
-\todo{Programming by demonstration: record edit event IDs, store as replay steps. repeatEditsFrom replays a sequence. resolveReplayEdit transforms the replayed edit through all later structural changes via OT. Batch-aware replay excludes same-batch events from retargeting.}
+To reconstruct the document from the event DAG, we perform *deterministic topological replay*:
 
-## Sync Protocol
+1. Sort all events in topological order using Kahn's algorithm. When multiple events have no unprocessed dependencies (i.e., they are concurrent), break ties deterministically by comparing their `EventId` values lexicographically.
+2. Starting from the initial document, apply each event's edit in order. Before applying, call `resolveAgainst` --- the OT step that transforms the edit's selector through all previously applied concurrent edits.
+3. If a transformed edit becomes invalid (e.g., it targets a node that was deleted by a concurrent edit), it becomes a *no-op conflict* that is recorded but does not modify the document.
 
-\todo{WebSocket-based: drain pending events, send to server, receive from server via applyRemote. Server is a pure relay (relayMode) --- stores and forwards events without materializing. Initial document hash validation. Pause/resume support.}
+Because the sort order is deterministic and the OT transformations are deterministic, any two peers that have received the same set of events will produce the same document. This is the strong eventual consistency guarantee.
 
-## Web Application
+### Frontier
 
-\todo{React UI: command bar with tab completion, rendered document view, raw JSON view, event graph DAG visualization. Multi-document tabs with template system. DebouncedInput for efficient editing.}
+The *frontier* is the set of event IDs that have no descendants --- the "tips" of the DAG. When a peer creates a new event, the current frontier becomes the event's parents, and the event becomes the new frontier. When two branches merge (a peer receives events from another peer), the frontier may contain events from multiple peers. A post-merge edit creates an event with multiple parents, reducing the frontier back to a single point.
+
+## Edit types and OT rules {#sec:edit-types}
+
+The system supports the following edit types:
+
+| Edit type | Description | Target |
+|-----------|-------------|--------|
+| `RecordAddEdit` | Add a named field to a record | Record |
+| `RecordDeleteEdit` | Delete a named field from a record | Record |
+| `RecordRenameFieldEdit` | Rename a field | Record |
+| `ListPushBackEdit` | Append an item to a list | List |
+| `ListPushFrontEdit` | Prepend an item to a list | List |
+| `ListPopBackEdit` | Remove the last item from a list | List |
+| `ListPopFrontEdit` | Remove the first item from a list | List |
+| `UpdateTagEdit` | Change a node's structural tag | Record or List |
+| `WrapRecordEdit` | Wrap a node in a new parent record | Any |
+| `WrapListEdit` | Wrap a node in a new parent list | Any |
+| `CopyEdit` | Copy a subtree from a source to a target | Any |
+| `ApplyPrimitiveEdit` | Apply a registered custom edit | Primitive |
+
+Each structural edit (rename, wrap, delete) has a `transformSelector` method that rewrites the selector of a concurrent edit. The key transformation rules are:
+
+- **Rename**: if a concurrent edit targets `speakers/0/name` and a rename changes `speakers` to `talks`, the concurrent edit's selector is transformed to `talks/0/name`.
+- **WrapRecord**: if a concurrent edit targets `speakers/0/value` and a wrap turns `value` into `{$tag: "wrapper", value: <original>}`, the concurrent edit's selector gains a segment: `speakers/0/value/value`.
+- **WrapList**: similar to WrapRecord but wraps into a list, adding an index segment.
+- **Delete**: if a concurrent edit targets a field that was deleted, the edit becomes a no-op conflict.
+- **PushFront**: shifts numeric indices in concurrent selectors (e.g., `items/0` becomes `items/1`).
+
+## Undo and redo {#sec:undo}
+
+Each `Edit` subclass implements a `computeInverse(preDoc)` method that returns the inverse edit. For example, the inverse of `RecordAddEdit("field", value)` is `RecordDeleteEdit("field")`, and the inverse of `WrapRecordEdit` is `UnwrapRecordEdit`.
+
+Undo creates a new event containing the inverse edit. This event is a regular event in the DAG --- it syncs to other peers automatically. Redo re-applies the undone edit. The undo/redo stacks are maintained per-peer and only track local events.
+
+## Formula engine {#sec:formulas}
+
+The formula engine supports two kinds of formulas:
+
+- **Tag-based evaluators** --- registered for specific node tags. For example, a node with `$tag: "split-first"` containing a `source` field and a `separator` field evaluates to the substring before the separator. Built-in evaluators include `x-formula-plus`, `x-formula-minus`, `x-formula-times`, `split-first`, and `split-rest`.
+- **Operation-based formulas** --- nodes with `$tag: "x-formula"` and an `operation` field. Arguments are provided as a list that may contain primitive values or `$ref` references. Built-in operations include `sum`, `product`, `concat`, `uppercase`, `lowercase`, `countChildren`, and others.
+
+References (`$ref`) in formula arguments are resolved relative to the formula's position in the tree. The formula engine walks the entire document tree, evaluates all formula nodes, and returns a map from path to result. Circular references are detected and reported as errors.
+
+## Recording and replay {#sec:replay}
+
+Programming by demonstration is implemented through event recording and replay:
+
+1. **Recording.** When a user performs an edit, the resulting event ID is stored in a list of *replay steps* --- typically attached to a button node in the document.
+2. **Replay.** When the user clicks the button, each step's event ID is passed to `resolveReplayEdit`, which walks the full causal history and transforms the replayed edit through every later structural change. This ensures the replay targets the correct location even if the document structure has changed since recording.
+3. **Batch replay.** When replaying multiple steps as a batch (e.g., all steps of an "Add Speaker" button), same-batch events are excluded from retargeting each other. This prevents cascading transformations within a single replay sequence.
+
+The replay mechanism uses the same OT infrastructure as materialization --- the difference is that during replay, only the single replayed event is transformed, not the entire history.
+
+## Sync protocol {#sec:sync}
+
+The sync protocol uses WebSocket connections with a simple message exchange:
+
+1. **Connect.** The client sends a `hello` message with the room ID. If the room exists, the server responds with the initial document.
+2. **Sync.** The client sends its pending events and current frontiers. The server responds with events the client has not seen (computed via `eventsSince(clientFrontiers)`).
+3. **Ongoing.** As either peer produces new events, they are exchanged via the same sync message format.
+
+The server maintains a `SyncRoom` for each room, containing a `Denicek` instance in *relay mode*. In relay mode, the event graph stores and forwards events without materializing the document --- the `validateEventAgainstCausalState` step is skipped. This means the server does not need to know about custom primitive edits or formula evaluators; it only needs to understand the event structure.
+
+Initial documents are validated by hash: the first client to sync with a room sets the room's initial document hash, and subsequent clients must match it.
+
+## Web application {#sec:webapp}
+
+The web application (`apps/mywebnicek`) provides three synchronized views of the document:
+
+- **Rendered view** --- the document tree rendered as HTML elements based on node tags. Formula nodes display their evaluated results. Buttons trigger replay of recorded edit sequences.
+- **Raw JSON view** --- syntax-highlighted JSON representation of the plain document tree.
+- **Event graph view** --- an SVG visualization of the causal DAG showing events as nodes, causal dependencies as edges, peer colors, and frontier indicators. Clicking an event shows its details (edit type, selector, vector clock).
+
+The command bar at the bottom provides a terminal-style interface for executing edits. The syntax is `/selector command args` --- for example, `/speakers updateTag table` or `/speakers/*/0/contact splitFirst , `. Tab completion suggests path segments and valid commands for the selected node type. Registered primitive edits are automatically available as commands.
