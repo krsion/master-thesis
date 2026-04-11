@@ -1,0 +1,25 @@
+%%{init: {'themeVariables': {'fontFamily': 'monospace'}}}%%
+graph LR
+    E0["alice:0<br/>pushFront items"]
+    E1["alice:1<br/>copy input → !0"]
+
+    BOB["bob:0<br/>pushFront items"]
+
+    R0["alice:2<br/>replay pushFront"]
+    R1["alice:3<br/>replay copy → !0"]
+
+    MERGE["alice:4<br/>merge"]
+
+    E0 --> E1
+    E1 --> BOB
+    E1 --> R0
+    R0 --> R1
+    R1 --> MERGE
+    BOB --> MERGE
+
+    style E0 fill:#e8f0fe,stroke:#0078d4,stroke-width:2px
+    style E1 fill:#e8f0fe,stroke:#0078d4,stroke-width:2px
+    style BOB fill:#e6f4ea,stroke:#34a853,stroke-width:2px
+    style R0 fill:#fff4e5,stroke:#f5a623,stroke-width:2px
+    style R1 fill:#fff4e5,stroke:#f5a623,stroke-width:2px
+    style MERGE fill:#f3e8ff,stroke:#8b5cf6,stroke-width:2px

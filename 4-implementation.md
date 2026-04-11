@@ -156,8 +156,12 @@ References (`$ref`) in formula arguments are resolved relative to the formula's 
 Programming by demonstration is implemented through event recording and replay:
 
 1. **Recording.** When a user performs an edit, the resulting event ID is stored in a list of *replay steps* --- typically attached to a button node in the document.
-2. **Replay.** When the user clicks the button, each step's event ID is passed to `resolveReplayEdit`, which walks the full causal history and transforms the replayed edit through every later structural change. This ensures the replay targets the correct location even if the document structure has changed since recording.
+2. **Replay.** When the user triggers a replay, the system re-executes the recorded edits as if they were *concurrent* with all events that happened after the recording. Each step's event ID is passed to `resolveReplayEdit`, which walks the causal history back to the recording point and transforms the replayed edit forward through every later structural change. This is illustrated in [@Fig:replay]: the replay events (orange) fork from the same point as Bob's concurrent edit (green), and merge at the end.
 3. **Batch replay.** When replaying multiple steps as a batch (e.g., all steps of an "Add Speaker" button), same-batch events are excluded from retargeting each other. This prevents cascading transformations within a single replay sequence.
+
+![Replay as concurrent re-execution. The recorded edits (alice:0, alice:1) are replayed as new events (alice:2, alice:3) that fork from the recording point, making them concurrent with Bob's later edit. The strict index `!0` ensures the copy targets the item just created by the replay, not Bob's insertion.](img/replay.png){#fig:replay width=95%}
+
+Strict indices (`!0`) are essential for replay: a regular index `0` would be shifted by Bob's concurrent `pushFront`, causing the copy to target Bob's item instead of the replayed one. The strict index `!0` refers to position 0 *at the recording point*, which OT does not shift through concurrent insertions.
 
 The replay mechanism uses the same OT infrastructure as materialization --- the difference is that during replay, only the single replayed event is transformed, not the entire history.
 
