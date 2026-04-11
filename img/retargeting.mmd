@@ -1,0 +1,22 @@
+graph LR
+    subgraph "Before"
+        B["speakers/0/contact<br/>'Ada Lovelace, ada@...'"]
+    end
+
+    subgraph "Loro: ID-based reference"
+        L1["Record on row 0:<br/>wrapRecord → split-first"]
+        L2["pushBack split-rest<br/>ref: <b>nodeId_abc</b>"]
+        L3["Replay on row 1:<br/>ref still → <b>nodeId_abc</b> (row 0!) ❌"]
+    end
+
+    subgraph "mydenicek: path-based reference"
+        M1["Record on row 0:<br/>wrapRecord → split-first"]
+        M2["pushBack split-rest<br/>ref: <b>../../0/contact/source</b>"]
+        M3["Replay on row 1:<br/>ref → <b>../../0/contact/source</b> (row 1!) ✅"]
+    end
+
+    B --> L1 --> L2 --> L3
+    B --> M1 --> M2 --> M3
+
+    style L3 fill:#fce8e6,stroke:#ea4335,stroke-width:2px
+    style M3 fill:#e6f4ea,stroke:#34a853,stroke-width:2px

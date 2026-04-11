@@ -1,0 +1,29 @@
+graph TD
+    ROOT["&lt;section&gt;<br/><i>record</i>"]
+    HEAD["&lt;header&gt;<br/><i>record</i>"]
+    TITLE["&lt;h1&gt;<br/><i>record</i>"]
+    TEXT["'mydenicek'<br/><i>primitive</i>"]
+    SPEAKERS["&lt;ul&gt;<br/><i>list</i>"]
+    LI1["&lt;li&gt;<br/><i>record</i>"]
+    LI2["&lt;li&gt;<br/><i>record</i>"]
+    C1["'Ada, ada@...'<br/><i>primitive</i>"]
+    C2["'Grace, grace@...'<br/><i>primitive</i>"]
+
+    ROOT -->|header| HEAD
+    ROOT -->|speakers| SPEAKERS
+    HEAD -->|title| TITLE
+    TITLE -->|text| TEXT
+    SPEAKERS -->|"[0]"| LI1
+    SPEAKERS -->|"[1]"| LI2
+    LI1 -->|contact| C1
+    LI2 -->|contact| C2
+
+    style ROOT fill:#e8f0fe,stroke:#0078d4,stroke-width:2px
+    style HEAD fill:#e8f0fe,stroke:#0078d4
+    style TITLE fill:#e8f0fe,stroke:#0078d4
+    style SPEAKERS fill:#fff4e5,stroke:#f5a623,stroke-width:2px
+    style LI1 fill:#e8f0fe,stroke:#0078d4
+    style LI2 fill:#e8f0fe,stroke:#0078d4
+    style TEXT fill:#e6f4ea,stroke:#34a853
+    style C1 fill:#e6f4ea,stroke:#34a853
+    style C2 fill:#e6f4ea,stroke:#34a853

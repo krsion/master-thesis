@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant A as User A
+    participant B as User B
+
+    Note over A,B: Both start with "Hello"
+
+    A->>A: Insert("!", pos=5)<br/>→ "Hello!"
+    B->>B: Insert(" World", pos=5)<br/>→ "Hello World"
+
+    Note over A,B: Exchange operations
+
+    B-->>A: Insert(" World", pos=5)
+    Note over A: Transform: pos 5→6<br/>(A already inserted at 5)
+    A->>A: Apply Insert(" World", pos=6)<br/>→ "Hello! World"
+
+    A-->>B: Insert("!", pos=5)
+    Note over B: Transform: pos 5→5<br/>(no shift needed)
+    B->>B: Apply Insert("!", pos=5)<br/>→ "Hello! World"
+
+    Note over A,B: Both converge to "Hello! World" ✅

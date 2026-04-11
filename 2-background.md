@@ -4,7 +4,9 @@ This chapter introduces the concepts and systems that form the foundation of thi
 
 ## Denicek {#sec:denicek}
 
-Denicek [@petricek2025denicek] is a computational substrate for document-oriented end-user programming. It models documents as *tagged trees* --- hierarchical structures where each node carries a structural tag (such as `h1`, `ul`, `tr`) and contains either named fields (records), ordered children (lists), scalar values (primitives), or pointers to other nodes (references).
+Denicek [@petricek2025denicek] is a computational substrate for document-oriented end-user programming. It models documents as *tagged trees* --- hierarchical structures where each node carries a structural tag (such as `h1`, `ul`, `tr`) and contains either named fields (records), ordered children (lists), scalar values (primitives), or pointers to other nodes (references). [@Fig:document-tree] shows an example document tree.
+
+![Example Denicek document tree. Blue nodes are records (named fields), orange is a list (ordered children), green nodes are primitives (scalar values). Edge labels show field names and list indices.](img/document-tree.png){#fig:document-tree width=65%}
 
 Nodes are addressed by *selector paths* --- slash-separated strings that describe the location of a node in the tree. For example, `/speakers/0/name` refers to the `name` field of the first item in the `speakers` list. Selectors support wildcards: `/speakers/*` addresses all children of the `speakers` list, enabling bulk operations such as "update the tag of every list item."
 
@@ -21,7 +23,9 @@ The original Denicek uses Operational Transformation to handle concurrent edits.
 
 Operational Transformation (OT) is a technique for collaborative editing introduced by Ellis and Gibbs [@ellis1989concurrency] in 1989. The core idea is straightforward: when two users make concurrent edits, one user's operation is *transformed* with respect to the other's so that both operations can be applied in either order and produce the same result.
 
-Consider a simple example with text editing. Two users start with the string `"Hello"`:
+Consider a simple example with text editing, illustrated in [@Fig:ot-text-example]. Two users start with the string `"Hello"`:
+
+![OT text example. Two concurrent insertions are transformed so both peers converge to the same state.](img/ot-text-example.png){#fig:ot-text-example width=75%}
 
 - User A inserts `"!"` at position 5, producing `"Hello!"`
 - User B inserts `" World"` at position 5, producing `"Hello World"`
@@ -34,9 +38,14 @@ The Jupiter algorithm [@nichols1995jupiter], used in Google Docs, simplifies OT 
 
 ## Conflict-free Replicated Data Types {#sec:crdts}
 
-CRDTs [@shapiro2011crdt] are data structures designed for distributed systems where multiple replicas can be modified independently and merged without conflicts. The key guarantee is *strong eventual consistency*: any two replicas that have received the same set of updates will be in the same state, regardless of the order in which updates were delivered.
+CRDTs [@shapiro2011crdt] are data structures designed for distributed systems where multiple replicas can be modified independently and merged without conflicts. The key guarantee is *strong eventual consistency*: any two replicas that have received the same set of updates will be in the same state, regardless of the order in which updates were delivered. Preguiça [@preguica2018crdts] provides a comprehensive overview of CRDTs and their variants.
 
-CRDTs achieve this by designing update operations that are commutative --- applying the same set of operations in any order produces the same result. This eliminates the need for operation transformation and makes the algorithms simpler to reason about. However, this simplicity comes at a cost: CRDTs must attach metadata to each element (such as unique identifiers) to enable conflict-free merging, which increases memory usage.
+CRDTs come in two main flavors:
+
+- **State-based CRDTs** (CvRDTs) require the set of possible states to form a *join semilattice* --- a partially ordered set where any two states have a least upper bound (join). Replicas periodically send their full state to each other, and the merge operation computes the join. This works over unreliable channels since states can always be re-merged, but sending the full state can be expensive for large data structures.
+- **Operation-based CRDTs** (CmRDTs) propagate individual update operations rather than full states. Operations must be commutative so that applying them in any order produces the same result. This is more bandwidth-efficient, but requires a *reliable causal broadcast* layer --- operations must be delivered exactly once and in causal order.
+
+A hybrid approach, *delta-state CRDTs*, sends only the part of the state that changed (the "delta") rather than the full state. Deltas are joinable like full states (so they tolerate message loss and reordering) but are small like operations (so they are bandwidth-efficient).
 
 Common CRDT building blocks relevant to this thesis include:
 

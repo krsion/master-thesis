@@ -76,7 +76,9 @@ The `split-rest` formula uses a relative path (`../../0/contact/source`) to navi
 
 With Loro's opaque IDs, the reference would point to `nodeId_abc123` --- the specific node from row 0. Replaying on row 1 would still reference row 0's data, producing incorrect results. Even worse, after the `wrapRecord` operation, the original contact value moved one level deeper in the tree (it became the `source` field of the formula node). Loro's ID still points to the formula node, not to the `source` child where the actual value now lives.
 
-This is not a bug in Loro --- it is a fundamental mismatch between ID-based and path-based addressing. Denicek's programming model requires paths that can be *retargeted* through structural changes, and Loro's design does not support this.
+This is not a bug in Loro --- it is a fundamental mismatch between ID-based and path-based addressing, illustrated in [@Fig:retargeting]. Denicek's programming model requires paths that can be *retargeted* through structural changes, and Loro's design does not support this.
+
+![The retargeting problem. Loro's ID-based reference points to the original node (wrong after wrap). mydenicek's relative path navigates correctly from the current position.](img/retargeting.png){#fig:retargeting width=90%}
 
 ### Why not add path OT on top of Loro? {#sec:why-not-layer}
 

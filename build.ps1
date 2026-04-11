@@ -43,15 +43,15 @@ if (Test-Path latex_template\latex_img) {
     Copy-Item latex_template\latex_img $buildDir\ -Recurse -Force
 }
 
-# Run latexmk
+# Run latexmk (multiple passes to resolve references and citations)
 Write-Host "Running latexmk..." -ForegroundColor Cyan
 Push-Location $buildDir
 try {
-    & latexmk -pdflua -interaction=nonstopmode thesis 2>&1 | ForEach-Object {
-        if ($_ -match "Output written|Error|Warning.*undefined|Rerun") {
-            Write-Host "  $_"
-        }
-    }
+    # First pass + bibtex
+    & latexmk -pdflua -interaction=nonstopmode thesis 2>&1 | Out-Null
+    # Force extra passes to resolve all cross-references
+    & lualatex -interaction=nonstopmode thesis 2>&1 | Out-Null
+    & lualatex -interaction=nonstopmode thesis 2>&1 | Out-Null
     if (Test-Path thesis.pdf) {
         $size = [math]::Round((Get-Item thesis.pdf).Length / 1024)
         Write-Host "`nSuccess! thesis.pdf ($size KB)" -ForegroundColor Green
