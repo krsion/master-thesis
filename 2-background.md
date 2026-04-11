@@ -8,6 +8,8 @@ Denicek [@petricek2025denicek] is a computational substrate for document-oriente
 
 ![Example Denicek document tree. Blue nodes are records (named fields), orange is a list (ordered children), green nodes are primitives (scalar values). Edge labels show field names and list indices.](img/document-tree.png){#fig:document-tree width=65%}
 
+The Denicek paper demonstrates the substrate through two systems built on top of it. *Webnicek* is a web-based programming system (inspired by Webstrates [@klokmose2015webstrates]) where documents are rendered as interactive web pages and users program by manipulating the document structure. *Datnicek* is a data science notebook that uses the same substrate for tabular data with formulas, supporting datasets of up to thousands of rows. Both systems share the same edit operations, recording/replay mechanism, and collaboration model --- they differ only in how the document tree is rendered and interpreted.
+
 Nodes are addressed by *selector paths* --- slash-separated strings that describe the location of a node in the tree. For example, `/speakers/0/name` refers to the `name` field of the first item in the `speakers` list. Selectors support wildcards: `/speakers/*` addresses all children of the `speakers` list, enabling bulk operations such as "update the tag of every list item."
 
 Denicek provides four key end-user programming experiences:
