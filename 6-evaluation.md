@@ -1,24 +1,6 @@
 # Evaluation and Discussion {#chap:evaluation}
 
-This chapter evaluates the mydenicek implementation against the original goals, discusses the testing strategy, and identifies limitations.
-
-## Specification divergence {#sec:divergence}
-
-The original project specification prescribed Loro CRDTs as the synchronization substrate with ID-addressed nodes. The implementation diverged to a custom OT-based event DAG with path-addressed selectors. The key divergences are summarized in [@Tbl:divergence].
-
-: Specification vs. implementation divergences. {#tbl:divergence}
-
-| Aspect | Specification | Implementation |
-|--------|--------------|----------------|
-| CRDT substrate | Loro (Rust/WASM) | Custom OT event DAG |
-| Node addressing | Unique IDs (`TreeID`) | Path-based selectors |
-| Text editing | `LoroText` with splice | Atomic value replacement |
-| Undo/redo | Loro's undo manager | Inverse events in the DAG |
-| Runtime | Node.js + npm | Deno 2.x |
-| Dependencies | Loro (2 MB WASM) | Zero external CRDT deps |
-| Package registry | npm | JSR |
-
-The divergence was justified by the findings described in [@Chap:journey]: the Denicek editing model is inherently OT-shaped because it relies on path-based selectors that must be transformed through concurrent structural changes. Wrapping Loro CRDTs with custom structural edits would have produced a leaky abstraction with two conflicting resolution layers.
+This chapter evaluates the mydenicek implementation, discusses the testing strategy, and identifies limitations.
 
 ## Formative example results {#sec:results}
 
