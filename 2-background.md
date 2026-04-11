@@ -13,9 +13,29 @@ Nodes are addressed by *selector paths* --- slash-separated strings that describ
 Denicek provides four key end-user programming experiences:
 
 - **Programming by demonstration.** Users perform edits interactively --- such as adding a list item and copying a value from an input field --- and the system records these edits as a replayable script. When the user clicks a button, the recorded edits are replayed, potentially on different targets.
-- **Schema evolution.** Structural edits such as `wrapRecord` (wrap a node in a new parent record), `wrapList` (wrap in a list), `rename` (rename a field), and `updateTag` (change a node's structural tag) allow users to refactor the document's structure without losing data.
+- **Schema evolution.** Structural edits allow users to refactor the document's structure without losing data.
 - **Collaborative editing.** Multiple peers can edit the same document concurrently, and the system merges their edits deterministically.
 - **Formula recomputation.** Nodes can contain formulas that reference other nodes via relative paths. When the referenced data changes, the formula result is recomputed.
+
+### Edit operations
+
+Denicek provides two categories of edit operations. *Data edits* modify the content of the document:
+
+- `add(target, field, value)` --- add a named field to a record
+- `delete(target, field)` --- remove a field from a record
+- `set(target, value)` --- replace a primitive value
+- `pushBack(target, item)` / `pushFront` --- append or prepend to a list
+- `popBack(target)` / `popFront` --- remove from the end or start of a list
+- `copy(target, source)` --- copy a subtree from one location to another
+
+*Structural edits* change the shape of the document tree:
+
+- `rename(target, oldField, newField)` --- rename a record field
+- `updateTag(target, newTag)` --- change a node's structural tag (e.g., `ul` → `table`)
+- `wrapRecord(target, field, tag)` --- wrap a node in a new parent record, moving the original value into a named field
+- `wrapList(target, tag)` --- wrap a node in a new parent list
+
+The distinction matters for collaborative editing: structural edits change the *paths* by which other edits address nodes. When a peer renames `speakers` to `talks`, all concurrent edits targeting `/speakers/...` must be retargeted to `/talks/...`. When a peer wraps a node, concurrent edits must gain an additional path segment. This is the core challenge that any collaborative editing approach for Denicek must solve.
 
 The original Denicek uses Operational Transformation to handle concurrent edits. This thesis explores alternatives drawing on both CRDT and OT concepts, ultimately arriving at an approach inspired by Eg-walker [@gentle2025egwalker] that combines a CRDT event graph with OT-based selector transformation during replay.
 
