@@ -70,7 +70,7 @@ Eg-walker was designed for text editing (character insertions and deletions). Th
 
 ## Related systems {#sec:related}
 
-Several existing systems and libraries are relevant to this thesis. Automerge [@automerge] and Loro [@loro] are CRDT libraries that we evaluate in detail in [@Chap:journey] as potential backends for Denicek. Shen and Sun [@shen2006grove] study the convergence conditions for OT on tree-structured documents, identifying formal transformation properties (TP1, TP2) required to guarantee that concurrent tree operations converge. Their work provides theoretical foundations but focuses on proving convergence conditions rather than providing a practical system for end-user programming with selectors, wildcards, and programming by demonstration. Webstrates [@klokmose2015webstrates] is a platform for shareable dynamic media that inspired the naming lineage: Webstrates → myWebstrates → Denicek → myDenicek.
+Several existing systems and libraries are relevant to this thesis. Automerge [@automerge] and Loro [@loro] are CRDT libraries that we evaluate in detail in [@Chap:journey] as potential backends for Denicek. Shen and Sun [@shen2006grove] study the convergence conditions for OT on tree-structured documents, identifying formal transformation properties (TP1, TP2) required to guarantee that concurrent tree operations converge. Their work is motivated by collaborative XML editing and focuses on achieving provably correct convergence for insert, delete, and update operations on hierarchical structures. Webstrates [@klokmose2015webstrates] is a platform for shareable dynamic media that inspired the naming lineage: Webstrates → myWebstrates → Denicek → myDenicek.
 
 ## The for-each problem {#sec:foreach}
 
