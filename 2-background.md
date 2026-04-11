@@ -37,7 +37,17 @@ Denicek provides two categories of edit operations. *Data edits* modify the cont
 
 The distinction matters for collaborative editing: structural edits change the *paths* by which other edits address nodes. When a peer renames `speakers` to `talks`, all concurrent edits targeting `/speakers/...` must be retargeted to `/talks/...`. When a peer wraps a node, concurrent edits must gain an additional path segment. This is the core challenge that any collaborative editing approach for Denicek must solve.
 
-The original Denicek uses Operational Transformation to handle concurrent edits. This thesis explores alternatives drawing on both CRDT and OT concepts, ultimately arriving at an approach inspired by Eg-walker [@gentle2025egwalker] that combines a CRDT event graph with OT-based selector transformation during replay.
+### Denicek's collaboration model
+
+The original Denicek defines three core operations on edit histories:
+
+1. **Apply** --- apply an edit to a document, producing a new document state and extending the history.
+2. **Merge** --- merge two edit histories that diverged from a common ancestor, using OT to transform one history's edits against the other's.
+3. **Check for conflicts** --- after merging, identify edits that could not be reconciled (e.g., concurrent deletion and modification of the same node) and report them to the user.
+
+Denicek's histories are *linear sequences* of edits. Merging two linear histories produces a new linear history. Importantly, merge is *not commutative* --- merging history A into B may produce a different result than merging B into A, because the OT transformation order differs. The paper mentions that histories could form a graph rather than a linear sequence, but does not elaborate on this direction.
+
+This thesis takes exactly that step: replacing linear histories with a *causal event graph* (DAG), where merge order does not matter because all peers replay the same deterministic topological order. This is inspired by Eg-walker [@gentle2025egwalker], which applies the same principle to text editing.
 
 ## Operational Transformation {#sec:ot}
 
