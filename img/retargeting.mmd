@@ -1,31 +1,32 @@
+%%{init: {'themeVariables': {'fontFamily': 'monospace'}}}%%
 graph TB
-    S1["<pre>
+    S1["<pre style='text-align:left'>
 {
-  $tag: 'li',
-  $children: [
-    'John, john@ex.com'
+  <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'li'</span>,
+  <span style='color:#0550ae'>$children</span>: [
+    <span style='color:#0a3069'>'John, john@ex.com'</span>
   ]
 }
 </pre>"]
-    S2["<pre>
+    S2["<pre style='text-align:left'>
 {
-  $tag: 'tr',
-  0: {
-    $tag: 'split-first',
-    source: 'John, john@ex.com'
+  <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'tr'</span>,
+  <span style='color:#0550ae'>0</span>: {
+    <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'split-first'</span>,
+    <span style='color:#0550ae'>source</span>: <span style='color:#0a3069'>'John, john@ex.com'</span>
   }
 }
 </pre>"]
-    S3["<pre>
+    S3["<pre style='text-align:left'>
 {
-  $tag: 'tr',
-  0: {
-    $tag: 'split-first',
-    source: 'John, john@ex.com'
+  <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'tr'</span>,
+  <span style='color:#0550ae'>0</span>: {
+    <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'split-first'</span>,
+    <span style='color:#0550ae'>source</span>: <span style='color:#0a3069'>'John, john@ex.com'</span>
   },
-  1: {
-    $tag: 'split-rest',
-    ref: '../0/source'
+  <span style='color:#0550ae'>1</span>: {
+    <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'split-rest'</span>,
+    <span style='color:#0550ae'>ref</span>: <span style='color:#0a3069'>'../0/source'</span>
   }
 }
 </pre>"]
@@ -34,16 +35,16 @@ graph TB
     S2 -- "pushBack list/0 (create ref node)" --> S3
 
     subgraph replay["Replay same edits on list/1"]
-        S4["<pre>
+        S4["<pre style='text-align:left'>
 {
-  $tag: 'tr',
-  0: {
-    $tag: 'split-first',
-    source: 'Ada, ada@ex.com'
+  <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'tr'</span>,
+  <span style='color:#0550ae'>0</span>: {
+    <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'split-first'</span>,
+    <span style='color:#0550ae'>source</span>: <span style='color:#0a3069'>'Ada, ada@ex.com'</span>
   },
-  1: {
-    $tag: 'split-rest',
-    ref: ???
+  <span style='color:#0550ae'>1</span>: {
+    <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'split-rest'</span>,
+    <span style='color:#0550ae'>ref</span>: <span style='color:#cf222e'>???</span>
   }
 }
 </pre>"]
