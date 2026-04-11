@@ -17,6 +17,14 @@ The layers are:
 
 The layered design ensures that the CRDT engine has no knowledge of the UI or transport layer, and the sync server has no knowledge of edit types. Custom primitive edits (such as `splitFirst` and `splitRest`) are registered only in the application layer and do not need to be known by the server.
 
+### Technology choices
+
+**TypeScript.** Local-first applications target the browser, where JavaScript is the dominant language. TypeScript adds static type safety, which is particularly valuable in a CRDT engine where subtle type errors (e.g., confusing a selector path with a plain string, or passing the wrong event structure) can cause silent convergence failures.
+
+**Deno.** Deno simplifies adhering to best practices: it runs TypeScript natively without a compilation step, includes a built-in formatter, linter, and test runner, and enforces strict mode by default. This eliminates the configuration overhead of separate tools (ESLint, Prettier, Jest, tsconfig) that a Node.js project would require.
+
+**JSR.** JSR (JavaScript Registry) is a package registry developed by the Deno team as an alternative to npm. It accepts TypeScript source directly (npm requires pre-compiled JavaScript), which simplifies the publishing workflow. The three mydenicek packages are published on JSR.
+
 ## Document model {#sec:doc-model}
 
 Documents are modeled as tagged trees with four node types:
