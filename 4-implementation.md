@@ -156,12 +156,10 @@ References (`$ref`) in formula arguments are resolved relative to the formula's 
 Programming by demonstration is implemented through event recording and replay:
 
 1. **Recording.** When a user performs an edit, the resulting event ID is stored in a list of *replay steps* --- typically attached to a button node in the document.
-2. **Replay.** When the user triggers a replay, the system replays the full event history in topological order. When it reaches the source event, it captures its edit. It then continues replaying --- each later *structural* edit (rename, wrap, delete) transforms the captured edit's selector via OT. The final transformed edit is committed as a new event at the current frontier. [@Fig:replay] illustrates this: the recorded edits targeted `items`, but a later rename changed `items` to `speakers`, so the replayed edits target `speakers`.
+2. **Replay.** When the user triggers a replay, the system replays the full event history in topological order. When it reaches the source event, it captures its edit. It then continues replaying --- each later *structural* edit (rename, wrap, delete) transforms the captured edit's selector via OT. The final transformed edit is committed as a new event at the current frontier. For example, if the recorded edits targeted `items` but a later rename changed `items` to `speakers`, the replayed edits target `speakers`.
 3. **Batch replay.** When replaying multiple steps as a batch (e.g., all steps of an "Add Speaker" button), all source edits are resolved before any are committed. This prevents the replayed steps from retargeting each other.
 
-![Replay retargets through later structural edits. The recorded edits (blue) targeted `items`. A later rename (green) changed `items` to `speakers`. The replayed edits (orange) are committed at the tip of the DAG with the transformed selector `speakers`.](img/replay.png){#fig:replay width=50%}
-
-Strict indices (`!0`) are essential for replay: a regular index `0` would be shifted by the later `pushFront` (alice:2), causing the copy to target the wrong item. The strict index `!0` refers to position 0 *at the time of the original edit*, which OT does not shift through later insertions.
+Strict indices (`!0`) are essential for replay: a regular index `0` would be shifted by later insertions, causing the copy to target the wrong item. The strict index `!0` refers to position 0 *at the time of the original edit*, which OT does not shift through later insertions.
 
 To avoid re-materializing the entire history on every replay, the event graph caches the resolved edit list from the last full materialization. Subsequent replay calls scan the cached list instead of replaying from scratch. The cache is invalidated when new events are added. This reduces the cost of N consecutive replays from N full materializations to one materialization plus N scans of the cached list.
 
