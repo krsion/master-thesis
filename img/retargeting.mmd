@@ -1,34 +1,27 @@
 graph TB
-    subgraph before["Before wrapRecord"]
-        subgraph B0["speakers/0 (tr)"]
-            B0C["contact (td)<br/>'Ada, ada@...'"]
-        end
+    subgraph step1["① Before"]
+        S1["list/0: 'John, john@example.com'"]
     end
 
-    subgraph record["① Record on row 0"]
-        subgraph R0["speakers/0 (tr)"]
-            R0a["0 (td) split-first"]
-            R0s["source: 'Ada, ada@...'"]
-            R0b["1 (td) split-rest"]
-            R0a --> R0s
-        end
+    subgraph step2["② wrapRecord list/0"]
+        S2a["list/0 / 0 (split-first) / source: 'John, john@...'"]
     end
 
-    subgraph replay["② Replay on row 1"]
-        subgraph R1["speakers/1 (tr)"]
-            R1a["0 (td) split-first"]
-            R1s["source: 'Bob, bob@...'"]
-            R1b["1 (td) split-rest"]
-            R1a --> R1s
-        end
+    subgraph step3["③ pushBack ref node to list/0"]
+        S3a["list/0 / 0 (split-first) / source: 'John, john@...'"]
+        S3b["list/0 / 1 (split-rest) — ref: ../0/source → ✅ resolves to John"]
     end
 
-    before --> record --> replay
+    subgraph step4["④ Replay on list/1 — where does the ref point?"]
+        S4a["list/1 / 0 (split-first) / source: 'Ada, ada@...'"]
+        S4b["list/1 / 1 (split-rest) — ref: ???"]
+        S4c["mydenicek: ../0/source → list/1/0/source (Ada) ✅"]
+        S4d["Loro: nodeId_abc → list/0/0/source (John) ❌"]
+    end
 
-    R0b -. "Loro: nodeId_abc → row 0 ❌" .-> R0s
-    R1b -. "mydenicek: ../../0/contact/source ✅" .-> R1s
+    step1 --> step2 --> step3 --> step4
 
-    style R0b fill:#fce8e6,stroke:#ea4335,stroke-width:2px
-    style R1b fill:#e6f4ea,stroke:#34a853,stroke-width:2px
-    style R0s fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    style R1s fill:#e6f4ea,stroke:#34a853,stroke-width:2px
+    style S3b fill:#e6f4ea,stroke:#34a853,stroke-width:2px
+    style S4b fill:#fff3cd,stroke:#ffc107,stroke-width:2px
+    style S4c fill:#e6f4ea,stroke:#34a853,stroke-width:2px
+    style S4d fill:#fce8e6,stroke:#ea4335,stroke-width:2px
