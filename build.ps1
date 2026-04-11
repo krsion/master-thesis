@@ -47,9 +47,10 @@ if (Test-Path latex_template\latex_img) {
 Write-Host "Running latexmk..." -ForegroundColor Cyan
 Push-Location $buildDir
 try {
-    # First pass + bibtex
-    & latexmk -pdflua -interaction=nonstopmode thesis 2>&1 | Out-Null
-    # Force extra passes to resolve all cross-references
+    # Full build: lualatex → bibtex → lualatex → lualatex
+    & lualatex -interaction=nonstopmode thesis 2>&1 | Out-Null
+    & bibtex thesis 2>&1 | Out-Null
+    & lualatex -interaction=nonstopmode thesis 2>&1 | Out-Null
     & lualatex -interaction=nonstopmode thesis 2>&1 | Out-Null
     & lualatex -interaction=nonstopmode thesis 2>&1 | Out-Null
     if (Test-Path thesis.pdf) {

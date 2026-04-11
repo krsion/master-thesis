@@ -84,7 +84,7 @@ Eg-walker was designed for text editing (character insertions and deletions). Th
 
 ## Related systems {#sec:related}
 
-Several existing systems and libraries are relevant to this thesis. Automerge [@automerge] and Loro [@loro] are CRDT libraries that we evaluate in detail in [@Chap:journey] as potential backends for Denicek. Davis, Sun, and Lu [@davis2002generalizing] generalize OT to tree-structured documents (SGML/XML), proposing transformation functions for concurrent insert, delete, and update operations on hierarchical structures. Webstrates [@klokmose2015webstrates] is a platform for shareable dynamic media that inspired the naming lineage: Webstrates → myWebstrates → Denicek → myDenicek.
+Several existing systems and libraries are relevant to this thesis. Automerge [@automerge] and Loro [@loro] are CRDT libraries that we evaluate in detail in [@Chap:journey] as potential backends for Denicek. Grove [@grove2025] is a calculus for collaborative structure editing that operates on abstract syntax trees. It models all edits as commutative operations (a CmRDT), eliminating patch synthesis and three-way merge. While Grove targets collaborative code editing rather than document-oriented end-user programming, it shares the goal of conflict-free concurrent editing on tree structures. Webstrates [@klokmose2015webstrates] is a platform for shareable dynamic media that inspired the naming lineage: Webstrates → myWebstrates → Denicek → myDenicek.
 
 ## The for-each problem {#sec:foreach}
 
