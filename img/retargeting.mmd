@@ -15,34 +15,34 @@ graph TB
     subgraph diverge["Loro vs mydenicek: how is the ref stored?"]
         LORO["<pre style='text-align:left'>
 <span style='color:#6e7781'>// Loro: absolute node ID</span>
-[[<span style='color:#0a3069'>'John'</span>, { <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }]]
+[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }, <span style='color:#0a3069'>'John'</span>]]
 </pre>"]
         CUSTOM["<pre style='text-align:left'>
 <span style='color:#6e7781'>// mydenicek: relative path</span>
-[[<span style='color:#0a3069'>'John'</span>, { <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../0'</span> }]]
+[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'John'</span>]]
 </pre>"]
     end
 
-    S2 -- "pushBack list/0 (ref to sibling)" --> diverge
+    S2 -- "pushFront list/0 (ref to sibling)" --> diverge
 
-    subgraph replayLoro["Replay wrapList + pushBack on list/1 (Loro)"]
+    subgraph replayLoro["Replay wrapList + pushFront on list/1 (Loro)"]
         RL["<pre style='text-align:left'>
-[[<span style='color:#0a3069'>'John'</span>, { <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }],
- [<span style='color:#0a3069'>'Ada'</span>, { <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }]]
-<span style='color:#cf222e'>Both rows reference John! ❌</span>
+[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }, <span style='color:#0a3069'>'John'</span>],
+ [{ <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }, <span style='color:#0a3069'>'Ada'</span>]]
+<span style='color:#cf222e'>Both refs point to John! ❌</span>
 </pre>"]
     end
 
-    subgraph replayCustom["Replay wrapList + pushBack on list/1 (mydenicek)"]
+    subgraph replayCustom["Replay wrapList + pushFront on list/1 (mydenicek)"]
         RC["<pre style='text-align:left'>
-[[<span style='color:#0a3069'>'John'</span>, { <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../0'</span> }],
- [<span style='color:#0a3069'>'Ada'</span>, { <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../0'</span> }]]
-<span style='color:#34a853'>Each row references itself ✅</span>
+[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'John'</span>],
+ [{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'Ada'</span>]]
+<span style='color:#34a853'>Each ref points to its own row ✅</span>
 </pre>"]
     end
 
-    LORO -- "replay wrapList + pushBack on list/1" --> RL
-    CUSTOM -- "replay wrapList + pushBack on list/1" --> RC
+    LORO -- "replay wrapList + pushFront on list/1" --> RL
+    CUSTOM -- "replay wrapList + pushFront on list/1" --> RC
 
     style RL fill:#fce8e6,stroke:#ea4335,stroke-width:2px
     style RC fill:#e6f4ea,stroke:#34a853,stroke-width:2px
