@@ -16,33 +16,33 @@ graph TB
 </pre>"]
 
     S4["<pre style='text-align:left'>
-<span style='color:#6e7781'>// new item added to the list</span>
-[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'John, john@ex.com'</span>],
- <span style='color:#0a3069'>'Ada, ada@ex.com'</span>]
+<span style='color:#6e7781'>// new item added to the front</span>
+[<span style='color:#0a3069'>'Ada, ada@ex.com'</span>,
+ [{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'John, john@ex.com'</span>]]
 </pre>"]
 
     S1 -- "wrapList list/0" --> S2
     S2 -- "pushFront list/0 (ref ../1)" --> S3
-    S3 -- "pushBack list ('Ada, ada@ex.com')" --> S4
+    S3 -- "pushFront list ('Ada, ada@ex.com')" --> S4
 
-    subgraph replayLoro["Replay wrapList + pushFront on list/1 (Loro)"]
+    subgraph replayLoro["Replay wrapList + pushFront ref on list/0 (Loro)"]
         RL["<pre style='text-align:left'>
-[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }, <span style='color:#0a3069'>'John'</span>],
- [{ <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }, <span style='color:#0a3069'>'Ada'</span>]]
+[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }, <span style='color:#0a3069'>'Ada'</span>],
+ [{ <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>nodeId_abc</span> }, <span style='color:#0a3069'>'John'</span>]]
 <span style='color:#cf222e'>Both refs point to John! ❌</span>
 </pre>"]
     end
 
-    subgraph replayCustom["Replay wrapList + pushFront on list/1 (mydenicek)"]
+    subgraph replayCustom["Replay wrapList + pushFront ref on list/0 (mydenicek)"]
         RC["<pre style='text-align:left'>
-[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'John'</span>],
- [{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'Ada'</span>]]
+[[{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'Ada'</span>],
+ [{ <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../1'</span> }, <span style='color:#0a3069'>'John'</span>]]
 <span style='color:#34a853'>Each ref points to its own row ✅</span>
 </pre>"]
     end
 
-    S4 -- "replay wrapList + pushFront on list/1" --> RL
-    S4 -- "replay wrapList + pushFront on list/1" --> RC
+    S4 -- "replay wrapList + pushFront ref on list/0" --> RL
+    S4 -- "replay wrapList + pushFront ref on list/0" --> RC
 
     style RL fill:#fce8e6,stroke:#ea4335,stroke-width:2px
     style RC fill:#e6f4ea,stroke:#34a853,stroke-width:2px
