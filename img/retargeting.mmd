@@ -10,48 +10,39 @@ graph TB
 </pre>"]
     S2["<pre style='text-align:left'>
 {
-  <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'tr'</span>,
-  <span style='color:#0550ae'>0</span>: {
-    <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'split-first'</span>,
-    <span style='color:#0550ae'>source</span>: <span style='color:#0a3069'>'John, john@ex.com'</span>
-  }
+  <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'li'</span>,
+  <span style='color:#0550ae'>$children</span>: [{
+    <span style='color:#0550ae'>0</span>: <span style='color:#0a3069'>'John, john@ex.com'</span>
+  }]
 }
 </pre>"]
     S3["<pre style='text-align:left'>
 {
-  <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'tr'</span>,
-  <span style='color:#0550ae'>0</span>: {
-    <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'split-first'</span>,
-    <span style='color:#0550ae'>source</span>: <span style='color:#0a3069'>'John, john@ex.com'</span>
-  },
-  <span style='color:#0550ae'>1</span>: {
-    <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'split-rest'</span>,
-    <span style='color:#0550ae'>ref</span>: <span style='color:#0a3069'>'../0/source'</span>
-  }
+  <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'li'</span>,
+  <span style='color:#0550ae'>$children</span>: [{
+    <span style='color:#0550ae'>0</span>: <span style='color:#0a3069'>'John, john@ex.com'</span>,
+    <span style='color:#0550ae'>1</span>: { <span style='color:#0550ae'>$ref</span>: <span style='color:#0a3069'>'../0'</span> }
+  }]
 }
 </pre>"]
 
-    S1 -- "wrapRecord list/0" --> S2
-    S2 -- "pushBack list/0 (create ref node)" --> S3
+    S1 -- "wrapList list/*/0" --> S2
+    S2 -- "pushBack list/*/0 (create ref node)" --> S3
 
-    subgraph replay["Replay same edits on list/1"]
+    subgraph replay["Replay same edits on new item list/1"]
         S4["<pre style='text-align:left'>
 {
-  <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'tr'</span>,
-  <span style='color:#0550ae'>0</span>: {
-    <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'split-first'</span>,
-    <span style='color:#0550ae'>source</span>: <span style='color:#0a3069'>'Ada, ada@ex.com'</span>
-  },
-  <span style='color:#0550ae'>1</span>: {
-    <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'split-rest'</span>,
-    <span style='color:#0550ae'>ref</span>: <span style='color:#cf222e'>???</span>
-  }
+  <span style='color:#0550ae'>$tag</span>: <span style='color:#0a3069'>'li'</span>,
+  <span style='color:#0550ae'>$children</span>: [{
+    <span style='color:#0550ae'>0</span>: <span style='color:#0a3069'>'Ada, ada@ex.com'</span>,
+    <span style='color:#0550ae'>1</span>: { <span style='color:#0550ae'>$ref</span>: <span style='color:#cf222e'>???</span> }
+  }]
 }
 </pre>"]
-        OK["mydenicek: ref = '../0/source'
-→ resolves to Ada ✅"]
-        BAD["Loro: ref = nodeId_abc
-→ resolves to John from row 0 ❌"]
+        OK["mydenicek: $ref = '../0'
+→ resolves to 'Ada' (same row) ✅"]
+        BAD["Loro: $ref = nodeId_abc
+→ resolves to 'John' (row 0) ❌"]
     end
 
     S3 -- "replay on list/1" --> S4
