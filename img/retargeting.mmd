@@ -1,37 +1,32 @@
 graph TB
     subgraph before["Before wrapRecord"]
-        direction LR
-        B0["speakers/0 (tr)"]
-        B0C["contact (td)<br/>'Ada, ada@...'"]
-        B0 --> B0C
+        subgraph B0["speakers/0 (tr)"]
+            B0C["contact (td)<br/>'Ada, ada@...'"]
+        end
     end
 
     subgraph record["① Record on row 0"]
-        direction LR
-        R0["speakers/0 (tr)"]
-        R0a["0 (td) split-first"]
-        R0s["source<br/>'Ada, ada@...'"]
-        R0b["1 (td) split-rest"]
-        R0 --> R0a
-        R0a --> R0s
-        R0 --> R0b
+        subgraph R0["speakers/0 (tr)"]
+            R0a["0 (td) split-first"]
+            R0s["source: 'Ada, ada@...'"]
+            R0b["1 (td) split-rest"]
+            R0a --> R0s
+        end
     end
 
     subgraph replay["② Replay on row 1"]
-        direction LR
-        R1["speakers/1 (tr)"]
-        R1a["0 (td) split-first"]
-        R1s["source<br/>'Bob, bob@...'"]
-        R1b["1 (td) split-rest"]
-        R1 --> R1a
-        R1a --> R1s
-        R1 --> R1b
+        subgraph R1["speakers/1 (tr)"]
+            R1a["0 (td) split-first"]
+            R1s["source: 'Bob, bob@...'"]
+            R1b["1 (td) split-rest"]
+            R1a --> R1s
+        end
     end
 
     before --> record --> replay
 
-    R0b -. "Loro: nodeId_abc → row 0 source ❌" .-> R0s
-    R1b -. "mydenicek: ../../0/contact/source → row 1 source ✅" .-> R1s
+    R0b -. "Loro: nodeId_abc → row 0 ❌" .-> R0s
+    R1b -. "mydenicek: ../../0/contact/source ✅" .-> R1s
 
     style R0b fill:#fce8e6,stroke:#ea4335,stroke-width:2px
     style R1b fill:#e6f4ea,stroke:#34a853,stroke-width:2px
