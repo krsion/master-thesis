@@ -77,6 +77,8 @@ The event DAG is the core data structure of mydenicek. Each edit creates an immu
 - **Edit** --- the actual edit operation (add, delete, rename, set, pushBack, wrapRecord, etc.) with its target selector and arguments.
 - **Vector clock** --- a map from peer ID to the highest sequence number seen from that peer. The vector clock enables causal ordering: event A *happens-before* event B if A's vector clock is dominated by B's. Two events are *concurrent* if neither dominates the other.
 
+Parents and vector clocks serve complementary roles. Parents define the direct edges of the DAG --- they are needed for topological sorting and for the sync protocol's `eventsSince(frontiers)` computation. Vector clocks summarize the full causal ancestry of an event, enabling efficient concurrency detection during OT: checking whether two events are concurrent requires only comparing their vector clocks (O(P) where P is the number of peers) rather than traversing the DAG to test reachability. For example, if Alice creates an event with vector clock `{alice: 5, bob: 3}`, any event by Bob with sequence number greater than 3 is concurrent with it --- this can be determined without walking the DAG.
+
 [@Fig:event-dag] shows an example event DAG with two peers. Alice creates a conference list and refactors it to a table (blue events). Bob concurrently adds speakers (green events). Event `alice:9` is a merge commit with two parents, reducing the frontier to a single point.
 
 ![Example event DAG with concurrent editing. Alice (blue) refactors a list to a table while Bob (green) adds speakers. The merge commit has two parents.](img/event-dag.png){#fig:event-dag width=80%}
