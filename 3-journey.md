@@ -49,14 +49,14 @@ These problems motivated the move to Loro, which provides a native movable tree 
 
 ## Attempt 2: Loro {#sec:loro}
 
-Loro [@loro] is a newer CRDT library that implements the latest research in collaborative data structures, including a *movable tree CRDT* that supports atomic move operations and the *Fugue* algorithm for text editing. It solved the concurrent wrap problem completely: moving a node from one parent to another is a single atomic operation, and concurrent moves are resolved deterministically.
+Loro [@loro] is a newer CRDT library that implements the latest research in collaborative data structures, including a *movable tree CRDT* [@kleppmann2021move] that supports atomic move operations and the *Fugue* algorithm [@weidner2023fugue] for text editing. It solved the concurrent wrap problem completely: moving a node from one parent to another is a single atomic operation, and concurrent moves are resolved deterministically.
 
 ### Advantages
 
 Loro addressed the three main problems we had with Automerge:
 
 - **Atomic move.** `LoroTree` supports native move operations, solving the concurrent wrap problem from Automerge. Concurrent moves to different parents are resolved by Last-Writer-Wins, and the node always ends up under exactly one parent.
-- **Rich data model.** Loro provides a movable tree, rich text (Fugue algorithm), maps, and lists --- all with well-defined concurrent semantics.
+- **Rich data model.** Loro provides a movable tree [@kleppmann2021move], rich text (Fugue algorithm [@weidner2023fugue]), maps, and lists --- all with well-defined concurrent semantics.
 - **Good developer experience.** Well-documented API with TypeScript bindings.
 
 ### The retargeting problem {#sec:retargeting}

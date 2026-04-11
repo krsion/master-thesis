@@ -1,0 +1,35 @@
+graph TD
+    subgraph "Before: Conference List"
+        UL["&lt;ul&gt;<br/><i>list</i>"]
+        LI1["&lt;li&gt; contact:<br/>'Ada, ada@...'"]
+        LI2["&lt;li&gt; contact:<br/>'Grace, grace@...'"]
+        UL -->|"[0]"| LI1
+        UL -->|"[1]"| LI2
+    end
+
+    subgraph "After: Conference Table"
+        TBL["&lt;table&gt;<br/><i>list</i>"]
+        TR1["&lt;tr&gt; <i>list</i>"]
+        TR2["&lt;tr&gt; <i>list</i>"]
+        TD1A["&lt;td&gt; contact:<br/>split-first → 'Ada'"]
+        TD1B["&lt;td&gt; email:<br/>split-rest → 'ada@...'"]
+        TD2A["&lt;td&gt; contact:<br/>split-first → 'Grace'"]
+        TD2B["&lt;td&gt; email:<br/>split-rest → 'grace@...'"]
+        TBL -->|"[0]"| TR1
+        TBL -->|"[1]"| TR2
+        TR1 -->|"[0]"| TD1A
+        TR1 -->|"[1]"| TD1B
+        TR2 -->|"[0]"| TD2A
+        TR2 -->|"[1]"| TD2B
+    end
+
+    style UL fill:#fff4e5,stroke:#f5a623,stroke-width:2px
+    style LI1 fill:#e8f0fe,stroke:#0078d4
+    style LI2 fill:#e8f0fe,stroke:#0078d4
+    style TBL fill:#fff4e5,stroke:#f5a623,stroke-width:2px
+    style TR1 fill:#fff4e5,stroke:#f5a623
+    style TR2 fill:#fff4e5,stroke:#f5a623
+    style TD1A fill:#e6f4ea,stroke:#34a853
+    style TD1B fill:#e6f4ea,stroke:#34a853
+    style TD2A fill:#e6f4ea,stroke:#34a853
+    style TD2B fill:#e6f4ea,stroke:#34a853
