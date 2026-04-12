@@ -112,6 +112,11 @@
 \newcommand{\crefrangeconjunction}{ a~}
 \fi
 
+% Flat (non-chapter-prefixed) numbering for figures and tables
+\usepackage{chngcntr}
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
+
 % pandoc markdown lists
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
