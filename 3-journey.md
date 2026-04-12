@@ -1,6 +1,12 @@
 # Journey: Automerge, Loro, Custom {#chap:journey}
 
-This chapter describes the iterative process of finding the right collaborative editing approach for Denicek. We started with Automerge, moved to Loro when we discovered fundamental limitations with move operations, and ultimately built a custom OT-based event DAG when Loro's opaque ID system proved incompatible with Denicek's path-based programming model. Each transition was motivated by concrete problems discovered during implementation.
+This chapter describes the iterative process of finding the right collaborative editing approach for Denicek. We considered Grove, tried Automerge, moved to Loro when we discovered fundamental limitations with move operations, and ultimately built a custom OT-based event DAG when Loro's opaque ID system proved incompatible with Denicek's path-based programming model. Each transition was motivated by concrete problems discovered during implementation.
+
+## Why not Grove? {#sec:grove}
+
+Grove [@grove2025] is a calculus for collaborative structure editing that models all edits as commutative operations on abstract syntax trees. It was the first system we considered, since it directly addresses concurrent editing of tree structures --- the same problem Denicek faces.
+
+However, Grove is designed for collaborative *code editing*, where the tree is an abstract syntax tree with a fixed schema defined by a grammar. Denicek's document trees are *schema-free*: users can add arbitrary fields, change tags, and restructure the tree at will. Grove's commutativity relies on the tree conforming to a known grammar, which Denicek does not have. Additionally, Grove was published as a formal calculus without a production-ready implementation or library that could be integrated directly. For these reasons, we turned to general-purpose CRDT libraries that support arbitrary JSON-like structures.
 
 ## Attempt 1: Automerge {#sec:automerge}
 
