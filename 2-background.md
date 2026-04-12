@@ -107,7 +107,7 @@ The event DAG provides a natural data structure for storing the history of a col
 
 ### Frontier
 
-The *frontier* is the set of events with no descendants --- the "tips" of the DAG, representing the most recent state each peer has reached. [@Fig:frontier] shows a frontier with two events from different peers.
+The *frontier* is the set of events with no descendants --- the "tips" of the DAG, representing the most recent state each peer has reached. [@Fig:frontier] shows a frontier with two events from different peers. Frontiers serve two practical purposes: they become the *parents* of the next event a peer creates (encoding causal dependencies), and they enable efficient synchronization --- a peer can send its frontier to another peer, who then responds with all events the sender has not yet seen.
 
 ![Frontier of an event DAG. Events `alice:2` and `bob:0` are both frontier events --- neither has a descendant. A new event created by either peer will have both as parents.](img/frontier.png){#fig:frontier width=55%}
 
