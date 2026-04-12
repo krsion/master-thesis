@@ -12,9 +12,9 @@
   <text x="240" y="50" class="code" text-anchor="middle">speakers: [&lt;li&gt; A, &lt;li&gt; B]</text>
 
   <!-- Alice (left) -->
-  <rect x="10" y="140" width="200" height="60" rx="8" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
-  <text x="110" y="160" class="header" text-anchor="middle" fill="#0078d4">Alice (wildcard edit)</text>
-  <text x="110" y="180" class="code" text-anchor="middle">updateTag("speakers/*", "tr")</text>
+  <rect x="10" y="140" width="210" height="60" rx="8" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="115" y="160" class="header" text-anchor="middle" fill="#0078d4">Alice (wildcard edit)</text>
+  <text x="115" y="180" class="code" text-anchor="middle">updateTag("speakers/*", "tr")</text>
 
   <!-- Bob (right) -->
   <rect x="270" y="140" width="200" height="60" rx="8" fill="#e6f4ea" stroke="#34a853" stroke-width="1.5"/>
@@ -22,7 +22,7 @@
   <text x="370" y="180" class="code" text-anchor="middle">pushBack("speakers", &lt;li&gt; C)</text>
 
   <!-- After (bottom) -->
-  <rect x="140" y="280" width="200" height="60" rx="8" fill="#fff4e5" stroke="#f5a623" stroke-width="1.5"/>
+  <rect x="110" y="280" width="260" height="60" rx="8" fill="#fff4e5" stroke="#f5a623" stroke-width="1.5"/>
   <text x="240" y="300" class="header" text-anchor="middle">After merge</text>
   <text x="240" y="320" class="code" text-anchor="middle">speakers: [&lt;tr&gt; A, &lt;tr&gt; B, &lt;tr&gt; C]</text>
 

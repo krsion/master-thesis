@@ -124,7 +124,9 @@ Each structural edit (rename, wrap, delete) has a `transformSelector` method tha
 
 ### Wildcard edits and concurrent insertions {#sec:wildcard-concurrent}
 
-A notable property of the OT-based replay approach is how wildcard edits interact with concurrent insertions, illustrated in [@Fig:wildcard-diamond]. When Alice applies `updateTag("speakers/*", "tr")` --- changing the tag of every item in the list --- and Bob concurrently inserts a new item via `pushBack("speakers", ...)`, the result is that Alice's tag update also affects Bob's newly inserted item.
+A notable property of the OT-based replay approach is how wildcard edits interact with concurrent insertions, illustrated in [@Fig:wildcard-diamond]. This property is important because wildcard edits are a core feature of Denicek's end-user programming model --- users apply structural transformations to all items in a list (e.g., refactoring a conference list into a table, as demonstrated in [@Sec:conf-concurrent]). When one user refactors the list while another concurrently adds new items, the new items should also be refactored.
+
+When Alice applies `updateTag("speakers/*", "tr")` --- changing the tag of every item in the list --- and Bob concurrently inserts a new item via `pushBack("speakers", ...)`, the result is that Alice's tag update also affects Bob's newly inserted item.
 
 ![Wildcard edit and concurrent insertion. Alice's wildcard `updateTag` and Bob's `pushBack` are concurrent. After merge, Bob's inserted `<li> C` becomes `<tr> C` --- the wildcard edit affects the concurrent insertion.](img/wildcard-diamond.png){#fig:wildcard-diamond width=55%}
 
