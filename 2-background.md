@@ -116,7 +116,7 @@ A frontier implicitly represents the entire causal history beneath it --- all an
 However, frontiers require access to the event history to be useful. Given only a frontier, a peer cannot determine which events are included without having the DAG to traverse. Vector clocks are self-contained --- a peer can compare two vector clocks without any additional data. This leads to a natural division of roles:
 
 - **Vector clocks** are used for concurrency detection during OT (comparing two events requires no DAG traversal).
-- **Frontiers** are used as event parents (encoding causal dependencies), for synchronization (a peer sends its frontier, the other peer walks the DAG to compute the missing events), and for materialization (Kahn's topological sort needs the direct parent edges to determine replay order --- vector clocks encode same-peer parents implicitly, but cannot distinguish whether a cross-peer event is a direct parent or merely a transitive ancestor).
+- **Frontiers** (stored as explicit parent pointers on each event) are used as event parents, for synchronization (a peer sends its frontier, the other peer walks the DAG to compute the missing events), and for materialization (Kahn's topological sort needs the direct edges of the DAG, which vector clocks do not provide --- vector clocks encode only the transitive happens-before relation, not which events are direct parents).
 
 When a peer creates a new event, the current frontier becomes the event's parents. After both peers sync and one makes a new edit, the resulting event has *multiple parents* --- one from each branch --- merging the frontier back to a single point. This is analogous to a merge commit in version control.
 
