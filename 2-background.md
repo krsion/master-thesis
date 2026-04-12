@@ -120,6 +120,14 @@ However, frontiers require access to the event history to be useful. Given only 
 
 When a peer creates a new event, the current frontier becomes the event's parents. After both peers sync and one makes a new edit, the resulting event has *multiple parents* --- one from each branch --- merging the frontier back to a single point. This is analogous to a merge commit in version control.
 
+## Reliable causal delivery {#sec:causal-delivery}
+
+Network messages can *arrive* (be received) in any order --- the network provides no ordering guarantees. *Causal delivery* means that messages are *delivered to the application* in an order consistent with causality: if event $a$ causally precedes event $b$, then $a$ must be delivered before $b$. Concurrent events may be delivered in any order.
+
+The standard implementation uses a buffer: when a message arrives whose causal dependencies have not yet been delivered, it is buffered until those dependencies arrive. Vector clocks or parent pointers can be used to check whether all dependencies are satisfied. In mydenicek, the event graph's `ingestEvents` method implements this: out-of-order events are buffered and flushed in causal order once their parent events have been inserted (see [@Sec:sync]).
+
+*Reliability* --- ensuring that no messages are permanently lost --- is a separate concern. In mydenicek, this is handled by frontier-based catch-up: on each sync round, a peer sends its current frontier, and the other peer responds with all events the sender is missing (computed via `eventsSince`). If a message is lost, the sender's frontier does not advance, and the missing events are resent on the next round. This is simple but requires the server to retain the full event history. More efficient approaches exist, such as the Trans and Transis protocols, which use group membership and negative acknowledgments to achieve reliable delivery without retaining full history.
+
 ## Conflict-free Replicated Data Types {#sec:crdts}
 
 CRDTs [@shapiro2011crdt] are data structures designed for distributed systems where multiple replicas can be modified independently and merged without conflicts. The key guarantee is *strong eventual consistency*: any two replicas that have received the same set of updates will be in the same state, regardless of the order in which updates were delivered. Preguiça [@preguica2018crdts] provides a comprehensive overview of CRDTs and their variants.
@@ -127,7 +135,7 @@ CRDTs [@shapiro2011crdt] are data structures designed for distributed systems wh
 CRDTs come in two main flavors:
 
 - **State-based CRDTs** (CvRDTs) require the set of possible states to form a *join semilattice* --- a partially ordered set where any two states have a least upper bound (join). Replicas periodically send their full state to each other, and the merge operation computes the join. This works over unreliable channels since states can always be re-merged, but sending the full state can be expensive for large data structures.
-- **Operation-based CRDTs** (CmRDTs) propagate individual update operations rather than full states. Concurrent operations must be commutative so that applying them in either order produces the same result. This is more bandwidth-efficient, but requires a *reliable causal delivery* layer (see below) --- operations must be delivered exactly once and in causal order.
+- **Operation-based CRDTs** (CmRDTs) propagate individual update operations rather than full states. Concurrent operations must be commutative so that applying them in either order produces the same result. This is more bandwidth-efficient, but requires a reliable causal delivery layer as described in [@Sec:causal-delivery].
 
 A hybrid approach, *delta-state CRDTs*, sends only the part of the state that changed (the "delta") rather than the full state. Deltas are joinable like full states (so they tolerate message loss and reordering) but are small like operations (so they are bandwidth-efficient).
 
@@ -138,12 +146,6 @@ Common CRDT building blocks relevant to this thesis include:
 - **OR-Set** (observed-remove set): elements can be added and removed. Concurrent add and remove of the same element are resolved in favor of the add.
 
 For collaborative editing of tree-structured documents, Kleppmann and Beresford [@kleppmann2017crdt] proposed a JSON CRDT that uses unique identifiers for each node and supports insert, delete, and move operations. This work identified the *move operation problem*: in a flat JSON structure without native move support, moving a node requires deleting it from one location and inserting it at another --- two separate operations that can interleave with concurrent edits, potentially losing data.
-
-### Reliable causal delivery {#sec:causal-delivery}
-
-The "causal order" requirement of CmRDTs deserves clarification. Network messages can *arrive* (be received) in any order --- the network provides no ordering guarantees. *Causal delivery* means that messages are *delivered to the application* in an order consistent with causality: if event $a$ causally precedes event $b$, then $a$ must be delivered before $b$. Concurrent events may be delivered in any order.
-
-The standard implementation uses a buffer: when a message arrives whose causal dependencies have not yet been delivered, it is buffered until those dependencies arrive. Vector clocks or parent pointers can be used to check whether all dependencies are satisfied. In mydenicek, the event graph's `ingestEvents` method implements this: out-of-order events are buffered and flushed in causal order once their parent events have been inserted (see [@Sec:sync]).
 
 ## Eg-walker {#sec:egwalker}
 
