@@ -70,7 +70,7 @@ Nodes are addressed by *selectors* --- slash-separated paths that describe how t
 
 ## Event DAG {#sec:event-dag}
 
-The event directed acyclic graph (DAG) is the core data structure of mydenicek. Each edit creates an immutable *event* containing:
+The event directed acyclic graph (DAG) is the core data structure of mydenicek. It is a grow-only, append-only structure --- events are immutable once created, and new events can only be added, never modified or removed. This makes the event set a G-Set (grow-only set), which is the simplest CRDT: two peers that have received the same set of events will always produce the same document. Each edit creates an *event* containing:
 
 - **EventId** --- a unique identifier `peer:seq`, where `peer` is the peer's string identifier and `seq` is a monotonically increasing sequence number. For example, `alice:3` is Alice's third event.
 - **Parents** --- the set of event IDs that form the *frontier* at the time the event was created. These are the most recent events the peer had seen. An event with multiple parents is the first edit after receiving another peer's events, merging the concurrent branches.
