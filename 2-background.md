@@ -99,6 +99,14 @@ Vector clocks characterize the happens-before relation:
 
 This allows concurrency detection in O(P) time (where P is the number of peers) by comparing two vectors, without traversing the event graph.
 
+### Event DAG
+
+Causal relationships between events can be represented as a *directed acyclic graph* (DAG). Each event is a node, and a directed edge from event $a$ to event $b$ means $a$ directly caused $b$ (i.e., $b$ lists $a$ as a parent). The graph is acyclic because causality cannot be circular --- an event cannot transitively depend on itself, since each event's vector clock strictly advances from its parents.
+
+The event DAG provides a natural data structure for storing the history of a collaborative editing session. Each peer appends new events to the DAG, and synchronization consists of exchanging missing events between peers. The edges encode the causal structure, enabling deterministic replay.
+
+### Frontier
+
 The *frontier* is the set of events with no descendants --- the "tips" of the DAG, representing the most recent state each peer has reached. [@Fig:frontier] shows a frontier with two events from different peers.
 
 ![Frontier of an event DAG. Events `alice:2` and `bob:0` are both frontier events --- neither has a descendant. A new event created by either peer will have both as parents.](img/frontier.png){#fig:frontier width=55%}
