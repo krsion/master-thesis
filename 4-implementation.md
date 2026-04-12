@@ -122,6 +122,16 @@ Each structural edit (rename, wrap, delete) has a `transformSelector` method tha
 - **Delete**: if a concurrent edit targets a field that was deleted, the edit becomes a no-op conflict.
 - **PushFront**: shifts numeric indices in concurrent selectors (e.g., `items/0` becomes `items/1`).
 
+### OT architecture {#sec:ot-architecture}
+
+A naive OT implementation requires O(n²) transformation rules, one for every pair of edit types. mydenicek avoids this through a two-level object-oriented design, shown in [@Fig:edit-class-diagram].
+
+![Edit class hierarchy with two-level OT. Level 1: every edit implements `transformSelector`, handling all edit-type pairs via selector rewriting. Level 2: structural edits override `transformLaterConcurrentEdit` to also rewrite the payloads of concurrent list inserts.](img/edit-class-diagram.png){#fig:edit-class-diagram width=75%}
+
+**Level 1: Selector transformation (default).** The abstract `Edit` base class defines `transformSelector(sel)` --- each edit type implements this to describe how it changes the path structure. The default `transformLaterConcurrentEdit(concurrent)` simply calls `concurrent.transform(this)`, which rewrites the concurrent edit's target selector through `transformSelector`. This single dispatch handles all edit-type pairs with O(n) methods, not O(n²) rules. Data edits (add, set, copy, pushBack, popBack, primitives) return the identity transformation since they do not change the document's path structure.
+
+**Level 2: Payload rewriting (overrides).** Selector transformation alone is insufficient when a structural edit interacts with a concurrent list insert --- the inserted node's *payload* must also be transformed. For example, when `updateTag("items/*", "tr")` is concurrent with `pushBack("items", {$tag: "li", ...})`, the inserted node must change its tag from `<li>` to `<tr>`. Only structural edits that change the document shape override `transformLaterConcurrentEdit`: `UpdateTagEdit` changes the inserted node's tag, `WrapRecordEdit` wraps it in a record, and `WrapListEdit` wraps it in a list. This scales linearly with the number of structural edit types, not quadratically.
+
 ### Wildcard edits and concurrent insertions {#sec:wildcard-concurrent}
 
 A notable property of the OT-based replay approach is how wildcard edits interact with concurrent insertions, illustrated in [@Fig:wildcard-diamond]. This property is important because wildcard edits are a core feature of Denicek's end-user programming model --- users apply structural transformations to all items in a list (e.g., refactoring a conference list into a table, as demonstrated in [@Sec:conf-concurrent]). When one user refactors the list while another concurrently adds new items, the new items should also be refactored.

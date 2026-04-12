@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="520" viewBox="0 0 480 520">
+  <style>
+    text { font-family: monospace; font-size: 11px; fill: #333; }
+    .name { font-size: 12px; font-weight: bold; }
+    .abstract { font-style: italic; }
+    .method { font-size: 10px; }
+    .override { font-size: 10px; fill: #0078d4; }
+    .note { font-size: 10px; fill: #666; font-style: italic; }
+  </style>
+  <defs>
+    <marker id="tri" markerWidth="12" markerHeight="10" refX="6" refY="5" orient="auto">
+      <polygon points="0 0, 12 5, 0 10" fill="none" stroke="#666" stroke-width="1.2"/>
+    </marker>
+  </defs>
+
+  <!-- Edit base -->
+  <rect x="130" y="10" width="220" height="75" rx="5" fill="#f5f5f5" stroke="#666" stroke-width="1.5"/>
+  <text x="240" y="28" class="name abstract" text-anchor="middle">Edit (abstract)</text>
+  <line x1="130" y1="34" x2="350" y2="34" stroke="#ccc"/>
+  <text x="140" y="48" class="method">transformSelector(sel): Selector</text>
+  <text x="140" y="60" class="method">transform(prior): Edit</text>
+  <text x="140" y="72" class="method">transformLaterConcurrentEdit(c): Edit</text>
+  <text x="140" y="82" class="note">  → default: c.transform(this)</text>
+
+  <!-- Arrow Edit → NoOp -->
+  <line x1="240" y1="85" x2="240" y2="115" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+
+  <!-- NoOpOnRemovedTargetEdit -->
+  <rect x="130" y="120" width="220" height="35" rx="5" fill="#f5f5f5" stroke="#666" stroke-width="1.2"/>
+  <text x="240" y="138" class="name abstract" text-anchor="middle">NoOpOnRemovedTargetEdit</text>
+  <text x="240" y="150" class="note" text-anchor="middle">becomes no-op if target deleted</text>
+
+  <!-- Arrows down to concrete classes -->
+  <!-- Left branch: structural edits -->
+  <line x1="160" y1="155" x2="80" y2="195" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+  <!-- Middle branch -->
+  <line x1="240" y1="155" x2="240" y2="195" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+  <!-- Right branch: data edits -->
+  <line x1="320" y1="155" x2="400" y2="195" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+
+  <!-- UpdateTagEdit -->
+  <rect x="10" y="200" width="140" height="55" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="80" y="218" class="name" text-anchor="middle" fill="#0078d4">UpdateTagEdit</text>
+  <line x1="10" y1="224" x2="150" y2="224" stroke="#0078d4" stroke-opacity="0.3"/>
+  <text x="20" y="237" class="override">transformSelector ✦</text>
+  <text x="20" y="249" class="override">transformLater... ✦</text>
+
+  <!-- WrapRecordEdit -->
+  <rect x="170" y="200" width="140" height="55" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="240" y="218" class="name" text-anchor="middle" fill="#0078d4">WrapRecordEdit</text>
+  <line x1="170" y1="224" x2="310" y2="224" stroke="#0078d4" stroke-opacity="0.3"/>
+  <text x="180" y="237" class="override">transformSelector ✦</text>
+  <text x="180" y="249" class="override">transformLater... ✦</text>
+
+  <!-- Data edits (right) -->
+  <rect x="330" y="200" width="145" height="55" rx="5" fill="#e6f4ea" stroke="#34a853" stroke-width="1.5"/>
+  <text x="402" y="218" class="name" text-anchor="middle" fill="#34a853">RecordAddEdit</text>
+  <text x="402" y="232" class="name" text-anchor="middle" fill="#34a853">SetEdit ...</text>
+  <line x1="330" y1="237" x2="475" y2="237" stroke="#34a853" stroke-opacity="0.3"/>
+  <text x="340" y="250" class="note">selector → identity</text>
+
+  <!-- WrapListEdit, RenameFieldEdit row -->
+  <rect x="10" y="275" width="140" height="55" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="80" y="293" class="name" text-anchor="middle" fill="#0078d4">WrapListEdit</text>
+  <line x1="10" y1="299" x2="150" y2="299" stroke="#0078d4" stroke-opacity="0.3"/>
+  <text x="20" y="312" class="override">transformSelector ✦</text>
+  <text x="20" y="324" class="override">transformLater... ✦</text>
+
+  <rect x="170" y="275" width="140" height="45" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="240" y="293" class="name" text-anchor="middle" fill="#0078d4">RenameFieldEdit</text>
+  <line x1="170" y1="299" x2="310" y2="299" stroke="#0078d4" stroke-opacity="0.3"/>
+  <text x="180" y="312" class="override">transformSelector ✦</text>
+
+  <rect x="330" y="275" width="140" height="45" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="400" y="293" class="name" text-anchor="middle" fill="#0078d4">DeleteEdit</text>
+  <line x1="330" y1="299" x2="470" y2="299" stroke="#0078d4" stroke-opacity="0.3"/>
+  <text x="340" y="312" class="override">transformSelector ✦</text>
+
+  <!-- Arrows from NoOp to second row -->
+  <line x1="160" y1="155" x2="80" y2="270" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="240" y1="155" x2="240" y2="270" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="320" y1="155" x2="400" y2="270" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- ListInsertEdit -->
+  <rect x="10" y="355" width="220" height="45" rx="5" fill="#fff4e5" stroke="#f5a623" stroke-width="1.5"/>
+  <text x="120" y="373" class="name abstract" text-anchor="middle" fill="#f5a623">ListInsertEdit (abstract)</text>
+  <line x1="10" y1="379" x2="230" y2="379" stroke="#f5a623" stroke-opacity="0.3"/>
+  <text x="20" y="393" class="method">rewriteInsertedNode(target, rewrite)</text>
+
+  <line x1="160" y1="155" x2="120" y2="350" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+
+  <!-- PushBack, PushFront -->
+  <rect x="10" y="420" width="100" height="40" rx="5" fill="#fff4e5" stroke="#f5a623" stroke-width="1.2"/>
+  <text x="60" y="440" class="name" text-anchor="middle" fill="#f5a623">PushBackEdit</text>
+  <text x="60" y="455" class="override" text-anchor="middle">transformLater... ✦</text>
+
+  <rect x="130" y="420" width="100" height="40" rx="5" fill="#fff4e5" stroke="#f5a623" stroke-width="1.2"/>
+  <text x="180" y="440" class="name" text-anchor="middle" fill="#f5a623">PushFrontEdit</text>
+  <text x="180" y="455" class="override" text-anchor="middle">transformLater... ✦</text>
+
+  <line x1="60" y1="400" x2="60" y2="415" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+  <line x1="180" y1="400" x2="180" y2="415" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+
+  <!-- Legend -->
+  <text x="300" y="390" class="note">✦ = overrides base method</text>
+  <rect x="295" y="400" width="12" height="12" fill="#e8f0fe" stroke="#0078d4"/>
+  <text x="312" y="410" class="note">structural (changes paths)</text>
+  <rect x="295" y="418" width="12" height="12" fill="#e6f4ea" stroke="#34a853"/>
+  <text x="312" y="428" class="note">data (identity transform)</text>
+  <rect x="295" y="436" width="12" height="12" fill="#fff4e5" stroke="#f5a623"/>
+  <text x="312" y="446" class="note">insert (rewritable payload)</text>
+</svg>
