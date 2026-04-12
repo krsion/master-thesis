@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="380" viewBox="0 0 480 380">
+  <style>
+    text { font-family: monospace; font-size: 12px; fill: #333; }
+    .header { font-size: 13px; font-weight: bold; }
+    .code { font-size: 11px; }
+  </style>
+
+  <!-- Before (top) -->
+  <rect x="140" y="10" width="200" height="60" rx="8" fill="#f5f5f5" stroke="#999" stroke-width="1.5"/>
+  <text x="240" y="30" class="header" text-anchor="middle">Before</text>
+  <text x="240" y="50" class="code" text-anchor="middle">speakers: [&lt;li&gt; A, &lt;li&gt; B]</text>
+
+  <!-- Alice (left) -->
+  <rect x="10" y="140" width="200" height="60" rx="8" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="110" y="160" class="header" text-anchor="middle" fill="#0078d4">Alice (wildcard edit)</text>
+  <text x="110" y="180" class="code" text-anchor="middle">updateTag("speakers/*", "tr")</text>
+
+  <!-- Bob (right) -->
+  <rect x="270" y="140" width="200" height="60" rx="8" fill="#e6f4ea" stroke="#34a853" stroke-width="1.5"/>
+  <text x="370" y="160" class="header" text-anchor="middle" fill="#34a853">Bob (insert)</text>
+  <text x="370" y="180" class="code" text-anchor="middle">pushBack("speakers", &lt;li&gt; C)</text>
+
+  <!-- After (bottom) -->
+  <rect x="140" y="280" width="200" height="60" rx="8" fill="#fff4e5" stroke="#f5a623" stroke-width="1.5"/>
+  <text x="240" y="300" class="header" text-anchor="middle">After merge</text>
+  <text x="240" y="320" class="code" text-anchor="middle">speakers: [&lt;tr&gt; A, &lt;tr&gt; B, &lt;tr&gt; C]</text>
+
+  <!-- Arrows -->
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#666"/>
+    </marker>
+  </defs>
+
+  <!-- Before → Alice -->
+  <line x1="200" y1="70" x2="130" y2="140" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- Before → Bob -->
+  <line x1="280" y1="70" x2="350" y2="140" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- Alice → After -->
+  <line x1="130" y1="200" x2="200" y2="280" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- Bob → After -->
+  <line x1="350" y1="200" x2="280" y2="280" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Concurrent label -->
+  <text x="240" y="235" text-anchor="middle" style="font-size:11px; fill:#999;">concurrent</text>
+
+  <!-- Note -->
+  <text x="240" y="360" text-anchor="middle" style="font-size:11px; fill:#666;">Bob's &lt;li&gt; C becomes &lt;tr&gt; C — wildcard affects concurrent insertion</text>
+</svg>

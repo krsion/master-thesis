@@ -79,10 +79,6 @@ The event directed acyclic graph (DAG) is the core data structure of mydenicek. 
 
 Parents and vector clocks serve complementary roles. Parents define the direct edges of the DAG --- they are needed for topological sorting and for the sync protocol's `eventsSince(frontiers)` computation. Vector clocks summarize the full causal ancestry of an event, enabling efficient concurrency detection during OT: checking whether two events are concurrent requires only comparing their vector clocks (O(P) where P is the number of peers) rather than traversing the DAG to test reachability. For example, Alice's event with clock `{alice: 5, bob: 3}` and Bob's event with clock `{alice: 2, bob: 4}` are concurrent because neither clock dominates the other (`alice: 5 > 2` but `bob: 3 < 4`).
 
-[@Fig:event-dag] shows an example event DAG with two peers. Alice creates a conference list and refactors it to a table (blue events). Bob concurrently adds speakers (green events). Event `alice:9` is a merge commit with two parents, reducing the frontier to a single point.
-
-![Example event DAG with concurrent editing. Alice (blue) refactors a list to a table while Bob (green) adds speakers. The merge commit has two parents.](img/event-dag.png){#fig:event-dag width=80%}
-
 ### Materialization
 
 To reconstruct the document from the event DAG, we perform *deterministic topological replay*:
@@ -118,11 +114,7 @@ The system supports the following edit types, listed in [@Tbl:edit-types].
 | `CopyEdit` | Copy a subtree from a source to a target | Any |
 | `ApplyPrimitiveEdit` | Apply a registered custom edit | Primitive |
 
-Each structural edit (rename, wrap, delete) has a `transformSelector` method that rewrites the selector of a concurrent edit. [@Fig:ot-rename] illustrates the rename transformation.
-
-![OT rename transformation. A concurrent edit targeting `speakers/0/name` is transformed to `talks/0/name` after a rename operation.](img/ot-rename.png){#fig:ot-rename width=70%}
-
-The key transformation rules are:
+Each structural edit (rename, wrap, delete) has a `transformSelector` method that rewrites the selector of a concurrent edit. The key transformation rules are:
 
 - **Rename**: if a concurrent edit targets `speakers/0/name` and a rename changes `speakers` to `talks`, the concurrent edit's selector is transformed to `talks/0/name`.
 - **WrapRecord**: if a concurrent edit targets `speakers/0/value` and a wrap turns `value` into `{$tag: "wrapper", value: <original>}`, the concurrent edit's selector gains a segment: `speakers/0/value/value`.
@@ -132,7 +124,11 @@ The key transformation rules are:
 
 ### Wildcard edits and concurrent insertions {#sec:wildcard-concurrent}
 
-A notable property of the OT-based replay approach is how wildcard edits interact with concurrent insertions. When Alice applies `updateTag("speakers/*", "tr")` --- changing the tag of every item in the list --- and Bob concurrently inserts a new item via `pushBack("speakers", ...)`, the result is that Alice's tag update also affects Bob's newly inserted item. This holds regardless of replay order, but the mechanism differs in each case:
+A notable property of the OT-based replay approach is how wildcard edits interact with concurrent insertions, illustrated in [@Fig:wildcard-diamond]. When Alice applies `updateTag("speakers/*", "tr")` --- changing the tag of every item in the list --- and Bob concurrently inserts a new item via `pushBack("speakers", ...)`, the result is that Alice's tag update also affects Bob's newly inserted item.
+
+![Wildcard edit and concurrent insertion. Alice's wildcard `updateTag` and Bob's `pushBack` are concurrent. After merge, Bob's inserted `<li> C` becomes `<tr> C` --- the wildcard edit affects the concurrent insertion.](img/wildcard-diamond.png){#fig:wildcard-diamond width=55%}
+
+This holds regardless of replay order, but the mechanism differs in each case:
 
 - **Insert first** (Bob's `pushBack` is replayed before Alice's wildcard edit): Bob's new item is added to the list. When Alice's `updateTag("speakers/*", "tr")` is then replayed, the wildcard `*` expands to include *all items that exist at the point of replay* --- including Bob's concurrent insertion. The tag update naturally applies to the new item without any transformation needed.
 - **Edit first** (Alice's wildcard edit is replayed before Bob's `pushBack`): Alice's `updateTag` is applied to the existing items. When Bob's `pushBack` is then transformed against Alice's preceding wildcard edit, the OT transformation modifies the inserted item: instead of inserting a `<li>` item, the transformed insert produces a `<tr>` item. The wildcard edit retroactively transforms the content of the concurrent insertion so that it is consistent with the tag update.
