@@ -30,14 +30,8 @@
   <text x="168" y="172" class="label" text-anchor="end">= send(m)</text>
 
   <!-- Bob events -->
-  <circle cx="420" cy="100" r="8" fill="#34a853"/>
-  <text x="440" y="105" class="label">bob:0</text>
-
-  <circle cx="420" cy="180" r="8" fill="#34a853"/>
-  <text x="440" y="185" class="label">bob:1</text>
-
   <circle cx="420" cy="280" r="8" fill="#34a853"/>
-  <text x="440" y="275" class="label">bob:2</text>
+  <text x="440" y="275" class="label">bob:0</text>
   <text x="440" y="292" class="label">= receive(m)</text>
 
   <!-- Message arrow -->
@@ -50,5 +44,5 @@
   <text x="310" y="205" class="label" text-anchor="middle" style="fill:#666;">m</text>
 
   <!-- Annotations -->
-  <text x="300" y="385" class="hb" text-anchor="middle">alice:0 → alice:1 → bob:2 (happens-before)</text>
+  <text x="300" y="385" class="hb" text-anchor="middle">alice:0 → alice:1 → bob:0 (happens-before)</text>
 </svg>
