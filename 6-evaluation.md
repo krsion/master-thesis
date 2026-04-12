@@ -1,6 +1,25 @@
 # Evaluation and Discussion {#chap:evaluation}
 
-This chapter evaluates the mydenicek implementation, discusses the testing strategy, and identifies limitations.
+This chapter evaluates the mydenicek implementation against Denicek's requirements, compares the three approaches investigated, discusses the testing strategy, and identifies limitations.
+
+## Approach comparison {#sec:comparison}
+
+[@Tbl:approach-comparison] summarizes the three approaches evaluated in this thesis against Denicek's key requirements.
+
+: Comparison of the three approaches against Denicek's requirements. {#tbl:approach-comparison}
+
+| Requirement | Automerge | Loro | mydenicek (custom) |
+|---|---|---|---|
+| Atomic move/wrap | No (two-step) | Yes (movable tree) | Yes (OT) |
+| Path-based addressing | No (opaque IDs) | No (opaque IDs) | Yes (native) |
+| Wildcard selectors | No | No | Yes |
+| Relative references | No | No | Yes ($ref paths) |
+| Replay retargeting | No | No (ID-based) | Yes (OT-based) |
+| For-each semantics | No | No | Yes (wildcard expansion) |
+| Character-level text | Yes | Yes (Fugue) | No (LWW) |
+| Zero dependencies | No (WASM) | No (WASM) | Yes (pure TS) |
+
+Automerge and Loro excel at general-purpose collaborative JSON editing but lack the path-based features Denicek requires. The custom approach sacrifices character-level text editing (a limitation) but gains native support for all of Denicek's programming-by-demonstration features.
 
 ## Formative example results {#sec:results}
 

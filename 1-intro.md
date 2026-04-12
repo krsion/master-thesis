@@ -11,6 +11,14 @@ The original Denicek implementation uses Operational Transformation (OT) for col
 
 This thesis investigates approaches to more robust collaborative editing in Denicek, drawing on concepts from both CRDTs and OT. We evaluate two CRDT libraries --- Automerge and Loro --- and a custom OT-based event DAG, describing the trade-offs of each with respect to Denicek's unique requirements. The result is a new implementation called *mydenicek* that stores edits in a grow-only event graph and uses OT during replay to transform selectors through concurrent structural changes. The implementation is validated on six formative examples that demonstrate the system's end-user programming capabilities.
 
+The main contributions of this thesis are:
+
+- A systematic evaluation of CRDT libraries (Automerge, Loro) for tree-structured collaborative editing, identifying concrete limitations: the concurrent wrap problem (Automerge) and the retargeting problem (Loro).
+- A custom OT-based event DAG that uses path-based selectors as the native addressing mode, supporting wildcards, relative references, and strict indices.
+- A two-level OT architecture that avoids O(n²) transformation rules through selector rewriting (default) and payload rewriting (overrides for structural edits).
+- Wildcard-affects-concurrent-insertions semantics --- structural edits applied via wildcards automatically affect items inserted concurrently by other peers.
+- A replay mechanism that uses OT to retarget recorded edits through later structural changes, enabling programming by demonstration in a collaborative setting.
+
 ## Thesis structure {-}
 
 [@Chap:background] provides the theoretical background on CRDTs, operational transformation, and local-first software. [@Chap:journey] describes the journey from Automerge through Loro to the custom OT-based event DAG, explaining the motivation for each transition. [@Chap:implementation] presents the architecture and implementation of the mydenicek core engine. [@Chap:formative] demonstrates the system through six formative examples. [@Chap:evaluation] evaluates the results and discusses limitations. [@Chap:conclusion] concludes with a summary and future work.
