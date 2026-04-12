@@ -127,7 +127,7 @@ CRDTs [@shapiro2011crdt] are data structures designed for distributed systems wh
 CRDTs come in two main flavors:
 
 - **State-based CRDTs** (CvRDTs) require the set of possible states to form a *join semilattice* --- a partially ordered set where any two states have a least upper bound (join). Replicas periodically send their full state to each other, and the merge operation computes the join. This works over unreliable channels since states can always be re-merged, but sending the full state can be expensive for large data structures.
-- **Operation-based CRDTs** (CmRDTs) propagate individual update operations rather than full states. Operations must be commutative so that applying them in any order produces the same result. This is more bandwidth-efficient, but requires a *reliable causal broadcast* layer --- operations must be delivered exactly once and in causal order.
+- **Operation-based CRDTs** (CmRDTs) propagate individual update operations rather than full states. Concurrent operations must be commutative so that applying them in either order produces the same result. This is more bandwidth-efficient, but requires a *reliable causal broadcast* layer --- operations must be delivered exactly once and in causal order.
 
 A hybrid approach, *delta-state CRDTs*, sends only the part of the state that changed (the "delta") rather than the full state. Deltas are joinable like full states (so they tolerate message loss and reordering) but are small like operations (so they are bandwidth-efficient).
 
