@@ -70,7 +70,7 @@ The Jupiter algorithm [@nichols1995jupiter], used in Google Docs, simplifies OT 
 
 ## Causality {#sec:causality}
 
-A fundamental concept in distributed collaborative editing is *causality* --- the relationship between events produced by different peers. Lamport's *happens-before* relation defines a partial order over events in a distributed system:
+A fundamental concept in distributed systems is *causality* --- the relationship between events produced by different peers. Lamport's *happens-before* relation defines a partial order over events in a distributed system:
 
 > **Definition (happens-before).** The *happens-before* relation, written $a \to b$, is the smallest relation satisfying:
 >
