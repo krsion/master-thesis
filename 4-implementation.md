@@ -169,9 +169,9 @@ Reference resolution (`$ref`) supports both absolute paths (starting with `/`, r
 
 ### Undo and redo {#sec:undo}
 
-Each `Edit` subclass implements a `computeInverse(preDoc)` method that returns the inverse edit. For example, the inverse of `RecordAddEdit("field", value)` is `RecordDeleteEdit("field")`, and the inverse of `WrapRecordEdit` is `UnwrapRecordEdit`.
+Each `Edit` subclass implements a `computeInverse(preDoc)` method that returns the inverse edit. For example, the inverse of `RecordAddEdit("field", value)` is `RecordDeleteEdit("field")`, and the inverse of `WrapRecordEdit` is `UnwrapRecordEdit`. The `preDoc` parameter is needed because some inverses depend on the document state before the edit --- for example, to undo a delete, the inverse must know the deleted value so it can re-add it.
 
-Undo creates a new event containing the inverse edit. This event is a regular event in the DAG --- it syncs to other peers automatically. Redo re-applies the undone edit. The undo/redo stacks are maintained per-peer and only track local events.
+Undo creates a new event containing the inverse edit. This event is a regular event in the DAG --- it syncs to other peers automatically, so all peers see the undo. Redo re-applies the original edit as yet another new event. The undo/redo stacks are maintained per-peer and only track local events --- remote events are never undone locally. A new edit after an undo clears the redo stack, matching the undo behavior users expect from desktop applications.
 
 ## Recording and replay {#sec:replay}
 
@@ -209,7 +209,12 @@ Initial documents are validated by hash: the first client to sync with a room se
 
 All messages are JSON-encoded and distinguished by a `type` discriminator field. A sync request from client to server contains `type: "sync"`, the `roomId`, the client's current `frontiers` (an array of event ID strings), and an `events` array of new events to send. The first sync also includes the `initialDocument` (the plain-node tree) and its hash. A sync response from server to client mirrors this structure: `type: "sync"`, the `roomId`, the server's `frontiers`, and the `events` the client has not seen. The `hello` message sent on connection contains just `type: "hello"`, the `roomId`, and optionally the room's `initialDocument` if one has already been set by a prior peer.
 
-Each event in the `events` array is serialized as a JSON object with four fields: `id` (an object with `peer` string and `seq` number), `parents` (an array of such ID objects), `clock` (a plain JSON object mapping peer strings to sequence numbers), and `edit` (the encoded edit payload). The edit payload is a discriminated union keyed by `kind` --- for example, `{"kind": "RecordRenameFieldEdit", "target": "speakers/0/name", "to": "fullName"}` or `{"kind": "WrapRecordEdit", "target": "items/*", "field": "value", "tag": "tr"}`. Structural edits carry their target selector as a string and any additional parameters (the new field name, the wrapper tag, inserted node trees). This encoding is defined by the `EncodedRemoteEdit` type in `remote-edit-codec.ts`, with each edit class implementing `encodeRemoteEdit()` and a corresponding decoder registered via `registerRemoteEditDecoder()`. The decoder registry is populated at module load time by side-effect imports, ensuring that all edit types are available for deserialization on any peer.
+Each event in the `events` array is serialized as a JSON object with four fields: `id` (an object with `peer` string and `seq` number), `parents` (an array of such ID objects), `clock` (a plain JSON object mapping peer strings to sequence numbers), and `edit` (the encoded edit payload). The edit payload is a discriminated union keyed by `kind`, for example:
+
+    {"kind": "RecordRenameFieldEdit",
+     "target": "speakers", "from": "name", "to": "fullName"}
+
+Structural edits carry their target selector as a string and any additional parameters (the new field name, the wrapper tag, inserted node trees). This encoding is defined by the `EncodedRemoteEdit` type in `remote-edit-codec.ts`, with each edit class implementing `encodeRemoteEdit()` and a corresponding decoder registered via `registerRemoteEditDecoder()`. The decoder registry is populated at module load time, ensuring that all edit types are available for deserialization on any peer.
 
 ### Reliability through frontier-based sync {#sec:reliability}
 
