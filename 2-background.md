@@ -1,6 +1,6 @@
 # Background {#chap:background}
 
-This chapter introduces the concepts and systems that form the foundation of this thesis. We describe the Denicek system, explain the two main approaches to collaborative editing --- Operational Transformation and CRDTs --- and discuss the Eg-walker algorithm that inspired our approach.
+This chapter introduces the concepts and systems that form the foundation of this thesis. We describe the Denicek system, explain Operational Transformation, introduce causality and vector clocks, then discuss CRDTs and the Eg-walker algorithm that inspired our approach.
 
 ## Denicek {#sec:denicek}
 
@@ -68,26 +68,7 @@ OT becomes significantly more complex for tree-structured documents like Denicek
 
 The Jupiter algorithm [@nichols1995jupiter], used in Google Docs, simplifies OT by requiring a central server that serializes all operations. This makes transformation simpler (only two-way transforms are needed) but introduces a single point of failure and prevents peer-to-peer collaboration.
 
-## Conflict-free Replicated Data Types {#sec:crdts}
-
-CRDTs [@shapiro2011crdt] are data structures designed for distributed systems where multiple replicas can be modified independently and merged without conflicts. The key guarantee is *strong eventual consistency*: any two replicas that have received the same set of updates will be in the same state, regardless of the order in which updates were delivered. Preguiça [@preguica2018crdts] provides a comprehensive overview of CRDTs and their variants.
-
-CRDTs come in two main flavors:
-
-- **State-based CRDTs** (CvRDTs) require the set of possible states to form a *join semilattice* --- a partially ordered set where any two states have a least upper bound (join). Replicas periodically send their full state to each other, and the merge operation computes the join. This works over unreliable channels since states can always be re-merged, but sending the full state can be expensive for large data structures.
-- **Operation-based CRDTs** (CmRDTs) propagate individual update operations rather than full states. Operations must be commutative so that applying them in any order produces the same result. This is more bandwidth-efficient, but requires a *reliable causal broadcast* layer --- operations must be delivered exactly once and in causal order.
-
-A hybrid approach, *delta-state CRDTs*, sends only the part of the state that changed (the "delta") rather than the full state. Deltas are joinable like full states (so they tolerate message loss and reordering) but are small like operations (so they are bandwidth-efficient).
-
-Common CRDT building blocks relevant to this thesis include:
-
-- **G-Set** (grow-only set): elements can be added but never removed. Merging two G-Sets is simply their union.
-- **LWW-Register** (last-writer-wins register): a single value where concurrent writes are resolved by a deterministic ordering (typically by timestamp or logical clock).
-- **OR-Set** (observed-remove set): elements can be added and removed. Concurrent add and remove of the same element are resolved in favor of the add.
-
-For collaborative editing of tree-structured documents, Kleppmann and Beresford [@kleppmann2017crdt] proposed a JSON CRDT that uses unique identifiers for each node and supports insert, delete, and move operations. This work identified the *move operation problem*: in a flat JSON structure without native move support, moving a node requires deleting it from one location and inserting it at another --- two separate operations that can interleave with concurrent edits, potentially losing data.
-
-## Causality and frontiers {#sec:causality}
+## Causality {#sec:causality}
 
 A fundamental concept in distributed collaborative editing is *causality* --- the relationship between events produced by different peers. Lamport's *happens-before* relation defines a partial order over events in a distributed system:
 
@@ -117,13 +98,30 @@ Vector clocks characterize the happens-before relation:
 
 This allows concurrency detection in O(P) time (where P is the number of peers) by comparing two vectors, without traversing the event graph.
 
-Causality is tracked using *vector clocks*: each event carries a map from peer ID to the highest sequence number seen from that peer.
-
 The *frontier* is the set of events with no descendants --- the "tips" of the DAG, representing the most recent state each peer has reached. [@Fig:frontier] shows a frontier with two events from different peers.
 
 ![Frontier of an event DAG. Events `alice:2` and `bob:0` are both frontier events --- neither has a descendant. A new event created by either peer will have both as parents.](img/frontier.png){#fig:frontier width=55%}
 
 When a peer creates a new event, the current frontier becomes the event's parents. After both peers sync and one makes a new edit, the resulting event has *multiple parents* --- one from each branch --- merging the frontier back to a single point. This is analogous to a merge commit in version control.
+
+## Conflict-free Replicated Data Types {#sec:crdts}
+
+CRDTs [@shapiro2011crdt] are data structures designed for distributed systems where multiple replicas can be modified independently and merged without conflicts. The key guarantee is *strong eventual consistency*: any two replicas that have received the same set of updates will be in the same state, regardless of the order in which updates were delivered. Preguiça [@preguica2018crdts] provides a comprehensive overview of CRDTs and their variants.
+
+CRDTs come in two main flavors:
+
+- **State-based CRDTs** (CvRDTs) require the set of possible states to form a *join semilattice* --- a partially ordered set where any two states have a least upper bound (join). Replicas periodically send their full state to each other, and the merge operation computes the join. This works over unreliable channels since states can always be re-merged, but sending the full state can be expensive for large data structures.
+- **Operation-based CRDTs** (CmRDTs) propagate individual update operations rather than full states. Operations must be commutative so that applying them in any order produces the same result. This is more bandwidth-efficient, but requires a *reliable causal broadcast* layer --- operations must be delivered exactly once and in causal order.
+
+A hybrid approach, *delta-state CRDTs*, sends only the part of the state that changed (the "delta") rather than the full state. Deltas are joinable like full states (so they tolerate message loss and reordering) but are small like operations (so they are bandwidth-efficient).
+
+Common CRDT building blocks relevant to this thesis include:
+
+- **G-Set** (grow-only set): elements can be added but never removed. Merging two G-Sets is simply their union.
+- **LWW-Register** (last-writer-wins register): a single value where concurrent writes are resolved by a deterministic ordering (typically by timestamp or logical clock).
+- **OR-Set** (observed-remove set): elements can be added and removed. Concurrent add and remove of the same element are resolved in favor of the add.
+
+For collaborative editing of tree-structured documents, Kleppmann and Beresford [@kleppmann2017crdt] proposed a JSON CRDT that uses unique identifiers for each node and supports insert, delete, and move operations. This work identified the *move operation problem*: in a flat JSON structure without native move support, moving a node requires deleting it from one location and inserting it at another --- two separate operations that can interleave with concurrent edits, potentially losing data.
 
 ## Eg-walker {#sec:egwalker}
 
