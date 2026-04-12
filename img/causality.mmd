@@ -7,8 +7,10 @@ sequenceDiagram
     Note over Alice: alice:1
     Note over Bob: bob:0
     Note over Alice,Bob: alice:1 ∥ bob:0 (concurrent)
-    Alice->>Bob: sync alice:0, alice:1
-    Note over Bob: bob:1 (has seen alice:1)
-    Bob->>Alice: sync bob:0, bob:1
-    Note over Alice: alice:2 (has seen bob:1)
-    Note over Alice,Bob: alice:0 → alice:1 → bob:1 (happens-before)
+    Alice->>Bob: send(m1)
+    Note over Bob: receive(m1)
+    Note over Bob: bob:1
+    Bob->>Alice: send(m2)
+    Note over Alice: receive(m2)
+    Note over Alice: alice:2
+    Note over Alice,Bob: send(m1) → receive(m1) (happens-before)
