@@ -17,7 +17,7 @@ All six formative examples described in [@Chap:formative] are implemented and pa
 | Conf. Budget | `conference-budget` | Formula references, concurrent adds |
 | Todo App | `todo` | Multi-step recording, copy |
 
-The conference table example with concurrent editing is the most significant result: it demonstrates that OT correctly transforms concurrent list insertions through structural changes (tag updates, wraps, formula additions), producing a consistent merged table from independently edited list and table structures.
+The conference table example with concurrent editing is the most significant result: it exercises the full OT pipeline --- wildcard expansion, structural transformations (tag updates, wraps), formula creation, and concurrent list insertions all interacting in a single scenario. It demonstrates that the system handles the composition of these features correctly, producing a consistent merged table from independently edited list and table structures.
 
 ## Testing strategy {#sec:testing}
 
@@ -38,7 +38,5 @@ The current implementation has several known limitations:
 **Replay-from-scratch materialization.** Every call to `materialize()` replays all events from the initial document. For documents with thousands of events, this becomes a performance bottleneck. An incremental materialization approach that caches intermediate states would address this.
 
 **No character-level text editing.** Primitive values (strings, numbers, booleans) are replaced atomically. There is no character-level collaborative text editing --- concurrent edits to the same string field are resolved by last-writer-wins based on topological order. Supporting character-level editing would require integrating a text CRDT (such as Fugue) for primitive string values.
-
-**Structural edits do not propagate to concurrent insertions.** When Alice wraps existing items in formula nodes (e.g., `wrapRecord` to add `split-first`), this transformation applies to items that exist at the time of the edit. Items inserted concurrently by Bob receive the structural changes (tag updates, list wraps, pushBack of formula cells) via OT, but the `wrapRecord` on individual field values does not propagate --- Bob's items have the formula cell structure but the formula references point to unwrapped source data.
 
 **In-memory event storage.** The sync server stores all events in memory with JSON file persistence. There is no database-backed storage, which limits scalability for production deployments.

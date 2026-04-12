@@ -103,6 +103,7 @@ alice.updateTag("speakers/*", "td");
 alice.wrapList("speakers/*", "tr");
 
 // 3. Wrap contact in split-first formula
+// (the original value becomes the "source" field of the wrapper)
 alice.wrapRecord(
   "speakers/*/0/contact", "source", "split-first");
 

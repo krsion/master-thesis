@@ -6,7 +6,7 @@ This chapter describes the iterative process of finding the right collaborative 
 
 Grove [@grove2025] is a calculus for collaborative structure editing that models all edits as commutative operations on abstract syntax trees. It was the first system we considered, since it directly addresses concurrent editing of tree structures --- the same problem Denicek faces.
 
-However, Grove is designed for collaborative *code editing*, where the tree is an abstract syntax tree with a fixed schema defined by a grammar. Denicek's document trees are *schema-free*: users can add arbitrary fields, change tags, and restructure the tree at will. Grove's commutativity relies on the tree conforming to a known grammar, which Denicek does not have. Additionally, Grove was published as a formal calculus without a production-ready implementation or library that could be integrated directly. For these reasons, we turned to general-purpose CRDT libraries that support arbitrary JSON-like structures.
+However, Grove is designed for collaborative *code editing*, where the tree is an abstract syntax tree with a fixed schema defined by a grammar. Denicek's document trees are *schema-free*: users can add arbitrary fields, change tags, and restructure the tree at will. Grove's commutativity relies on the tree conforming to a known grammar, which Denicek does not have. Additionally, Grove was published as a formal calculus without an implementation library that could be integrated into a TypeScript project. For these reasons, we turned to general-purpose CRDT libraries that support arbitrary JSON-like structures.
 
 ## Attempt 1: Automerge {#sec:automerge}
 
@@ -71,7 +71,7 @@ Despite solving the structural issues, Loro proved incompatible with Denicek's *
 
 In Denicek, users record edits and replay them. A recorded edit might say: "push a new item to the speakers list, then copy the value from the input field into the new item." The copy operation creates a node with a *relative reference* --- it refers to `../input/value`, meaning "the input field that is a sibling of the list I just pushed to."
 
-Loro uses opaque node IDs. When replaying the creation of such a reference node, the recorded ID `nodeId_abc123` points to the specific input field that existed at recording time. This works for simple replay, but breaks when the edit sequence is replayed in a different context --- the reference node must be created with a path that resolves relative to its *new* position, not the original one.
+Loro uses *opaque* node IDs --- unique identifiers (such as `nodeId_abc123`) that have no relationship to a node's position in the tree. When replaying the creation of a reference node, the recorded ID points to the specific node that existed at recording time. This works for simple replay, but breaks when the edit sequence is replayed in a different context --- the reference node must be created with a path that resolves relative to its *new* position, not the original one.
 
 Consider the conference table example from [@Chap:formative]. Alice records a sequence of edits on the first row of a speakers table:
 
