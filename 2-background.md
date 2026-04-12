@@ -107,9 +107,16 @@ The event DAG provides a natural data structure for storing the history of a col
 
 ### Frontier
 
-The *frontier* is the set of events with no descendants --- the "tips" of the DAG, representing the most recent state each peer has reached. [@Fig:frontier] shows a frontier with two events from different peers. Frontiers serve two practical purposes: they become the *parents* of the next event a peer creates (encoding causal dependencies), and they enable efficient synchronization --- a peer can send its frontier to another peer, who then responds with all events the sender has not yet seen.
+The *frontier* is the set of events with no descendants --- the "tips" of the DAG. [@Fig:frontier] shows a frontier with two events from different peers.
 
 ![Frontier of an event DAG. Events `alice:2` and `bob:0` are both frontier events --- neither has a descendant. A new event created by either peer will have both as parents.](img/frontier.png){#fig:frontier width=55%}
+
+A frontier implicitly represents the entire causal history beneath it --- all ancestors of the frontier events are included. This makes frontiers extremely compact: regardless of how many peers have contributed or how long the editing history is, the frontier typically contains just one or two event IDs. By contrast, a vector clock grows linearly with the number of peers.
+
+However, frontiers require access to the event history to be useful. Given only a frontier, a peer cannot determine which events are included without having the DAG to traverse. Vector clocks are self-contained --- a peer can compare two vector clocks without any additional data. This leads to a natural division of roles:
+
+- **Vector clocks** are used for concurrency detection during OT (comparing two events requires no DAG traversal).
+- **Frontiers** are used as event parents (encoding causal dependencies) and for synchronization (a peer sends its frontier, the other peer walks the DAG to compute the missing events).
 
 When a peer creates a new event, the current frontier becomes the event's parents. After both peers sync and one makes a new edit, the resulting event has *multiple parents* --- one from each branch --- merging the frontier back to a single point. This is analogous to a merge commit in version control.
 
