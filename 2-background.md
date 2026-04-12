@@ -72,11 +72,11 @@ The Jupiter algorithm [@nichols1995jupiter], used in Google Docs, simplifies OT 
 
 A fundamental concept in distributed collaborative editing is *causality* --- the relationship between events produced by different peers. Lamport's *happens-before* relation defines a partial order over events in a distributed system:
 
-> **Definition (happens-before).** Event $a$ *happens-before* event $b$, written $a \to b$, if and only if:
+> **Definition (happens-before).** The *happens-before* relation, written $a \to b$, is the smallest relation satisfying:
 >
-> 1. $a$ and $b$ were produced by the same peer, and $a$ was produced before $b$; or
-> 2. $a$ is the sending of a message $m$ and $b$ is the receiving of $m$, i.e., $\text{send}(m) \to \text{receive}(m)$; or
-> 3. there exists an event $c$ such that $a \to c$ and $c \to b$ (transitivity).
+> 1. If $a$ and $b$ were produced by the same peer, and $a$ was produced before $b$, then $a \to b$.
+> 2. If $a = \text{send}(m)$ and $b = \text{receive}(m)$ for some message $m$, then $a \to b$.
+> 3. If $a \to c$ and $c \to b$, then $a \to b$ (transitivity).
 >
 > Two events $a$ and $b$ are *concurrent*, written $a \parallel b$, if neither $a \to b$ nor $b \to a$.
 
