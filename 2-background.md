@@ -129,6 +129,12 @@ CRDTs come in two main flavors:
 - **State-based CRDTs** (CvRDTs) require the set of possible states to form a *join semilattice* --- a partially ordered set where any two states have a least upper bound (join). Replicas periodically send their full state to each other, and the merge operation computes the join. This works over unreliable channels since states can always be re-merged, but sending the full state can be expensive for large data structures.
 - **Operation-based CRDTs** (CmRDTs) propagate individual update operations rather than full states. Concurrent operations must be commutative so that applying them in either order produces the same result. This is more bandwidth-efficient, but requires a *reliable causal broadcast* layer --- operations must be delivered exactly once and in causal order.
 
+### Reliable causal delivery {#sec:causal-delivery}
+
+The "causal order" requirement of CmRDTs deserves clarification. Network messages can *arrive* (be received) in any order --- the network provides no ordering guarantees. *Causal delivery* means that messages are *delivered to the application* in an order consistent with causality: if event $a$ causally precedes event $b$, then $a$ must be delivered before $b$. Concurrent events may be delivered in any order.
+
+The standard implementation uses a buffer: when a message arrives whose causal dependencies have not yet been delivered, it is buffered until those dependencies arrive. Vector clocks or parent pointers can be used to check whether all dependencies are satisfied. In mydenicek, the event graph's `ingestEvents` method implements this: out-of-order events are buffered and flushed in causal order once their parent events have been inserted (see [@Sec:sync]).
+
 A hybrid approach, *delta-state CRDTs*, sends only the part of the state that changed (the "delta") rather than the full state. Deltas are joinable like full states (so they tolerate message loss and reordering) but are small like operations (so they are bandwidth-efficient).
 
 Common CRDT building blocks relevant to this thesis include:
