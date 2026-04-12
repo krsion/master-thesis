@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="420" viewBox="0 0 560 420">
+  <style>
+    text { font-family: monospace; font-size: 14px; }
+    .label { font-size: 13px; fill: #333; }
+    .header { font-size: 16px; font-weight: bold; fill: #333; }
+    .concurrent { font-size: 12px; fill: #ea4335; }
+    .hb { font-size: 12px; fill: #0078d4; }
+  </style>
+
+  <!-- Peer labels -->
+  <text x="180" y="30" class="header" text-anchor="middle">Alice</text>
+  <text x="420" y="30" class="header" text-anchor="middle">Bob</text>
+
+  <!-- Timelines -->
+  <line x1="180" y1="40" x2="180" y2="340" stroke="#999" stroke-width="2" stroke-dasharray="6,3"/>
+  <line x1="420" y1="40" x2="420" y2="340" stroke="#999" stroke-width="2" stroke-dasharray="6,3"/>
+
+  <!-- Time arrow -->
+  <line x1="40" y1="50" x2="40" y2="330" stroke="#ccc" stroke-width="1.5"/>
+  <polygon points="40,335 36,325 44,325" fill="#ccc"/>
+  <text x="40" y="355" text-anchor="middle" style="font-size:12px; fill:#999;">time</text>
+
+  <!-- Alice events -->
+  <circle cx="180" cy="80" r="8" fill="#0078d4"/>
+  <text x="90" y="85" class="label" text-anchor="end">alice:0</text>
+
+  <circle cx="180" cy="160" r="8" fill="#0078d4"/>
+  <text x="90" y="155" class="label" text-anchor="end">alice:1</text>
+  <text x="90" y="172" class="label" text-anchor="end">= send(m)</text>
+
+  <!-- Bob events -->
+  <circle cx="420" cy="100" r="8" fill="#34a853"/>
+  <text x="440" y="105" class="label">bob:0</text>
+
+  <circle cx="420" cy="180" r="8" fill="#34a853"/>
+  <text x="440" y="185" class="label">bob:1</text>
+
+  <circle cx="420" cy="280" r="8" fill="#34a853"/>
+  <text x="440" y="275" class="label">bob:2</text>
+  <text x="440" y="292" class="label">= receive(m)</text>
+
+  <!-- Message arrow -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+    </marker>
+  </defs>
+  <line x1="188" y1="165" x2="412" y2="275" stroke="#666" stroke-width="2" stroke-dasharray="8,4" marker-end="url(#arrowhead)"/>
+  <text x="310" y="205" class="label" text-anchor="middle" style="fill:#666;">m</text>
+
+  <!-- Annotations -->
+  <text x="300" y="380" class="concurrent" text-anchor="middle">alice:1 ∥ bob:0 ∥ bob:1 (concurrent)</text>
+  <text x="300" y="400" class="hb" text-anchor="middle">alice:0 → alice:1 → bob:2 (happens-before)</text>
+</svg>
