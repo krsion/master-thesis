@@ -4,13 +4,11 @@ sequenceDiagram
     participant Bob
 
     Note over Alice: alice:0
-    Note over Alice: alice:1
+    Note over Alice: alice:1 = send(m)
     Note over Bob: bob:0
-    Note over Alice,Bob: alice:1 ∥ bob:0 (concurrent)
-    Alice->>Bob: send(m1)
-    Note over Bob: receive(m1)
     Note over Bob: bob:1
-    Bob->>Alice: send(m2)
-    Note over Alice: receive(m2)
-    Note over Alice: alice:2
-    Note over Alice,Bob: send(m1) → receive(m1) (happens-before)
+    Alice->>Bob: m
+    Note over Bob: bob:2 = receive(m)
+
+    Note over Alice,Bob: alice:1 ∥ bob:0 ∥ bob:1 (concurrent)
+    Note over Alice,Bob: alice:1 → bob:2 (happens-before via message)
