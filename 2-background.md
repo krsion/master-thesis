@@ -75,7 +75,7 @@ A fundamental concept in distributed collaborative editing is *causality* --- th
 > **Definition (happens-before).** Event $a$ *happens-before* event $b$, written $a \to b$, if and only if:
 >
 > 1. $a$ and $b$ were produced by the same peer, and $a$ was produced before $b$; or
-> 2. $a$ was produced by one peer and $b$ was produced by another peer *after* receiving $a$; or
+> 2. $a$ is the sending of a message $m$ and $b$ is the receiving of $m$, i.e., $\text{send}(m) \to \text{receive}(m)$; or
 > 3. there exists an event $c$ such that $a \to c$ and $c \to b$ (transitivity).
 >
 > Two events $a$ and $b$ are *concurrent*, written $a \parallel b$, if neither $a \to b$ nor $b \to a$.
