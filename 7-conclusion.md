@@ -1,6 +1,6 @@
 # Conclusion {#chap:conclusion}
 
-This thesis investigated the use of CRDTs to enable collaborative editing in the Denicek system --- a computational substrate for document-oriented end-user programming. We evaluated three approaches: Automerge, Loro, and a custom OT-based event DAG.
+This thesis investigated approaches to collaborative editing in the Denicek system --- a computational substrate for document-oriented end-user programming. We evaluated two CRDT libraries (Automerge, Loro) and ultimately built a custom OT-based event DAG.
 
 Automerge's flat map representation lacked atomic move operations, making the wrap edit --- one of Denicek's core structural operations --- unreliable under concurrent editing. Loro solved this with a native movable tree CRDT, but its opaque ID-based addressing proved incompatible with Denicek's path-based programming model: recorded edits could not use relative references, and replayed edits could not be retargeted through concurrent structural changes.
 
