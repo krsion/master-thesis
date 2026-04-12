@@ -82,7 +82,7 @@ A fundamental concept in distributed collaborative editing is *causality* --- th
 
 [@Fig:causality] illustrates these relationships in an event graph.
 
-![Causality in a distributed system. Alice creates two events locally. Bob's first event (bob:0) is the receipt of Alice's message, establishing alice:0 $\to$ alice:1 $\to$ bob:0. Note that alice:1 happens-before bob:0 despite the higher sequence number --- causality is determined by the message, not by numbering.](img/causality.png){#fig:causality width=55%}
+![Causality in a distributed system. Alice creates two events locally. Bob's first event (bob:0) is the receipt of Alice's message, establishing alice:0 $\to$ alice:1 $\to$ bob:0. Note that alice:1 happens-before bob:0 despite the higher sequence number --- cross-peer causality is determined by messages, not by numbering.](img/causality.png){#fig:causality width=55%}
 
 Happens-before is defined abstractly, but an efficient implementation requires a concrete mechanism for detecting it. *Vector clocks* provide this mechanism.
 
