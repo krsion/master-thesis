@@ -73,7 +73,7 @@ Nodes are addressed by *selectors* --- slash-separated paths that describe how t
 The event directed acyclic graph (DAG) is the core data structure of mydenicek. Each edit creates an immutable *event* containing:
 
 - **EventId** --- a unique identifier `peer:seq`, where `peer` is the peer's string identifier and `seq` is a monotonically increasing sequence number. For example, `alice:3` is Alice's third event.
-- **Parents** --- the set of event IDs that form the *frontier* at the time the event was created. These are the most recent events the peer had seen. An event with multiple parents represents a state that has merged concurrent branches.
+- **Parents** --- the set of event IDs that form the *frontier* at the time the event was created. These are the most recent events the peer had seen. An event with multiple parents is the first edit after receiving another peer's events, merging the concurrent branches.
 - **Edit** --- the actual edit operation (add, delete, rename, set, pushBack, wrapRecord, etc.) with its target selector and arguments.
 - **Vector clock** --- a map from peer ID to the highest sequence number seen from that peer. The vector clock enables causal ordering: event A *happens-before* event B if A's vector clock is dominated by B's. Two events are *concurrent* if neither dominates the other.
 
