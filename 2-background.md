@@ -95,7 +95,7 @@ Vector clocks characterize the happens-before relation:
 
 > $a \to b$ if and only if $V_a[p] \leq V_b[p]$ for all peers $p$, and $V_a \neq V_b$.
 >
-> $a \parallel b$ if and only if there exist peers $p, q$ such that $V_a[p] > V_b[p]$ and $V_a[q] < V_b[q]$.
+> $a \parallel b$ if and only if neither $a \to b$ nor $b \to a$.
 
 This allows concurrency detection in O(P) time (where P is the number of peers) by comparing two vectors, without traversing the event graph.
 
