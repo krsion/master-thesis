@@ -86,9 +86,10 @@ A fundamental concept in distributed systems is *causality* --- the relationship
 
 Happens-before is defined abstractly, but an efficient implementation requires a concrete mechanism for detecting it. *Vector clocks* provide this mechanism.
 
-> **Definition (vector clock).** A vector clock $V$ is a map from peer ID to a non-negative integer. Each event $a$ carries a vector clock $V_a$ where $V_a[p]$ is the highest sequence number from peer $p$ that is a causal ancestor of $a$ (including $a$ itself if $a$ was produced by $p$).
+> **Definition (vector clock).** A vector clock $V$ is a map from peer ID to a non-negative integer. Each event $a$ carries a vector clock $V_a$ where $V_a[p]$ is the highest sequence number from peer $p$ that is a causal ancestor of $a$ (including $a$ itself if $a$ was produced by $p$). Vector clocks are updated as follows:
 >
-> When a peer $p$ creates an event with sequence number $n$, its vector clock is computed as the component-wise maximum of all parents' vector clocks, with $V[p] = n$.
+> - **Local event.** When peer $p$ creates an event with sequence number $n$: $V[p] = n$, all other entries unchanged.
+> - **Receive event.** When peer $p$ receives a message carrying vector clock $V_m$ and creates event with sequence number $n$: $V[q] = \max(V_{\text{local}}[q], V_m[q])$ for all peers $q \neq p$, and $V[p] = n$.
 
 Vector clocks characterize the happens-before relation:
 
