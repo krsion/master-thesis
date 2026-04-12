@@ -50,6 +50,5 @@
   <text x="310" y="205" class="label" text-anchor="middle" style="fill:#666;">m</text>
 
   <!-- Annotations -->
-  <text x="300" y="380" class="concurrent" text-anchor="middle">alice:1 ∥ bob:0, alice:1 ∥ bob:1 (concurrent)</text>
-  <text x="300" y="400" class="hb" text-anchor="middle">alice:0 → alice:1 → bob:2 (happens-before)</text>
+  <text x="300" y="385" class="hb" text-anchor="middle">alice:0 → alice:1 → bob:2 (happens-before)</text>
 </svg>
