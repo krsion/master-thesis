@@ -13,8 +13,8 @@ rigorous: false
 doctoral: false
 
 author: Bc. Ondřej Krsička
-title-cs: Evaluace CRDT vs OT pro kolaborativní editaci ve výpočetním substrátu Denicek
-title-en: Evaluating CRDTs vs OT for Collaborative Editing in Computational Substrate Denicek
+title-cs: "Kolaborativní editace v systému Denicek: Evaluace CRDT a operační transformace"
+title-en: "Collaborative Editing in Denicek: Evaluating CRDTs and Operational Transformation"
 year: 2026
 
 department-en: Department of Software Engineering
