@@ -64,7 +64,7 @@ Consider a simple example with text editing, illustrated in [@Fig:ot-text-exampl
 
 When User A receives User B's operation `Insert(5, " World")`, it must be transformed: since User A already inserted a character at position 5, User B's insertion point shifts to position 6. The transformed operation `Insert(6, " World")` produces `"Hello! World"` on both peers.
 
-OT becomes significantly more complex for tree-structured documents like Denicek's. When a peer renames a field from `speakers` to `talks`, all concurrent operations that reference `/speakers/...` must have their selector paths transformed to `/talks/...`. When a peer wraps a node in a new parent, selector paths must gain an additional segment. The number of transformation rules grows with each new edit type, and ensuring that all combinations are handled correctly is error-prone --- this is the main motivation for exploring CRDT-based alternatives.
+OT is notoriously difficult to get right. Several published OT algorithms were later proven incorrect --- subtle violations of the transformation properties (TP1 and TP2) caused peers to diverge under specific interleaving patterns. The number of transformation rules grows with each new edit type, and the interactions between rules are hard to reason about exhaustively. This fragility is one of the main motivations for exploring CRDT-based alternatives.
 
 The Jupiter algorithm [@nichols1995jupiter], used in Google Docs, simplifies OT by requiring a central server that serializes all operations. This makes transformation simpler (only two-way transforms are needed) but introduces a single point of failure and prevents peer-to-peer collaboration.
 
