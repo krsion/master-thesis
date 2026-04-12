@@ -82,7 +82,7 @@ A fundamental concept in distributed collaborative editing is *causality* --- th
 
 [@Fig:causality] illustrates these relationships in an event graph.
 
-![Causality in a distributed system. Alice and Bob create events independently. Before syncing, alice:1 and bob:0 are concurrent. After Alice sends message $m_1$ to Bob, $\text{send}(m_1) \to \text{receive}(m_1)$, so bob:1 causally depends on alice:1.](img/causality.png){#fig:causality width=55%}
+![Causality in a distributed system. Alice and Bob create events independently. Before syncing, alice:1 and bob:0 are concurrent. After Alice sends message $m$ at alice:1, Bob receives it at bob:2, establishing the happens-before chain alice:0 $\to$ alice:1 $\to$ bob:2.](img/causality.png){#fig:causality width=55%}
 
 Happens-before is defined abstractly, but an efficient implementation requires a concrete mechanism for detecting it. *Vector clocks* provide this mechanism.
 
