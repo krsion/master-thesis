@@ -58,6 +58,14 @@
   <text x="402" y="218" class="name" text-anchor="middle" fill="#34a853">RecordAddEdit</text>
   <text x="402" y="232" class="name" text-anchor="middle" fill="#34a853">SetEdit ...</text>
   <line x1="330" y1="237" x2="475" y2="237" stroke="#34a853" stroke-opacity="0.3"/>
+
+  <!-- CopyEdit (extends Edit directly) -->
+  <line x1="350" y1="85" x2="440" y2="115" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+  <rect x="350" y="120" width="125" height="55" rx="5" fill="#fce8e6" stroke="#ea4335" stroke-width="1.5"/>
+  <text x="412" y="138" class="name" text-anchor="middle" fill="#ea4335">CopyEdit</text>
+  <line x1="350" y1="144" x2="475" y2="144" stroke="#ea4335" stroke-opacity="0.3"/>
+  <text x="360" y="158" class="override">target + source</text>
+  <text x="360" y="170" class="override">mirrors edits to copy</text>
   <text x="340" y="250" class="note">selector → identity</text>
 
   <!-- WrapListEdit, RenameFieldEdit row -->
