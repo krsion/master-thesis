@@ -103,7 +103,21 @@ A fundamental concept in distributed collaborative editing is *causality* --- th
 
 ![Causality in an event graph. alice:0 happens-before alice:1 (Alice created them sequentially). alice:1 and bob:0 are concurrent --- neither peer had seen the other's event when creating their own.](img/causality.png){#fig:causality width=70%}
 
-Causality is tracked using *vector clocks*: each event carries a map from peer ID to the highest sequence number seen from that peer. Event $a$ happens-before event $b$ if and only if $a$'s vector clock is component-wise less than or equal to $b$'s. Two events are concurrent if neither vector clock dominates the other.
+Happens-before is defined abstractly, but an efficient implementation requires a concrete mechanism for detecting it. *Vector clocks* provide this mechanism.
+
+> **Definition (vector clock).** A vector clock $V$ is a map from peer ID to a non-negative integer. Each event $a$ carries a vector clock $V_a$ where $V_a[p]$ is the highest sequence number from peer $p$ that is a causal ancestor of $a$ (including $a$ itself if $a$ was produced by $p$).
+>
+> When a peer $p$ creates an event with sequence number $n$, its vector clock is computed as the component-wise maximum of all parents' vector clocks, with $V[p] = n$.
+
+Vector clocks characterize the happens-before relation:
+
+> $a \to b$ if and only if $V_a[p] \leq V_b[p]$ for all peers $p$, and $V_a \neq V_b$.
+>
+> $a \parallel b$ if and only if there exist peers $p, q$ such that $V_a[p] > V_b[p]$ and $V_a[q] < V_b[q]$.
+
+This allows concurrency detection in O(P) time (where P is the number of peers) by comparing two vectors, without traversing the event graph.
+
+Causality is tracked using *vector clocks*: each event carries a map from peer ID to the highest sequence number seen from that peer.
 
 The *frontier* is the set of events with no descendants --- the "tips" of the DAG, representing the most recent state each peer has reached. [@Fig:frontier] shows a frontier with two events from different peers.
 
