@@ -117,7 +117,7 @@ To illustrate how transformations compose, consider a conference list where Alic
 
 ### OT architecture {#sec:ot-architecture}
 
-A naive OT implementation requires a transformation rule for every pair of edit types --- O(n²) rules for n edit types. With 12 edit types, that would be 144 rules. mydenicek avoids this through a two-level object-oriented design, shown in [@Fig:edit-class-diagram].
+A naive OT implementation requires a transformation rule for every pair of edit types --- n² rules for n edit types. With 12 edit types, that would be 144 hand-written rules. mydenicek avoids this through a two-level object-oriented design, shown in [@Fig:edit-class-diagram].
 
 ![Edit class hierarchy with two-level OT. Structural edits (blue) override `transformSelector` and optionally `transformLaterConcurrentEdit`. Data edits (green) return the identity transformation. CopyEdit (red) extends Edit directly with two selectors. Insert edits (orange) carry a payload that can be rewritten.](img/edit-class-diagram.png){#fig:edit-class-diagram width=75%}
 
@@ -126,7 +126,7 @@ The design rests on two key methods in the `Edit` base class:
 - **`transformSelector(sel)`** --- given another edit's selector, returns the transformed selector after this edit's structural effect. For example, a rename from `speakers` to `talks` transforms the selector `speakers/0/name` into `talks/0/name`. Non-structural edits (add, set, pushBack, etc.) return the selector unchanged.
 - **`transformLaterConcurrentEdit(concurrent)`** --- given a concurrent edit that will replay *after* this one, returns a transformed version of the concurrent edit. The default implementation simply calls `concurrent.transform(this)`, which rewrites the concurrent edit's target selector through `transformSelector`. This handles the vast majority of edit pairs.
 
-**Why this avoids O(n²).** The default `transformLaterConcurrentEdit` delegates to `transformSelector`, which each edit type implements once. A `RenameFieldEdit` knows how to transform *any* selector (not just selectors from specific edit types), so one method handles all pairs involving rename. This gives O(n) methods total.
+**Why this avoids n² rules.** The default `transformLaterConcurrentEdit` delegates to `transformSelector`, which each edit type implements once. A `RenameFieldEdit` knows how to transform *any* selector (not just selectors from specific edit types), so one method handles all pairs involving rename. This gives n methods total instead of n².
 
 **When the default is insufficient.** Selector rewriting alone does not handle cases where a structural edit must modify the *payload* of a concurrent list insert. Consider: `updateTag("items/*", "tr")` is concurrent with `pushBack("items", {$tag: "li", ...})`. The default would only transform the pushBack's target selector (which is `items`, unchanged by the tag edit). But the *inserted node* should also change its tag from `<li>` to `<tr>`. To handle this, `UpdateTagEdit`, `WrapRecordEdit`, and `WrapListEdit` override `transformLaterConcurrentEdit` to detect concurrent `ListInsertEdit` instances and call `rewriteInsertedNode`, which modifies the inserted node's payload before it enters the document. Only structural edits that change the document shape need this override --- it scales linearly with the number of structural edit types.
 
