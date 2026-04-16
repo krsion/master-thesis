@@ -82,6 +82,8 @@ The `resolveAgainst` step is the heart of convergence. When the materializer is 
 
 Because the sort order is deterministic and the OT transformations are deterministic, any two peers that have received the same set of events will produce the same document. This is the strong eventual consistency guarantee.
 
+Unlike operation-based CRDTs, which require concurrent operations to be commutative, mydenicek's edits are *not* commutative --- applying the same two edits in different orders can produce different results. This is why deterministic topological ordering is essential: it ensures all peers apply events in the same order, making commutativity unnecessary. The OT transformations handle the concurrent cases that commutativity would otherwise need to resolve.
+
 ## Edit types and OT rules {#sec:edit-types}
 
 The system supports the following edit types, listed in [@Tbl:edit-types].
