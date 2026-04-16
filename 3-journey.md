@@ -100,7 +100,7 @@ Inspired by Eg-walker [@gentle2025egwalker], we built a custom OT-based event DA
 
 The key design decisions are:
 
-- **Event DAG as CRDT.** All edits are stored as immutable events in an event DAG. The event set is a grow-only set (G-Set) --- the simplest CRDT. Two peers that have received the same set of events will produce the same document.
+- **Event DAG as CRDT.** All edits are stored as immutable events in an event DAG. The event set is a grow-only set (G-Set) --- one of the simplest CRDTs. Two peers that have received the same set of events will produce the same document.
 - **Deterministic topological replay.** To materialize the document, events are sorted in deterministic topological order (using Kahn's algorithm with `EventId` tie-breaking) and replayed against the initial document. Each edit is transformed against previously materialized concurrent edits using hand-written OT rules.
 - **Path-based selectors.** All operations use slash-separated selector paths, matching Denicek's native addressing. Wildcards, relative paths, and strict indices are first-class.
 - **Zero external dependencies.** The core engine is pure TypeScript with no runtime dependencies, making it portable across Deno, Node.js, and browser environments.
