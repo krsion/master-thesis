@@ -289,7 +289,7 @@ JSR package publishing is a separate workflow (`deno publish`) triggered manuall
 
 **Sync server.** The sync server runs as a Docker container on Azure Container Apps. Several Azure hosting options were considered:
 
-- **Azure App Service** provides managed web hosting but does not support WebSockets on the free tier (F1). The paid tiers that support WebSockets require an always-running plan even with no traffic, making them wasteful for a sync server that is only needed when users are actively collaborating.
+- **Azure App Service** provides managed web hosting. The free tier (F1) supports WebSockets but limits them to 5 concurrent connections and does not support scale-to-zero --- the app is unloaded after idle time but the plan remains allocated. Paid tiers remove the connection limit but require an always-running plan.
 - **Azure Container Instances (ACI)** supports running containers on demand, but does not support scale-to-zero --- a container instance is billed for the entire time it is running, and must be explicitly started and stopped. ACI also lacks built-in HTTPS ingress and automatic restarts.
 - **Azure Kubernetes Service (AKS)** provides full container orchestration for architectures where multiple containers communicate together. Running a single container on AKS would introduce unnecessary complexity (cluster management, networking, scaling policies) with no benefit.
 - **Azure Container Apps** combines the simplicity of ACI with automatic scale-to-zero, built-in HTTPS ingress, and managed infrastructure. It incurs no cost when idle and scales up automatically when WebSocket connections arrive.
