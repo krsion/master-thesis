@@ -227,15 +227,15 @@ Structural edits carry their target selector as a string and any additional para
 
 ### Reliability through frontier-based sync {#sec:reliability}
 
-Network communication is unreliable --- messages can be lost, duplicated, delayed, or delivered out of order. WebSocket connections can drop unexpectedly due to network changes, server restarts, or client hibernation. The sync protocol handles all of these cases through a single mechanism: *frontier-based catch-up*.
+Network communication is unreliable --- WebSocket connections can drop unexpectedly due to network changes, server restarts, or client hibernation. Within a single WebSocket connection, TCP guarantees ordered and reliable delivery: messages arrive exactly once and in the order they were sent. However, when a connection drops, any in-flight messages are lost, and the new connection has no memory of the previous one. The sync protocol handles connection drops through a single mechanism: *frontier-based catch-up*.
 
 Every sync message --- in both directions --- includes the sender's current *frontiers* and new events computed via `eventsSince(knownRecipientFrontiers)`. Each side tracks the last-known frontiers of the other. When the client sends a sync message, the server ingests the client's events and sends back a sync message with its own frontiers and any events the client is missing. By updating `knownServerFrontiers` from the server's message, the client learns which events the server has ingested. There is no separate acknowledgment protocol --- the bidirectional frontier exchange serves double duty as both data sync and confirmation. This design has several important properties:
 
-- **Lost server-to-client message.** The client's known server frontiers do not advance. On the next sync, the client sends the same frontiers, and the server resends the missing events.
-- **Lost client-to-server message.** The client never received a reply, so its `knownServerFrontiers` did not advance. The next sync message recomputes `eventsSince(knownServerFrontiers)` and includes the unsent events again.
-- **Duplicate messages.** If an event is received twice, the event graph detects that the event ID already exists and ignores the duplicate. Events are idempotent by design.
-- **Out-of-order delivery.** If events arrive before their causal dependencies, the event graph buffers them until the missing parents arrive. The `ingestEvents` method maintains a buffer of pending events and flushes them in causal order as dependencies are satisfied.
-- **Reconnection.** When a client reconnects after a disconnection, it simply sends its current frontiers. The server computes the difference and sends all missing events --- whether the client was offline for seconds or hours.
+- **Connection drop with in-flight server message.** The client's known server frontiers do not advance. On reconnection, the client sends the same frontiers, and the server resends the missing events.
+- **Connection drop with in-flight client message.** The client never received a reply, so its `knownServerFrontiers` did not advance. On reconnection, the next sync message recomputes `eventsSince(knownServerFrontiers)` and includes the unsent events again.
+- **Out-of-order event delivery.** While TCP preserves message order within a connection, events from different peers may arrive in an order that violates causal dependencies (e.g., the server relays Bob's event that depends on Alice's event before Alice's event arrives). The event graph buffers such events until the missing parents arrive. The `ingestEvents` method maintains a buffer of pending events and flushes them in causal order as dependencies are satisfied.
+- **Duplicate events.** If an event is received twice (e.g., due to a retry after an ambiguous connection drop), the event graph detects that the event ID already exists and ignores the duplicate. Events are idempotent by design.
+- **Reconnection after long offline period.** When a client reconnects, it simply sends its current frontiers. The server computes the difference and sends all missing events --- whether the client was offline for seconds or hours.
 
 [@Fig:sync-reliability] illustrates how frontier-based sync recovers from a lost message.
 
