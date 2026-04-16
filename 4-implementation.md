@@ -229,12 +229,15 @@ Structural edits carry their target selector as a string and any additional para
 
 Network communication is unreliable --- messages can be lost, duplicated, delayed, or delivered out of order. WebSocket connections can drop unexpectedly due to network changes, server restarts, or client hibernation. The sync protocol handles all of these cases through a single mechanism: *frontier-based catch-up*.
 
-Every sync message includes the sender's current *frontiers* --- the set of event IDs that represent the sender's latest known state. When the server receives a sync message, it compares the client's frontiers against its own event graph and responds with all events the client has not seen (computed via `eventsSince(clientFrontiers)`). This design has several important properties:
+Every sync message --- in both directions --- includes the sender's current *frontiers* and new events computed via `eventsSince(knownRecipientFrontiers)`. Each side tracks the last-known frontiers of the other. This design has several important properties:
 
-- **Lost messages.** If a message from the server to a client is lost, the client's frontiers will not advance. On the next sync, the client sends the same frontiers, and the server resends the missing events. No explicit acknowledgment or retry mechanism is needed.
+- **Lost server-to-client message.** The client's known server frontiers do not advance. On the next sync, the client sends the same frontiers, and the server resends the missing events.
+- **Lost client-to-server message.** The client's `knownServerFrontiers` did not advance (no response was received), so the next sync request recomputes `eventsSince(knownServerFrontiers)` and includes the unsent events again.
 - **Duplicate messages.** If an event is received twice, the event graph detects that the event ID already exists and ignores the duplicate. Events are idempotent by design.
 - **Out-of-order delivery.** If events arrive before their causal dependencies, the event graph buffers them until the missing parents arrive. The `ingestEvents` method maintains a buffer of pending events and flushes them in causal order as dependencies are satisfied.
 - **Reconnection.** When a client reconnects after a disconnection, it simply sends its current frontiers. The server computes the difference and sends all missing events --- whether the client was offline for seconds or hours.
+
+No explicit acknowledgment or retry mechanism is needed in any of these cases.
 
 [@Fig:sync-reliability] illustrates how frontier-based sync recovers from a lost message.
 
