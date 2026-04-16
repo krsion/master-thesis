@@ -10,9 +10,9 @@ The system is organized in five packages, as shown in [@Fig:architecture].
 
 The packages are:
 
-- **`packages/core`** (`@mydenicek/core` [@mydenicek_core]) --- the collaborative editing engine. Contains the document model, event DAG, edit types, OT transformation rules, undo/redo, formula engine, and recording/replay. Zero external runtime dependencies; pure TypeScript.
+- **`packages/core`** (`@mydenicek/core` [@mydenicek_core]) --- the collaborative editing engine. Contains the document model, event DAG, edit types, OT transformation rules, undo/redo, formula engine, and recording/replay. Zero external runtime dependencies; pure TypeScript. The core has no concept of a server or network --- it only knows about events and peers, making it compatible with any transport layer.
 - **`packages/react`** (`@mydenicek/react` [@mydenicek_react]) --- React bindings. The `useDenicek` hook provides reactive document state, mutation helpers, and sync lifecycle management.
-- **`packages/sync`** (`@mydenicek/sync` [@mydenicek_sync]) --- sync protocol. WebSocket-based client and server for exchanging events between peers. The server operates in *relay mode*: it stores and forwards events without materializing documents or understanding edit semantics.
+- **`packages/sync`** (`@mydenicek/sync` [@mydenicek_sync]) --- a client-server sync implementation built on top of the core. Provides a WebSocket-based client and relay server for exchanging events via a central server. The server operates in *relay mode*: it stores and forwards events without materializing documents or understanding edit semantics. This package is one possible transport --- the core could equally be used with peer-to-peer transport such as WebRTC.
 - **`apps/mywebnicek`** --- web application. React 19 + Fluent UI interface with a terminal-style command bar, rendered document view, raw JSON view, and event graph DAG visualization.
 - **`apps/sync-server`** --- deployed sync server. A Deno HTTP server that hosts WebSocket rooms using `@mydenicek/sync`, persists events to disk, and runs on Azure Container Apps.
 
