@@ -200,6 +200,8 @@ To avoid re-materializing the entire history on every replay, the event graph ca
 
 ## Sync protocol {#sec:sync}
 
+The event DAG is a purely peer-to-peer data structure --- convergence requires only that all peers eventually receive the same set of events, regardless of how they are delivered. In principle, peers could exchange events directly using a peer-to-peer protocol such as WebRTC. In practice, peer-to-peer networking in the browser remains cumbersome: WebRTC was designed primarily for audio and video streaming and requires a signaling server to establish connections, NAT traversal is unreliable, and peers must be online simultaneously. For simplicity, mydenicek uses a centralized relay server that all peers connect to via WebSocket. The relay server stores and forwards events but does not interpret them --- it could be replaced by any transport that delivers events reliably.
+
 The sync protocol uses WebSocket connections with a simple message exchange, illustrated in [@Fig:sync-protocol].
 
 ![Sync protocol sequence diagram. Alice and Bob connect to the server, exchange initial documents and events, and converge to the same state.](img/sync-protocol.png){#fig:sync-protocol width=80%}
