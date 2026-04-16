@@ -123,7 +123,7 @@ A naive OT implementation requires a transformation rule for every pair of edit 
 
 The design rests on two key methods in the `Edit` base class:
 
-- **`transformSelector(sel)`** --- given another edit's selector, returns the transformed selector after this edit's structural effect. For example, `RenameFieldEdit("speakers", "talks").transformSelector("speakers/0/name")` returns `"talks/0/name"`. Non-structural edits (add, set, pushBack, etc.) return the selector unchanged.
+- **`transformSelector(sel)`** --- given another edit's selector, returns the transformed selector after this edit's structural effect. For example, a rename from `speakers` to `talks` transforms the selector `speakers/0/name` into `talks/0/name`. Non-structural edits (add, set, pushBack, etc.) return the selector unchanged.
 - **`transformLaterConcurrentEdit(concurrent)`** --- given a concurrent edit that will replay *after* this one, returns a transformed version of the concurrent edit. The default implementation simply calls `concurrent.transform(this)`, which rewrites the concurrent edit's target selector through `transformSelector`. This handles the vast majority of edit pairs.
 
 **Why this avoids O(n²).** The default `transformLaterConcurrentEdit` delegates to `transformSelector`, which each edit type implements once. A `RenameFieldEdit` knows how to transform *any* selector (not just selectors from specific edit types), so one method handles all pairs involving rename. This gives O(n) methods total.
