@@ -235,7 +235,7 @@ Every sync message --- in both directions --- includes the sender's current *fro
 - **Connection drop with in-flight client message.** The client never received a reply, so its `knownServerFrontiers` did not advance. On reconnection, the next sync message recomputes `eventsSince(knownServerFrontiers)` and includes the unsent events again.
 - **Out-of-order event delivery.** While TCP preserves message order within a connection, events from different peers may arrive in an order that violates causal dependencies (e.g., the server relays Bob's event that depends on Alice's event before Alice's event arrives). The event graph buffers such events until the missing parents arrive. The `ingestEvents` method maintains a buffer of pending events and flushes them in causal order as dependencies are satisfied.
 - **Duplicate events.** If an event is received twice (e.g., due to a retry after an ambiguous connection drop), the event graph detects that the event ID already exists and ignores the duplicate. Events are idempotent by design.
-- **Reconnection after long offline period.** When a client reconnects, it simply sends its current frontiers. The server computes the difference and sends all missing events --- whether the client was offline for seconds or hours.
+- **Reconnection after long offline period.** When a client reconnects, it simply sends its current frontiers. The server computes the difference and sends all missing events --- whether the client was offline for seconds or days.
 
 [@Fig:sync-reliability] illustrates how frontier-based sync recovers from a lost message.
 
