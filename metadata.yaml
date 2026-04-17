@@ -13,8 +13,8 @@ rigorous: false
 doctoral: false
 
 author: Bc. Ondřej Krsička
-title-cs: "Kolaborativní editace v systému Denicek: Evaluace CRDT a operační transformace"
-title-en: "Collaborative Editing in Denicek: Evaluating CRDTs and Operational Transformation"
+title-cs: "Kolaborativní editace strukturovaných dokumentů v systému Denicek"
+title-en: "Collaborative Editing of Structured Documents in the Denicek System"
 year: 2026
 
 department-en: Department of Software Engineering
