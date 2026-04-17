@@ -95,7 +95,7 @@ Two points soften this conclusion for present use without dissolving it:
 
 A finer-grained incremental scheme --- replaying only events in the symmetric difference between the cached frontier and the new event's parents --- is a plausible extension but is left as future work (see [@Sec:future-work]).
 
-**Memory footprint.** Events are held in memory as a `Map<string, Event>`. Each `Event` carries an `EventId`, a `parents` array, an `Edit` subclass instance with its own fields, and a `VectorClock`. On the sync-linear N=2000 workload the serialized on-disk JSON is approximately 0.4 MB (roughly 200 bytes per event, dominated by the vector-clock and edit payloads); in-memory the `Map` overhead adds a constant factor. This linear growth in event count is the main scalability constraint, addressable by a future compaction mechanism (see [@Sec:future-work]).
+**Memory footprint.** Events are held in memory as a `Map<string, Event>`. Each `Event` carries an `EventId`, a `parents` array, an `Edit` subclass instance with its own fields, and a `VectorClock`. On the sync-linear N=2000 workload the serialized on-disk JSON is approximately 0.4 MB (roughly 200 bytes per event, dominated by the vector-clock and edit payloads); in-memory the `Map` overhead adds a constant factor. This linear growth in event count is the main scalability constraint, mitigated by the local `compact()` method once distributed acknowledgment tracking is in place (see [@Sec:future-work]).
 
 ## Determinism audit {#sec:determinism-audit}
 

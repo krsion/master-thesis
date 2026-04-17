@@ -18,4 +18,4 @@ The implementation was validated on seven formative examples demonstrating custo
 
 **mydatnicek.** A data-oriented variant of Denicek, built on the optimized core, could handle larger datasets (spreadsheets, databases) while preserving local-first collaborative editing. The tagged tree model naturally extends to tabular data with formula columns.
 
-**Event compaction.** Garbage-collecting old events once all peers have acknowledged them would reduce DAG size and improve materialization performance. A `compact()` method is a natural extension but requires further work on distributed acknowledgment tracking.
+**Event compaction.** Garbage-collecting old events once all peers have acknowledged them would reduce DAG size and improve materialization performance. The local `compact()` method exists but requires further work on distributed acknowledgment tracking so that the server can determine when all peers have received a given frontier.
