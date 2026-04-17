@@ -42,11 +42,11 @@ const addRightId = dk.add(
 
 // Store event IDs as replay steps
 dk.pushBack("counter/btn/steps",
-  { $tag: "step", eventId: wrapId });
+  { $tag: "replay-step", eventId: wrapId });
 dk.pushBack("counter/btn/steps",
-  { $tag: "step", eventId: renameId });
+  { $tag: "replay-step", eventId: renameId });
 dk.pushBack("counter/btn/steps",
-  { $tag: "step", eventId: addRightId });
+  { $tag: "replay-step", eventId: addRightId });
 ```
 
 These three event IDs are stored as replay steps in a button node. Each time the button is "clicked" (the steps are replayed), a new `x-formula-plus` layer wraps the previous result:
@@ -77,9 +77,9 @@ const copyId = dk.copy("conferenceList/items/!0/text",
 
 // Store as replay steps in the button
 dk.pushBack("conferenceList/composer/addAction/steps",
-  { $tag: "step", eventId: pushId });
+  { $tag: "replay-step", eventId: pushId });
 dk.pushBack("conferenceList/composer/addAction/steps",
-  { $tag: "step", eventId: copyId });
+  { $tag: "replay-step", eventId: copyId });
 ```
 
 The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, OT transforms this index if concurrent insertions have shifted it.
