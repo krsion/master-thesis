@@ -1,6 +1,6 @@
 # Formative Examples {#chap:formative}
 
-This chapter demonstrates the mydenicek system through six formative examples. Each example illustrates a different aspect of the system's capabilities and is backed by a passing test in the repository. The examples progress from simple operations to complex concurrent structural transformations.
+This chapter demonstrates the mydenicek system through seven formative examples. Each example illustrates a different aspect of the system's capabilities and is backed by a passing test in the repository. The examples progress from simple operations to complex concurrent structural transformations.
 
 ## Hello World: custom primitive edits and replay {#sec:hello-world}
 
