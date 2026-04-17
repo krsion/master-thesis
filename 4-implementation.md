@@ -145,6 +145,8 @@ The system supports the following edit types, listed in [@Tbl:edit-types].
 | `CopyEdit` | Copy a subtree from a source to a target | Any |
 | `ApplyPrimitiveEdit` | Apply a registered custom edit | Primitive |
 
+Two additional edit types, `UnwrapRecordEdit` and `UnwrapListEdit`, exist as internal inverse operations --- they are produced only by `computeInverse()` for undo and are not exposed as user-facing edits.
+
 Each structural edit (rename, wrap, delete) has a `transformSelector` method that rewrites the selector of a concurrent edit. The key transformation rules are:
 
 - **Rename**: if a concurrent edit targets `speakers/0/name` and a rename changes `speakers` to `talks`, the concurrent edit's selector is transformed to `talks/0/name`.
@@ -188,6 +190,8 @@ This holds regardless of replay order, but the mechanism differs in each case:
 - **Edit first** (Alice's wildcard edit is replayed before Bob's `pushBack`): Alice's `updateTag` is applied to the existing items. When Bob's `pushBack` is then resolved against Alice's preceding wildcard edit, the selector-rewriting step modifies the inserted item: instead of inserting a `<li>` item, the transformed insert produces a `<tr>` item. This works because materialization replays events in a canonical order --- when Bob's insert comes after Alice's wildcard edit in that order, the insert is transformed to be consistent with the already-applied edit.
 
 This semantics is uncommon in CRDTs. In most CRDT-based systems, an operation only affects the items that existed at the time the operation was created. Items inserted concurrently by other peers are not affected. Weidner [@weidner2023foreach] describes this as the *for-each* problem and proposes a dedicated CRDT operation to address it. In mydenicek, the replay-based view function naturally achieves the "for-each-including-concurrent-additions" semantics because the wildcard is expanded at replay time, not at creation time --- no special for-each CRDT is needed.
+
+A consequence of this design is that *destructive* wildcard edits also affect concurrent insertions. If Alice applies `popFront("speakers")` and Bob concurrently inserts a new speaker, Alice's pop may remove Bob's item after merge (depending on replay order and index transformation). This is consistent with the general wildcard semantics but may not always match user intent. A production system could distinguish "apply to all existing items" from "apply to all items including concurrent additions" by offering a non-wildcard variant, but this distinction is not implemented in the current prototype.
 
 ## Extensibility, formulas, and undo {#sec:extensibility-formulas-undo}
 
