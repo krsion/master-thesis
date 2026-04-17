@@ -157,3 +157,58 @@ The conference budget example demonstrates formulas that reference other nodes v
 The document contains a table of speakers with fee columns. A `sum` formula references all fee cells via a wildcard path (`/speakers/*/fee`). When a new speaker is added concurrently by another peer, the wildcard reference automatically includes the new row --- the sum formula produces the correct total without any manual update.
 
 This example validates that the formula engine correctly handles references that resolve to different sets of nodes as the document evolves through concurrent edits.
+
+## Todo App: multi-step macros and repeatable replay {#sec:todo}
+
+The todo app demonstrates the **composer pattern**: a UI scaffold in which an input field and a button jointly record and replay a multi-step edit sequence. Every click of the "Add" button executes the same recorded script against the current input value, producing a new item at the top of the list.
+
+The document holds three logical pieces --- a `composer` record containing an `input` value and an `addAction` button with a list of `steps`, and an `items` list representing the todo entries:
+
+```typescript
+const peer = new Denicek("alice", {
+  $tag: "app",
+  composer: {
+    $tag: "composer",
+    input: { $tag: "input", value: "Review feedback" },
+    addAction: {
+      $tag: "button",
+      steps: { $tag: "event-steps", $items: [] }
+    },
+  },
+  items: {
+    $tag: "ul",
+    $items: [
+      { $tag: "li", $items: ["Ship prototype"] },
+      { $tag: "li", $items: ["Write paper"] },
+    ],
+  },
+});
+```
+
+The "Add" recipe is two edits: prepend an empty list item, then copy the current input value into that item's first child. The event IDs of those edits are recorded as replay steps on the button:
+
+```typescript
+const insertId = peer.pushFront("items",
+  { $tag: "li", $items: [""] });
+const copyId = peer.copy("items/!0/0",
+  "composer/input/value");
+
+peer.pushBack("composer/addAction/steps",
+  { $tag: "replay-step", eventId: insertId });
+peer.pushBack("composer/addAction/steps",
+  { $tag: "replay-step", eventId: copyId });
+```
+
+The strict index `!0` in the copy target is essential: during replay it refers to the list position at the *time of replay*, not at recording time, and is not shifted by concurrent insertions ([@Sec:replay]).
+
+To "click" the button, the user changes the input value and invokes `repeatEditsFrom`, which replays each recorded step as a new event at the current frontier:
+
+```typescript
+peer.set("composer/input/value", "Book venue");
+peer.repeatEditsFrom("composer/addAction/steps");
+```
+
+The result is a new `<li>Book venue</li>` at the head of `items`, followed by the original entries. Clicking the button again with a different input value prepends another item, and so on. Each click is a pair of committed events in the DAG, so the sequence is fully auditable and is synchronized to other peers exactly like any other edit.
+
+This example exercises (a) the composer pattern --- button + input + replay steps --- that is reused across the conference-list and conference-table examples; (b) strict-index semantics under replay; (c) multi-step macro recording with internal dependencies between steps (the copy depends on the prior push creating its target); (d) the `CopyEdit` type, including its mirroring behavior under concurrent source edits described in [@Sec:copy-edit]. The full scenario is backed by `todo-formative.test.ts`.
+

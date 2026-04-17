@@ -42,11 +42,29 @@ The conference table example with concurrent editing is the most significant res
 
 The implementation is validated through multiple testing layers:
 
-- **206+ unit tests** covering core operations, OT transformation rules, edge cases, and error handling. Tests verify correct behavior for all edit types, concurrent scenarios (rename + wrap, delete + edit, double pop, triple wrap), and undo/redo.
+- **Unit tests** (over 200 cases) covering core operations, OT transformation rules, edge cases, and error handling. Tests verify correct behavior for all edit types, concurrent scenarios (rename + wrap, delete + edit, double pop, triple wrap), and undo/redo.
+- **Property-based tests** using `fast-check`, described in detail in [@Sec:property-tests].
 - **6 formative example tests** that simulate realistic user workflows and verify end-to-end behavior including recording, replay, formula evaluation, and multi-peer convergence.
 - **11 sync end-to-end tests** covering basic synchronization, late join, concurrent edits, reconnection, pause/resume, initial document hash validation, and offline convergence.
 - **Playwright browser tests** that verify the web application renders correctly and two browser peers can sync edits via the deployed server.
 - **Continuous integration** via GitHub Actions: every push triggers lint, type-check, test, build, and deployment.
+
+## Property-based tests {#sec:property-tests}
+
+The file `tests/core-properties.test.ts` uses the `fast-check` library to randomize edit sequences, sync operations, and delivery orders, then asserts invariants on the resulting document states. Unlike unit tests, property tests explore the space of concurrent interactions that a human author would not write down exhaustively.
+
+The tests run against four document schemas (flat list, flat record, nested list-of-records, deeply nested lists, document with references) and exercise all twelve edit types. Peers are modeled as three `Denicek` instances; operations are either local edits or pairwise sync actions; each test generates sequences of 5 to 40 operations per run, with `fast-check` shrinking to the minimal failing sequence on any violation.
+
+The invariants checked are:
+
+- **Convergence.** After a final full sync round, all peers serialize to the same JSON. This directly exercises the theorem of [@Sec:crdt-framing].
+- **Idempotency.** Re-delivering an already-ingested event has no effect on the document.
+- **Commutativity.** For two disjoint remote event batches, ingesting them in either order produces the same document.
+- **Associativity.** For three peers producing disjoint events, any pairwise merge order yields the same merged state.
+- **Intent preservation for non-conflicting edits.** Non-conflicting concurrent additions (to disjoint record fields or to a list) all appear in the merged document --- no intent is silently lost.
+- **Out-of-order delivery tolerance.** Shuffled event delivery with a causal-buffer layer produces the same state as causal delivery.
+
+The property suite has been effective as a regression guard during development --- earlier iterations of the selector-rewriting rules were caught by shrunk counter-examples that exposed wildcard-over-concurrent-insert bugs and copy-then-rename retargeting errors. We make no claim of exhaustive coverage; `fast-check` samples from a large but not complete space. The tests complement, rather than replace, the paper argument of [@Sec:crdt-framing] and the informal audit of [@Sec:determinism-audit].
 
 ## Performance {#sec:performance}
 
@@ -67,9 +85,16 @@ The implementation is validated through multiple testing layers:
 
 The linear workloads (local and sync) scale linearly in $N$ and stay below a millisecond per event for $N \le 2000$. This is due to an **incremental materialization cache** (`EventGraph.cachedDoc`) which is extended in place whenever a new event's parents exactly equal the current frontier --- a *linear extension* of the graph. In that common case, inserting an event costs an `edit.validate` against the cached document plus an in-place `edit.apply`, avoiding a full replay.
 
-The merge-fan workload exposes the cost of true concurrency: every incoming event from peer $B$ invalidates the cache on peer $A$ (because its parents no longer match $A$'s frontier), forcing a full $O(N)$ materialization on each insert and $O(N^2)$ overall. This is the remaining asymptotic cost, bounded by the number of branch points rather than the total event count. A finer-grained incremental scheme --- e.g., replaying only events in the symmetric difference between the cached frontier and the new event's parents --- is a plausible extension but is left as future work (see [@Sec:future-work]).
+The merge-fan workload exposes the **asymptotic cost of true concurrency**: every incoming event from peer $B$ invalidates the cache on peer $A$ (because its parents no longer match $A$'s frontier), forcing a full $O(N)$ materialization on each insert and $O(N^2)$ overall. At $N=2000$ this is 37.7 seconds and $\sim 19$ ms per event --- clearly too slow to treat as a solved problem. For a local-first system where offline editing is an explicit goal, a large merge after a long divergence is exactly the workload that *must* be fast, and the current implementation does not meet that bar.
 
-The figure $N = 2000$ covers document sizes well beyond any realistic single-session workload for an end-user programming environment; for the Denicek applications studied in [@Chap:formative], the total event count per session is $\le 100$.
+Two points soften this conclusion for present use without dissolving it:
+
+- The ceiling is bounded by the number of *branch points*, not by the total event count. A long run of local edits followed by a single sync merge with a small remote branch costs $O(N \cdot B)$ where $B$ is the size of the remote branch, not $O(N^2)$.
+- For the Denicek applications studied in [@Chap:formative], the total event count per session is typically $\le 100$, and merges happen after short offline intervals. Within that envelope the implementation is fast enough to feel interactive.
+
+A finer-grained incremental scheme --- replaying only events in the symmetric difference between the cached frontier and the new event's parents --- is a plausible extension but is left as future work (see [@Sec:future-work]).
+
+**Memory footprint.** Events are held in memory as a `Map<string, Event>`. Each `Event` carries an `EventId`, a `parents` array, an `Edit` subclass instance with its own fields, and a `VectorClock`. On the sync-linear N=2000 workload the serialized on-disk JSON is approximately 0.4 MB (roughly 200 bytes per event, dominated by the vector-clock and edit payloads); in-memory the `Map` overhead adds a constant factor. This linear growth in event count is the main scalability constraint, mitigated by `compact()` (see [@Sec:future-work]).
 
 ## Determinism audit {#sec:determinism-audit}
 

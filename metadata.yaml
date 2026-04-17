@@ -42,7 +42,8 @@ thesis_chapters:
   - 6-evaluation
   - 7-conclusion
 
-appendicies: []
+appendicies:
+  - A-repository
 
 dedication: |
   I would like to thank my supervisor Mgr. Tomáš Petříček, Ph.D. for his guidance and patience throughout this project.
