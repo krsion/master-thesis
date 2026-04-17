@@ -33,6 +33,7 @@ All seven formative examples described in [@Chap:formative] are implemented and 
 | Counter | `counter` | Formulas, recording/replay |
 | Conf. List | `conference-list` | Recorded adds, concurrent pushBack |
 | Conf. Table | `conference-list` | Structural transform, split formulas |
+| Conf. Table (concurrent) | `conference-list` | Concurrent structural + data edits, wildcard expansion |
 | Conf. Budget | `conference-budget` | Formula references, concurrent adds |
 | Todo App | `todo` | Multi-step recording, copy |
 
@@ -44,7 +45,7 @@ The implementation is validated through multiple testing layers:
 
 - **Unit tests** (over 200 cases) covering core operations, OT transformation rules, edge cases, and error handling. Tests verify correct behavior for all edit types, concurrent scenarios (rename + wrap, delete + edit, double pop, triple wrap), and undo/redo.
 - **Property-based tests** using `fast-check`, described in detail in [@Sec:property-tests].
-- **6 formative example tests** that simulate realistic user workflows and verify end-to-end behavior including recording, replay, formula evaluation, and multi-peer convergence.
+- **7 formative example tests** that simulate realistic user workflows and verify end-to-end behavior including recording, replay, formula evaluation, and multi-peer convergence.
 - **11 sync end-to-end tests** covering basic synchronization, late join, concurrent edits, reconnection, pause/resume, initial document hash validation, and offline convergence.
 - **Playwright browser tests** that verify the web application renders correctly and two browser peers can sync edits via the deployed server.
 - **Continuous integration** via GitHub Actions: every push triggers lint, type-check, test, build, and deployment.
@@ -119,3 +120,5 @@ The current implementation has several known limitations:
 **No character-level text editing.** Primitive values (strings, numbers, booleans) are replaced atomically. There is no character-level collaborative text editing --- concurrent edits to the same string field are resolved by last-writer-wins based on topological order. Supporting character-level editing would require integrating a text CRDT (such as Fugue) for primitive string values.
 
 **In-memory event storage.** The sync server stores all events in memory with JSON file persistence. There is no database-backed storage, which limits scalability for production deployments.
+
+**CopyEdit cannot be undone.** The `CopyEdit` operation does not support undo because a faithful inverse would need to restore every overwritten subtree at the (possibly wildcard-expanded) target, which requires snapshotting the full target subtree before each copy. This means that if a user workflow involves a copy step (e.g., the "Add Speaker" button that copies from an input field), pressing undo immediately after will raise an error. Application code must handle this by either disabling undo after copy-containing workflows or implementing a custom rollback strategy. This is the only edit type that lacks undo support.
