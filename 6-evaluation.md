@@ -21,6 +21,13 @@ This chapter evaluates the mydenicek implementation against Denicek's requiremen
 
 Automerge and Loro excel at general-purpose collaborative JSON editing but lack the path-based features Denicek requires. The custom approach sacrifices character-level text editing (a limitation) but gains native support for all of Denicek's programming-by-demonstration features.
 
+It is important to note that [@Tbl:approach-comparison] is evaluated against *Denicek's* requirements, which are tailored to the path-based programming model. For use cases outside Denicek's niche, Automerge and Loro offer significant advantages:
+
+- **Character-level text.** Both libraries support fine-grained collaborative text editing (Automerge's text type, Loro's Fugue-based text). mydenicek uses last-writer-wins for primitive strings --- concurrent edits to the same string field discard one version entirely, making it unsuitable for document editors where two users type in the same paragraph.
+- **Scale.** Automerge uses compact columnar binary encoding and Loro uses a Rope-based representation, both optimized for documents with millions of operations. mydenicek stores events as JSON in memory with no compression; for long-lived documents the memory and bandwidth overhead would be substantially larger.
+- **Ecosystem.** Automerge has `automerge-repo`, React/Svelte bindings, and years of production use. mydenicek is a thesis prototype with one React binding and a minimal sync server.
+- **Peer-to-peer transport.** Automerge supports sync over any transport (WebRTC, Bluetooth). mydenicek's sync protocol assumes a central relay server; peer-to-peer transport is architecturally possible but not implemented.
+
 ## Formative example results {#sec:results}
 
 All seven formative examples described in [@Chap:formative] are implemented and pass their respective tests, as shown in [@Tbl:formative-results].
@@ -54,7 +61,7 @@ The implementation is validated through multiple testing layers:
 
 The file `tests/core-properties.test.ts` uses the `fast-check` library to randomize edit sequences, sync operations, and delivery orders, then asserts invariants on the resulting document states. Unlike unit tests, property tests explore the space of concurrent interactions that a human author would not write down exhaustively.
 
-The tests run against four document schemas (flat list, flat record, nested list-of-records, deeply nested lists, document with references) and exercise all twelve edit types. Peers are modeled as three `Denicek` instances; operations are either local edits or pairwise sync actions; each test generates sequences of 5 to 40 operations per run, with `fast-check` shrinking to the minimal failing sequence on any violation.
+The tests run against five document schemas (flat list, flat record, nested list-of-records, deeply nested lists, document with references) and exercise all twelve edit types. The default configuration models three `Denicek` peers; a separate test suite uses five peers to verify that convergence holds beyond pairwise interactions --- with five peers, the topological sort encounters richer tie-breaking patterns and the transformation pipeline processes longer chains of concurrent edits. Operations are either local edits or pairwise sync actions; each test generates sequences of 5 to 50 operations per run, with `fast-check` shrinking to the minimal failing sequence on any violation.
 
 The invariants checked are:
 
@@ -75,18 +82,21 @@ The property suite has been effective as a regression guard during development -
 
 | Workload | $N$ | Total (ms) | Per event (μs) | Materialize (ms) |
 |---|---:|---:|---:|---:|
-| local-append  | 500  | 10.6  | 21   | 0.15  |
-| local-append  | 2000 | 13.7  | 6.8  | 0.27  |
-| sync-linear   | 500  | 10.1  | 20   | 0.11  |
-| sync-linear   | 2000 | 18.9  | 9.5  | 0.35  |
-| merge-fan     | 500  | 673   | 1346 | 33.7  |
-| merge-fan     | 2000 | 37746 | 18873| 450   |
+| local-append  | 100  | 3.8   | 38   | 0.26  |
+| local-append  | 500  | 4.4   | 9    | 0.03  |
+| local-append  | 2000 | 11.3  | 5.7  | 0.11  |
+| sync-linear   | 100  | 1.7   | 17   | 0.05  |
+| sync-linear   | 500  | 4.2   | 8    | 0.06  |
+| sync-linear   | 2000 | 11.2  | 5.6  | 0.13  |
+| merge-fan     | 100  | 14    | 143  | 2.6   |
+| merge-fan     | 500  | 467   | 935  | 25    |
+| merge-fan     | 2000 | 22480 | 11240| 292   |
 
 *local-append* is a single peer issuing $N$ sequential `pushBack` edits. *sync-linear* builds $N$ events on peer $A$ and delivers them to peer $B$ in causal order. *merge-fan* has peer $A$ and peer $B$ edit disjoint subtrees concurrently and then sync.
 
-The linear workloads (local and sync) scale linearly in $N$ and stay below a millisecond per event for $N \le 2000$. This is due to an **incremental materialization cache** (`EventGraph.cachedDoc`) which is extended in place whenever a new event's parents exactly equal the current frontier --- a *linear extension* of the graph. In that common case, inserting an event costs an `edit.validate` against the cached document plus an in-place `edit.apply`, avoiding a full replay.
+For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms. At $N = 100$, a full fan-merge of two 50-event concurrent branches costs 14 ms total --- well within the interactive threshold. The linear workloads stay below a millisecond per event up to $N = 2000$. This is due to an **incremental materialization cache** (`EventGraph.cachedDoc`) which is extended in place whenever a new event's parents exactly equal the current frontier --- a *linear extension* of the graph. In that common case, inserting an event costs an `edit.validate` against the cached document plus an in-place `edit.apply`, avoiding a full replay.
 
-The merge-fan workload exposes the **asymptotic cost of true concurrency**: every incoming event from peer $B$ invalidates the cache on peer $A$ (because its parents no longer match $A$'s frontier), forcing a full $O(N)$ materialization on each insert and $O(N^2)$ overall. At $N=2000$ this is 37.7 seconds and $\sim 19$ ms per event --- clearly too slow to treat as a solved problem. For a local-first system where offline editing is an explicit goal, a large merge after a long divergence is exactly the workload that *must* be fast, and the current implementation does not meet that bar.
+The merge-fan workload exposes the **asymptotic cost of true concurrency**: every incoming event from peer $B$ invalidates the cache on peer $A$ (because its parents no longer match $A$'s frontier), forcing a full $O(N)$ materialization on each insert and $O(N^2)$ overall. At $N=2000$ this is 22.5 seconds --- clearly too slow to treat as a solved problem. For a local-first system where offline editing is an explicit goal, a large merge after a long divergence is exactly the workload that *must* be fast, and the current implementation does not meet that bar.
 
 Two points soften this conclusion for present use without dissolving it:
 
@@ -114,7 +124,7 @@ Two sources of non-determinism are deliberately allowed because they do not affe
 
 The current implementation has several known limitations:
 
-**Convergence is proven on paper but not mechanically verified.** The proof in [@Sec:crdt-framing] establishes strong eventual consistency by identifying the replica state as a G-Set of events and the document as a pure deterministic view function, but the argument relies on the implementation-level determinism of `topologicalOrder`, `resolveAgainst`, and `apply`. This is audited informally in [@Sec:determinism-audit]; mechanical verification in a proof assistant or model checker (e.g., a TLA+ spec bounded to a few peers and events) is left as future work (see [@Sec:future-work]). Note that the earlier concern about TP1/TP2 does not apply here: TP1/TP2 are correctness conditions for peer-local operational transformation, whereas mydenicek derives the document from the full event set by a single canonical replay.
+**Convergence is verified by TLA+ model checking but only for a bounded model.** The TLA+ specification (`spec/MydenicekCRDT.tla`) models five edit types (Add, Rename, PushBack, Delete, WrapRecord) on a flat record with two peers, two events per peer, and two fields. TLC exhaustively verifies TypeOK, CausalClosure, and Convergence (strong eventual consistency) on all reachable states of this bounded model. However, the specification does not cover the full 12 edit types, nested trees, wildcards, or list-based operations --- these are validated by the property-based tests instead. Extending the TLA+ model to nested trees and additional edit types is feasible but would require further reducing other dimensions to keep the state space tractable; adding a single edit type to the current configuration roughly triples the state space. The paper proof in [@Sec:crdt-framing] establishes the logical structure of the convergence argument for the general (unbounded) case, and the determinism audit in [@Sec:determinism-audit] verifies the implementation-level assumptions informally.
 
 **Materialization is incremental only for linear extensions.** Every call to `materialize()` after a *merge* (two concurrent events joining) replays all events from the initial document. Linear extensions (the common case during local editing and live sync) now extend a cached document in place, reducing ingestion of $N$ linearly-delivered events from $O(N^3)$ to $O(N)$ (see [@Sec:performance]). True merges still cost $O(N)$ per event and therefore $O(N^2)$ over a workload dominated by concurrent branching.
 

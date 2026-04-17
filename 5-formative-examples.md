@@ -1,6 +1,6 @@
 # Formative Examples {#chap:formative}
 
-This chapter demonstrates the mydenicek system through seven formative examples. Each example illustrates a different aspect of the system's capabilities and is backed by a passing test in the repository. The examples progress from simple operations to complex concurrent structural transformations.
+This chapter demonstrates the mydenicek system through seven formative examples. Each example illustrates a different aspect of the system's capabilities and is backed by a passing test in the repository. The examples progress from simple operations to complex concurrent structural transformations. Five examples have dedicated test files; the conference table transformation ([@Sec:conf-table]) and its concurrent editing variant ([@Sec:conf-concurrent]) share a single test file (`conference-list-formative.test.ts`) because the concurrent scenario builds directly on the transformation scenario's document state.
 
 ## Hello World: custom primitive edits and replay {#sec:hello-world}
 
