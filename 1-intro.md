@@ -14,11 +14,11 @@ This thesis investigates approaches to more robust collaborative editing in Deni
 The main contributions of this thesis are:
 
 - A systematic evaluation of CRDT libraries (Automerge, Loro) for tree-structured collaborative editing, identifying concrete limitations: the concurrent wrap problem (Automerge) and the retargeting problem (Loro).
-- A pure op-based CRDT for tagged-tree documents that uses path-based selectors as the native addressing mode, supporting wildcards, relative references, and strict indices, together with a short paper proof of strong eventual consistency.
+- A pure op-based CRDT for tagged-tree documents that uses path-based selectors as the native addressing mode, supporting wildcards, relative references, and strict indices, together with a short proof sketch of strong eventual consistency.
 - A two-level polymorphic design for concurrent selector rewriting that avoids $O(n^2)$ transformation rules by separating selector rewriting (default, one method per structural edit type) from payload rewriting (overrides for structural edits that must also modify a concurrent insert's payload).
 - Wildcard-affects-concurrent-insertions semantics --- structural edits applied via wildcards automatically affect items inserted concurrently by other peers --- presented as a deliberate design choice enabled by the view-function approach.
 - A replay mechanism that retargets recorded edits through later structural changes, enabling programming by demonstration in a collaborative setting.
 
 ## Thesis structure {-}
 
-[@Chap:background] provides the theoretical background on CRDTs, operational transformation, and local-first software. [@Chap:journey] describes the journey from Automerge through Loro to the custom OT-based event DAG, explaining the motivation for each transition. [@Chap:implementation] presents the architecture and implementation of the mydenicek core engine. [@Chap:formative] demonstrates the system through seven formative examples. [@Chap:evaluation] evaluates the results and discusses limitations. [@Chap:conclusion] concludes with a summary and future work.
+[@Chap:background] provides the theoretical background on CRDTs, operational transformation, and local-first software. [@Chap:journey] explores the design space, describing the iterative path from Automerge through Loro to the custom OT-based event DAG and the motivation for each transition. [@Chap:implementation] presents the architecture and implementation of the mydenicek core engine. [@Chap:formative] demonstrates the system through seven formative examples. [@Chap:evaluation] evaluates the results and discusses limitations. [@Chap:conclusion] concludes with a summary and future work.
