@@ -28,6 +28,8 @@ Denicek provides two categories of edit operations. *Data edits* modify the cont
 - `set(target, value)` --- replace a primitive value
 - `pushBack(target, item)` / `pushFront` --- append or prepend to a list
 - `popBack(target)` / `popFront` --- remove from the end or start of a list
+- `insertAt(target, index, item)` --- insert an item at a given list index
+- `removeAt(target, index)` --- remove the item at a given list index
 - `copy(target, source)` --- copy a subtree from one location to another
 
 *Structural edits* change the shape of the document tree:
@@ -36,6 +38,7 @@ Denicek provides two categories of edit operations. *Data edits* modify the cont
 - `updateTag(target, newTag)` --- change a node's structural tag (e.g., `ul` to `table`)
 - `wrapRecord(target, field, tag)` --- wrap a node in a new parent record, moving the original value into a named field
 - `wrapList(target, tag)` --- wrap a node in a new parent list
+- `reorder(target, fromIndex, toIndex)` --- move a list item from one index to another
 
 The distinction matters for collaborative editing: structural edits change the *paths* by which other edits address nodes. When a peer renames `speakers` to `talks`, all concurrent edits targeting `/speakers/...` must be retargeted to `/talks/...`. When a peer wraps a node, concurrent edits must gain an additional path segment. This is the core challenge that any collaborative editing approach for Denicek must solve.
 
