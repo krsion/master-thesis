@@ -218,8 +218,6 @@ This holds regardless of replay order, but the mechanism differs in each case:
 
 This semantics is uncommon in CRDTs. In most CRDT-based systems, an operation only affects the items that existed at the time the operation was created. Items inserted concurrently by other peers are not affected. Weidner [@weidner2023foreach] describes this as the *for-each* problem and proposes a dedicated CRDT operation to address it. In mydenicek, the replay-based view function naturally achieves the "for-each-including-concurrent-additions" semantics because the wildcard is expanded at replay time, not at creation time --- no special for-each CRDT is needed.
 
-A consequence of this design is that *destructive* edits can interact with concurrent insertions. Deleting the *field* that contains a list (`delete("", "speakers")`) causes any concurrent insert targeting that list to become a no-op conflict --- the list no longer exists, so the insert has nowhere to land and Bob's new item is lost. By contrast, removing a specific *item* from the list (`remove("speakers", 0)` or `remove("speakers", 0, true)`) does not affect a concurrent insert that appends at the end --- the remove targets one item, the insert adds another, and both take effect. The distinction is between removing the container (destructive to all concurrent operations on it) and removing an element (coexists with concurrent insertions).
-
 ## Extensibility, formulas, and undo {#sec:extensibility-formulas-undo}
 
 ### Extensibility {#sec:extensibility}
