@@ -41,12 +41,12 @@ const addRightId = dk.add(
   "counter/value", "right", 1);
 
 // Store event IDs as replay steps
-dk.pushBack("counter/btn/steps",
-  { $tag: "replay-step", eventId: wrapId });
-dk.pushBack("counter/btn/steps",
-  { $tag: "replay-step", eventId: renameId });
-dk.pushBack("counter/btn/steps",
-  { $tag: "replay-step", eventId: addRightId });
+dk.insert("counter/btn/steps", -1,
+  { $tag: "replay-step", eventId: wrapId }, true);
+dk.insert("counter/btn/steps", -1,
+  { $tag: "replay-step", eventId: renameId }, true);
+dk.insert("counter/btn/steps", -1,
+  { $tag: "replay-step", eventId: addRightId }, true);
 ```
 
 These three event IDs are stored as replay steps in a button node. Each time the button is "clicked" (the steps are replayed), a new `x-formula-plus` layer wraps the previous result:
@@ -70,16 +70,16 @@ The document contains a list of speakers (each with a `"Name, email"` string), a
 
 ```typescript
 // Record the "add speaker" recipe
-const pushId = dk.pushFront("conferenceList/items",
-  { $tag: "li", text: "" });
+const pushId = dk.insert("conferenceList/items", 0,
+  { $tag: "li", text: "" }, true);
 const copyId = dk.copy("conferenceList/items/!0/text",
   "conferenceList/composer/input/value");
 
 // Store as replay steps in the button
-dk.pushBack("conferenceList/composer/addAction/steps",
-  { $tag: "replay-step", eventId: pushId });
-dk.pushBack("conferenceList/composer/addAction/steps",
-  { $tag: "replay-step", eventId: copyId });
+dk.insert("conferenceList/composer/addAction/steps", -1,
+  { $tag: "replay-step", eventId: pushId }, true);
+dk.insert("conferenceList/composer/addAction/steps", -1,
+  { $tag: "replay-step", eventId: copyId }, true);
 ```
 
 The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, OT transforms this index if concurrent insertions have shifted it.
@@ -108,13 +108,13 @@ alice.wrapRecord(
   "speakers/*/0/contact", "source", "split-first");
 
 // 4. Add email column with split-rest
-alice.pushBack("speakers/*", {
+alice.insert("speakers/*", -1, {
   $tag: "td",
   email: {
     $tag: "split-rest",
     source: { $ref: "../../0/contact/source" }
   }
-});
+}, true);
 ```
 
 After this transformation, each table row has two cells:
@@ -129,7 +129,7 @@ The wildcard `*` in all four steps ensures that the transformation is applied to
 This is the key demonstration of the system's convergence properties. Two peers start from the same conference list, disconnect, and make concurrent edits:
 
 - **Alice** (offline) performs the structural transformation described above --- refactoring the list into a table with split-first/split-rest formula columns.
-- **Bob** (offline) adds two new speakers to the list via `pushBack`.
+- **Bob** (offline) adds two new speakers to the list via `insert`.
 
 When they reconnect and sync, the event DAG shows a *concurrent fork*: Alice's structural edits (5 events) and Bob's insertions (2 events) branch from the same parent event and merge at the frontier.
 
@@ -137,7 +137,7 @@ This example demonstrates the *wildcard-affects-concurrent-insertions* property 
 
 The OT transformation rules handle this correctly:
 
-- Bob's `pushBack` edits originally target a `<ul>` list and insert `<li>` items. After merging with Alice's events, the OT transforms them: `updateTag` changes the inserted items' tags, `wrapList` wraps them in `<tr>` lists, and `pushBack` adds the split formula cells.
+- Bob's `insert` edits originally target a `<ul>` list and insert `<li>` items. After merging with Alice's events, the OT transforms them: `updateTag` changes the inserted items' tags, `wrapList` wraps them in `<tr>` lists, and `insert` adds the split formula cells.
 - The result is a table containing all four speakers --- the original two from the initial document plus Bob's two concurrent additions --- each with correctly split name and email columns.
 
 The event graph visualization in the web application shows this fork-and-merge pattern clearly: two branches of events with different peer colors converging at a merge point. [@Fig:concurrent-initial;@Fig:concurrent-alice;@Fig:concurrent-bob;@Fig:concurrent-merged] show the four stages of this process.
@@ -188,15 +188,15 @@ const peer = new Denicek("alice", {
 The "Add" recipe is two edits: prepend an empty list item, then copy the current input value into that item's first child. The event IDs of those edits are recorded as replay steps on the button:
 
 ```typescript
-const insertId = peer.pushFront("items",
-  { $tag: "li", $items: [""] });
+const insertId = peer.insert("items", 0,
+  { $tag: "li", $items: [""] }, true);
 const copyId = peer.copy("items/!0/0",
   "composer/input/value");
 
-peer.pushBack("composer/addAction/steps",
-  { $tag: "replay-step", eventId: insertId });
-peer.pushBack("composer/addAction/steps",
-  { $tag: "replay-step", eventId: copyId });
+peer.insert("composer/addAction/steps", -1,
+  { $tag: "replay-step", eventId: insertId }, true);
+peer.insert("composer/addAction/steps", -1,
+  { $tag: "replay-step", eventId: copyId }, true);
 ```
 
 The strict index `!0` in the copy target is essential: during replay it refers to the list position at the *time of replay*, not at recording time, and is not shifted by concurrent insertions ([@Sec:replay]).

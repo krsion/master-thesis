@@ -26,10 +26,8 @@ Denicek provides two categories of edit operations. *Data edits* modify the cont
 - `add(target, field, value)` --- add a named field to a record
 - `delete(target, field)` --- remove a field from a record
 - `set(target, value)` --- replace a primitive value
-- `pushBack(target, item)` / `pushFront` --- append or prepend to a list
-- `popBack(target)` / `popFront` --- remove from the end or start of a list
-- `insertAt(target, index, item)` --- insert an item at a given list index
-- `removeAt(target, index)` --- remove the item at a given list index
+- `insert(target, index, item)` --- insert an item into a list at a given index
+- `remove(target, index)` --- remove the item at a given index from a list
 - `copy(target, source)` --- copy a subtree from one location to another
 
 *Structural edits* change the shape of the document tree:
