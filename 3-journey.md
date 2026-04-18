@@ -1,4 +1,4 @@
-# Design Space Exploration {#chap:journey}
+# From Automerge to a Custom CRDT {#chap:journey}
 
 This chapter describes the iterative process of finding the right collaborative editing approach for Denicek. We considered Grove, tried Automerge, moved to Loro when we discovered fundamental limitations with move operations, and ultimately built a custom OT-based event DAG when Loro's opaque ID system proved incompatible with Denicek's path-based programming model. Each transition was motivated by concrete problems discovered during implementation.
 
