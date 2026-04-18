@@ -95,7 +95,7 @@ Happens-before is defined abstractly, but an efficient implementation requires a
 
 Vector clocks characterize the happens-before relation:
 
-> $a \to b$ if and only if $V_a[p] \leq V_b[p]$ for all peers $p$, and $V_a \neq V_b$.
+> $a \to b$ if and only if $V_a[p] \leq V_b[p]$ for all peers $p$, and $V_a[q] < V_b[q]$ for at least one peer $q$.
 >
 > $a \parallel b$ if and only if neither $a \to b$ nor $b \to a$.
 
