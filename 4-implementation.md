@@ -13,7 +13,7 @@ The packages are:
 - **`packages/core`** (`@mydenicek/core`\footnote{\url{https://jsr.io/@mydenicek/core}}) --- the collaborative editing engine. Contains the document model, event DAG, edit types, selector rewriting rules, undo/redo, formula engine, and recording/replay. Minimal runtime dependency: only `@std/data-structures/binary-heap` from the Deno standard library, used for the Kahn priority queue. Pure TypeScript, no WASM. The core has no concept of a server or network --- it only knows about events and peers, making it compatible with any transport layer.
 - **`packages/react`** (`@mydenicek/react`\footnote{\url{https://jsr.io/@mydenicek/react}}) --- React bindings. The `useDenicek` hook provides reactive document state, mutation helpers, and sync lifecycle management.
 - **`packages/sync`** (`@mydenicek/sync`\footnote{\url{https://jsr.io/@mydenicek/sync}}) --- a client-server sync implementation built on top of the core. Provides a WebSocket-based client and relay server for exchanging events via a central server. The server operates in *relay mode*: it stores and forwards events without materializing documents or understanding edit semantics. This package is one possible transport --- the core could equally be used with peer-to-peer transport such as WebRTC.
-- **`apps/mywebnicek`** --- web application. React 19 + Fluent UI interface with a terminal-style command bar, rendered document view, raw JSON view, and event DAG visualization.
+- **`apps/mywebnicek`** --- web application. React 19 interface with a terminal-style command bar, rendered document view, raw JSON view, and event DAG visualization.
 - **`apps/sync-server`** --- deployed sync server. A Deno HTTP server that hosts WebSocket rooms using `@mydenicek/sync`, persists events to disk, and runs on Azure Container Apps.
 
 The layered design ensures that the core engine has no knowledge of the UI or transport layer, and the sync server has no knowledge of edit types. Custom primitive edits (such as `splitFirst` and `splitRest`) are registered only in the application layer and do not need to be known by the server.
@@ -340,7 +340,7 @@ The server uses Deno's single-threaded event loop. Rooms are independent (no sha
 
 ## Web application {#sec:webapp}
 
-The web application (`apps/mywebnicek`) serves as both a demonstration of the core engine and a tool for interactively exploring collaborative editing scenarios. It is built with React 19 and Microsoft's Fluent UI component library, and connects to the sync server via WebSocket.
+The web application (`apps/mywebnicek`) serves as both a demonstration of the core engine and a tool for interactively exploring collaborative editing scenarios. It is built with React 19 and connects to the sync server via WebSocket.
 
 ### Integration with the core engine
 
