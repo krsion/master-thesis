@@ -284,7 +284,7 @@ The sync protocol uses WebSocket connections with a simple message exchange, ill
 The protocol consists of three phases:
 
 1. **Connect.** The client sends a `hello` message with the room ID. If the room exists, the server responds with the initial document.
-2. **Sync.** The client sends its pending events and current frontiers. The server responds with events the client has not seen (computed via `eventsSince(clientFrontiers)`).
+2. **Sync.** The client sends its locally created events that the server has not yet seen (computed via `eventsSince(knownServerFrontiers)`) along with its current frontiers. The server responds with events the client has not seen (computed via `eventsSince(clientFrontiers)`).
 3. **Ongoing.** As either peer produces new events, they are exchanged via the same sync message format.
 
 The server maintains a `SyncRoom` for each room, containing a `Denicek` instance in *relay mode*. In relay mode, the server stores and forwards events without materializing the document --- the `validateEventAgainstCausalState` step is skipped. This means the server does not need to know about custom primitive edits or formula evaluators; it only needs to understand the event structure.
