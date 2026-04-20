@@ -33,14 +33,29 @@ The counter example demonstrates the *formula engine* and *recording/replay* (pr
 The document starts with a simple `counter/value = 0`. We record three edits that implement "increment":
 
 ```typescript
+// Step 1: Wrap the value in a formula node.
+// Before: { counter: { value: 0 } }
 const wrapId = dk.wrapRecord(
   "counter/value", "value", "x-formula-plus");
+// After:  { counter: { value: { $tag: "x-formula-plus",
+//                                value: 0 } } }
+
+// Step 2: Rename "value" to "left" inside the formula.
 const renameId = dk.rename(
   "counter/value", "value", "left");
+// After:  { counter: { value: { $tag: "x-formula-plus",
+//                                left: 0 } } }
+
+// Step 3: Add the "right" operand.
 const addRightId = dk.add(
   "counter/value", "right", 1);
+// After:  { counter: { value: { $tag: "x-formula-plus",
+//                                left: 0, right: 1 } } }
+```
 
-// Store event IDs as replay steps
+The three event IDs are stored as replay steps in a button node. The `insert` call with index `-1` appends to the end of the list, and the `true` flag marks the index as *strict* --- it always means "append at the end" regardless of concurrent edits, matching the `!` convention used in selectors (see [@Sec:doc-model]):
+
+```typescript
 dk.insert("counter/btn/steps", -1,
   { $tag: "replay-step", eventId: wrapId }, true);
 dk.insert("counter/btn/steps", -1,
@@ -49,7 +64,7 @@ dk.insert("counter/btn/steps", -1,
   { $tag: "replay-step", eventId: addRightId }, true);
 ```
 
-These three event IDs are stored as replay steps in a button node. Each time the button is "clicked" (the steps are replayed), a new `x-formula-plus` layer wraps the previous result:
+Each time the button is "clicked" (the steps are replayed), a new `x-formula-plus` layer wraps the previous result:
 
 ```
 0 -> { $tag: "x-formula-plus",
