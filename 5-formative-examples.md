@@ -35,20 +35,20 @@ The document starts with a simple `counter/value = 0`. We record three edits tha
 ```typescript
 // Step 1: Wrap the value in a formula node.
 // Before: { counter: { value: 0 } }
-const wrapId = dk.wrapRecord(
-  "counter/value", "value", "x-formula-plus");
+const wrapId = doc.wrapRecord(
+  /* target */ "counter/value", /* field */ "value", /* tag */ "x-formula-plus");
 // After:  { counter: { value: { $tag: "x-formula-plus",
 //                                value: 0 } } }
 
 // Step 2: Rename "value" to "left" inside the formula.
-const renameId = dk.rename(
-  "counter/value", "value", "left");
+const renameId = doc.rename(
+  /* target */ "counter/value", /* from */ "value", /* to */ "left");
 // After:  { counter: { value: { $tag: "x-formula-plus",
 //                                left: 0 } } }
 
 // Step 3: Add the "right" operand.
-const addRightId = dk.add(
-  "counter/value", "right", 1);
+const addRightId = doc.add(
+  /* target */ "counter/value", /* field */ "right", /* value */ 1);
 // After:  { counter: { value: { $tag: "x-formula-plus",
 //                                left: 0, right: 1 } } }
 ```
@@ -56,12 +56,12 @@ const addRightId = dk.add(
 The three event IDs are stored as replay steps in a button node. The `insert` call with index `-1` appends to the end of the list. Negative indices are end-relative --- `-1` means the last position, `-2` means before the last item, and so on. They are resolved at replay time relative to the current list length, so concurrent insertions do not shift them:
 
 ```typescript
-dk.insert("counter/btn/steps", -1,
-  { $tag: "replay-step", eventId: wrapId });
-dk.insert("counter/btn/steps", -1,
-  { $tag: "replay-step", eventId: renameId });
-dk.insert("counter/btn/steps", -1,
-  { $tag: "replay-step", eventId: addRightId });
+doc.insert(/* target */ "counter/btn/steps", /* index */ -1,
+  /* value */ { $tag: "replay-step", eventId: wrapId });
+doc.insert(/* target */ "counter/btn/steps", /* index */ -1,
+  /* value */ { $tag: "replay-step", eventId: renameId });
+doc.insert(/* target */ "counter/btn/steps", /* index */ -1,
+  /* value */ { $tag: "replay-step", eventId: addRightId });
 ```
 
 Each time the button is "clicked" (the steps are replayed), a new `x-formula-plus` layer wraps the previous result:
@@ -85,16 +85,16 @@ The document contains a list of speakers (each with a `"Name, email"` string), a
 
 ```typescript
 // Record the "add speaker" recipe
-const pushId = dk.insert("conferenceList/items", 0,
-  { $tag: "li", text: "" }, true);
-const copyId = dk.copy("conferenceList/items/!0/text",
-  "conferenceList/composer/input/value");
+const pushId = doc.insert(/* target */ "conferenceList/items", /* index */ 0,
+  /* value */ { $tag: "li", text: "" }, /* strict */ true);
+const copyId = doc.copy(/* target */ "conferenceList/items/!0/text",
+  /* source */ "conferenceList/composer/input/value");
 
 // Store as replay steps in the button
-dk.insert("conferenceList/composer/addAction/steps", -1,
-  { $tag: "replay-step", eventId: pushId });
-dk.insert("conferenceList/composer/addAction/steps", -1,
-  { $tag: "replay-step", eventId: copyId });
+doc.insert(/* target */ "conferenceList/composer/addAction/steps", /* index */ -1,
+  /* value */ { $tag: "replay-step", eventId: pushId });
+doc.insert(/* target */ "conferenceList/composer/addAction/steps", /* index */ -1,
+  /* value */ { $tag: "replay-step", eventId: copyId });
 ```
 
 The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, OT transforms this index if concurrent insertions have shifted it.
@@ -120,10 +120,10 @@ alice.wrapList("speakers/*", "tr");
 // 3. Wrap contact in split-first formula
 // (the original value becomes the "source" field of the wrapper)
 alice.wrapRecord(
-  "speakers/*/0/contact", "source", "split-first");
+  /* target */ "speakers/*/0/contact", /* field */ "source", /* tag */ "split-first");
 
 // 4. Add email column with split-rest
-alice.insert("speakers/*", -1, {
+alice.insert(/* target */ "speakers/*", /* index */ -1, /* value */ {
   $tag: "td",
   email: {
     $tag: "split-rest",
@@ -180,7 +180,7 @@ The todo app demonstrates the **composer pattern**: a UI scaffold in which an in
 The document holds three logical pieces --- a `composer` record containing an `input` value and an `addAction` button with a list of `steps`, and an `items` list representing the todo entries:
 
 ```typescript
-const peer = new Denicek("alice", {
+const doc = new Denicek("alice", {
   $tag: "app",
   composer: {
     $tag: "composer",
@@ -203,15 +203,15 @@ const peer = new Denicek("alice", {
 The "Add" recipe is two edits: prepend an empty list item, then copy the current input value into that item's first child. The event IDs of those edits are recorded as replay steps on the button:
 
 ```typescript
-const insertId = peer.insert("items", 0,
-  { $tag: "li", $items: [""] }, true);
-const copyId = peer.copy("items/!0/0",
-  "composer/input/value");
+const insertId = doc.insert(/* target */ "items", /* index */ 0,
+  /* value */ { $tag: "li", $items: [""] }, /* strict */ true);
+const copyId = doc.copy(/* target */ "items/!0/0",
+  /* source */ "composer/input/value");
 
-peer.insert("composer/addAction/steps", -1,
-  { $tag: "replay-step", eventId: insertId });
-peer.insert("composer/addAction/steps", -1,
-  { $tag: "replay-step", eventId: copyId });
+doc.insert(/* target */ "composer/addAction/steps", /* index */ -1,
+  /* value */ { $tag: "replay-step", eventId: insertId });
+doc.insert(/* target */ "composer/addAction/steps", /* index */ -1,
+  /* value */ { $tag: "replay-step", eventId: copyId });
 ```
 
 The strict index `!0` in the copy target is essential: during replay it refers to the list position at the *time of replay*, not at recording time, and is not shifted by concurrent insertions ([@Sec:replay]).
@@ -219,8 +219,8 @@ The strict index `!0` in the copy target is essential: during replay it refers t
 To "click" the button, the user changes the input value and invokes `repeatEditsFrom`, which replays each recorded step as a new event at the current frontier:
 
 ```typescript
-peer.set("composer/input/value", "Book venue");
-peer.repeatEditsFrom("composer/addAction/steps");
+doc.set("composer/input/value", "Book venue");
+doc.repeatEditsFrom("composer/addAction/steps");
 ```
 
 The result is a new `<li>Book venue</li>` at the head of `items`, followed by the original entries. Clicking the button again with a different input value prepends another item, and so on. Each click is a pair of committed events in the DAG, so the sequence is fully auditable and is synchronized to other peers exactly like any other edit.
