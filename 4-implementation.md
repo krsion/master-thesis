@@ -352,7 +352,9 @@ The application uses the `useDenicek` hook from `@mydenicek/react`, which wraps 
 
 ### User interface
 
-The interface provides three synchronized panels, each showing a different aspect of the same document state:
+[@Fig:webapp-ui] shows the web application with the formative examples document loaded. The interface provides three synchronized panels, each showing a different aspect of the same document state:
+
+![The mydenicek web application. Left: rendered document view with a counter, conference list, and conference table. Center: raw JSON tree of the materialized document. Right: event graph DAG with 19 events from a single peer. Bottom: terminal-style command bar.](img/webapp-overview.png){#fig:webapp-ui width=95%}
 
 - **Rendered view** --- the document tree rendered as HTML elements based on node tags. Formula nodes display their evaluated results. Buttons trigger replay of recorded edit sequences.
 - **Raw JSON view** --- syntax-highlighted JSON representation of the materialized document tree, useful for understanding the exact structure.

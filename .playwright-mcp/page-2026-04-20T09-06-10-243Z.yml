@@ -1,0 +1,5 @@
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - button "+ Formative Examples" [ref=e7] [cursor=pointer]
+    - button "+ Empty" [ref=e8] [cursor=pointer]
+  - generic [ref=e10]: Create a document using a template above
