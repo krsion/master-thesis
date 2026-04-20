@@ -30,7 +30,7 @@ It is important to note that [@Tbl:approach-comparison] is evaluated against *De
 
 ## Formative example results {#sec:results}
 
-All seven formative examples described in [@Chap:formative] are implemented and pass their respective tests, as shown in [@Tbl:formative-results].
+All five formative examples described in [@Chap:formative] are implemented and pass their respective tests, as shown in [@Tbl:formative-results].
 
 : Formative example test results. {#tbl:formative-results}
 
@@ -41,8 +41,6 @@ All seven formative examples described in [@Chap:formative] are implemented and 
 | Conf. List | `conference-list` | Recorded adds, concurrent insert |
 | Conf. Table | `conference-list` | Structural transform, split formulas |
 | Conf. Table (concurrent) | `conference-list` | Concurrent structural + data edits, wildcard expansion |
-| Conf. Budget | `conference-budget` | Formula references, concurrent adds |
-| Todo App | `todo` | Multi-step recording, copy |
 
 The conference table example with concurrent editing is the most significant result: it exercises the full OT pipeline --- wildcard expansion, structural transformations (tag updates, wraps), formula creation, and concurrent list insertions all interacting in a single scenario. It demonstrates that the system handles the composition of these features correctly, producing a consistent merged table from independently edited list and table structures.
 
@@ -52,7 +50,7 @@ The implementation is validated through multiple testing layers:
 
 - **Unit tests** (over 200 cases) covering core operations, OT transformation rules, edge cases, and error handling. Tests verify correct behavior for all edit types, concurrent scenarios (rename + wrap, delete + edit, double pop, triple wrap), and undo/redo.
 - **Property-based tests** using `fast-check`, described in detail in [@Sec:property-tests].
-- **7 formative example tests** that simulate realistic user workflows and verify end-to-end behavior including recording, replay, formula evaluation, and multi-peer convergence.
+- **5 formative example tests** that simulate realistic user workflows and verify end-to-end behavior including recording, replay, formula evaluation, and multi-peer convergence.
 - **11 sync end-to-end tests** covering basic synchronization, late join, concurrent edits, reconnection, pause/resume, initial document hash validation, and offline convergence.
 - **Playwright browser tests** that verify the web application renders correctly and two browser peers can sync edits via the deployed server.
 - **Continuous integration** via GitHub Actions: every push triggers lint, type-check, test, build, and deployment.

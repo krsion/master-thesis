@@ -6,7 +6,7 @@ Automerge's flat map representation lacked atomic move operations, making the wr
 
 The final implementation, inspired by the event-sourced design of Eg-walker [@gentle2025egwalker] and framed in the vocabulary of pure operation-based CRDTs [@baquero2017pureop], stores every edit as an immutable event in a grow-only DAG and materializes documents by replaying events in a deterministic topological order with selector-rewriting transformations for concurrent structural edits. Strong eventual consistency follows from the fact that the replica state (the event set) is a G-Set and the view function is pure; the proof is given in [@Sec:crdt-framing]. This approach preserves Denicek's native path-based addressing, supports wildcards and relative references, and enables programming by demonstration with automatic retargeting through structural changes.
 
-The implementation was validated on seven formative examples demonstrating custom primitive edits, formula recomputation, the composer pattern, structural transformation (list to table), concurrent editing with fork-and-merge, formula references with wildcard expansion, and multi-step macro recording with copy. All examples pass their tests and are available as interactive demos in the deployed web application.
+The implementation was validated on five formative examples demonstrating custom primitive edits, formula recomputation, the composer pattern, structural transformation (list to table), and concurrent editing with fork-and-merge. All examples pass their tests and are available as interactive demos in the deployed web application.
 
 ## Future work {#sec:future-work}
 
