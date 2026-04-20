@@ -82,21 +82,21 @@ The property suite has been effective as a regression guard during development -
 
 | Workload | $N$ | Total (ms) | Per event (μs) | Materialize (ms) |
 |---|---:|---:|---:|---:|
-| local-append  | 100  | 3.8   | 38   | 0.26  |
-| local-append  | 500  | 4.4   | 9    | 0.03  |
-| local-append  | 2000 | 11.3  | 5.7  | 0.11  |
-| sync-linear   | 100  | 1.7   | 17   | 0.05  |
-| sync-linear   | 500  | 4.2   | 8    | 0.06  |
-| sync-linear   | 2000 | 11.2  | 5.6  | 0.13  |
-| merge-fan     | 100  | 14    | 143  | 2.6   |
-| merge-fan     | 500  | 467   | 935  | 25    |
-| merge-fan     | 2000 | 22480 | 11240| 292   |
+| local-append  | 100  | 4.1   | 41   | 0.11  |
+| local-append  | 500  | 4.5   | 9    | 0.02  |
+| local-append  | 2000 | 11.6  | 5.8  | 0.04  |
+| sync-linear   | 100  | 1.7   | 17   | 0.08  |
+| sync-linear   | 500  | 4.3   | 9    | 0.05  |
+| sync-linear   | 2000 | 10.0  | 5.0  | 0.21  |
+| merge-fan     | 100  | 13    | 129  | 3.0   |
+| merge-fan     | 500  | 414   | 828  | 24    |
+| merge-fan     | 2000 | 21625 | 10813| 278   |
 
 *local-append* is a single peer issuing $N$ sequential insert edits. *sync-linear* builds $N$ events on peer $A$ and delivers them to peer $B$ in causal order. *merge-fan* has peer $A$ and peer $B$ edit disjoint subtrees concurrently and then sync.
 
 For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms. At $N = 100$, a full fan-merge of two 50-event concurrent branches costs 14 ms total --- well within the interactive threshold. The linear workloads stay below a millisecond per event up to $N = 2000$. This is due to an **incremental materialization cache** (`EventGraph.cachedDoc`) which is extended in place whenever a new event's parents exactly equal the current frontier --- a *linear extension* of the graph. In that common case, inserting an event costs an `edit.validate` against the cached document plus an in-place `edit.apply`, avoiding a full replay.
 
-The merge-fan workload exposes the **asymptotic cost of true concurrency**: every incoming event from peer $B$ invalidates the linear cache on peer $A$ (because its parents no longer match $A$'s frontier). However, the checkpoint cache mitigates this: before invalidation, the current state is saved as a checkpoint keyed by the pre-merge frontier. On the next materialization, replay resumes from that fork point rather than from the initial document. The remaining cost is proportional to the events *after* the fork point, not the total event count. At $N=2000$ the merge-fan workload costs 22.5 seconds --- still too slow for a large offline divergence, because the $O(N)$ `resolveAgainst` scan runs for every event in both branches, yielding $O(N^2)$ overall. For a local-first system where offline editing is an explicit goal, further optimization of the per-event resolution step would be needed.
+The merge-fan workload exposes the **asymptotic cost of true concurrency**: every incoming event from peer $B$ invalidates the linear cache on peer $A$ (because its parents no longer match $A$'s frontier). However, the checkpoint cache mitigates this: before invalidation, the current state is saved as a checkpoint keyed by the pre-merge frontier. On the next materialization, replay resumes from that fork point rather than from the initial document. The remaining cost is proportional to the events *after* the fork point, not the total event count. At $N=2000$ the merge-fan workload costs 21.6 seconds --- still too slow for a large offline divergence, because the $O(N)$ `resolveAgainst` scan runs for every event in both branches, yielding $O(N^2)$ overall. For a local-first system where offline editing is an explicit goal, further optimization of the per-event resolution step would be needed.
 
 Two points soften this conclusion for present use without dissolving it:
 

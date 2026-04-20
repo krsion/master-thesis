@@ -2,9 +2,9 @@
 
 The mydenicek implementation evaluated in this thesis is maintained as a separate Git repository.
 
-**Repository.** `https://github.com/krsion/mydenicek`
+**Repository.** <https://github.com/krsion/mydenicek>
 
-**Evaluated revision.** Commit `8503e788968ccaa5cf4e95eadab4b50d124adafd` is the revision against which all measurements, formative tests, and property-based tests reported in this thesis were produced.
+**Evaluated revision.** Commit [`94158789`](https://github.com/krsion/mydenicek/commit/94158789b841a2bdc30eddd3c0e29458c44d834a) is the revision against which all measurements, formative tests, and property-based tests reported in this thesis were produced.
 
 **Contents.**
 
@@ -21,7 +21,7 @@ deno task check     # type-check + lint across workspace
 deno task test      # run all tests
 ```
 
-The full suite on the evaluated revision passes with 256 tests across 24 files (unit, property-based, and formative), including two 5-peer convergence test suites with 1000 fuzzing runs each.
+The full suite on the evaluated revision passes with 279 tests across 24 files (unit, property-based, and formative), including two 5-peer convergence test suites with 1000 fuzzing runs each.
 
 **Running the demos locally.**
 
@@ -30,6 +30,6 @@ deno task sync-server    # start the relay server on ws://localhost:8080
 deno task mywebnicek:dev # start the web app on http://localhost:5173
 ```
 
-Deployed instances of the server and web app (used to reproduce the Playwright browser tests) are described in [@Sec:hosting]. The live demo is at `https://krsion.github.io/mydenicek`.
+Deployed instances of the server and web app (used to reproduce the Playwright browser tests) are described in [@Sec:hosting]. The live demo is at <https://krsion.github.io/mydenicek>.
 
-**Thesis repository.** The Markdown-plus-LaTeX source of this thesis is at `https://github.com/krsion/master-thesis`. The revision matching the submitted text is `77b2d1dcb387ea9a9f1ed2420dcce14cc6121e72`.
+**Thesis repository.** The Markdown-plus-LaTeX source of this thesis is at <https://github.com/krsion/master-thesis>.
