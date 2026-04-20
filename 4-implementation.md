@@ -156,21 +156,33 @@ These behaviors follow mechanically from the selector-rewriting rules and the de
 
 The system supports the following edit types, listed in [@Tbl:edit-types].
 
-: Edit types supported by the mydenicek engine. {#tbl:edit-types}
+: Edit types supported by the mydenicek engine, grouped by target node type. {#tbl:edit-types}
 
-| Edit type | Description | Target |
-|-----------|-------------|--------|
-| `RecordAddEdit` | Add a named field to a record | Record |
-| `RecordDeleteEdit` | Delete a named field from a record | Record |
-| `RecordRenameFieldEdit` | Rename a field | Record |
-| `ListInsertEdit` | Insert an item at a given index | List |
-| `ListRemoveEdit` | Remove the item at a given index | List |
-| `ListReorderEdit` | Move an item from one index to another | List |
-| `UpdateTagEdit` | Change a node's structural tag | Record or List |
-| `WrapRecordEdit` | Wrap a node in a new parent record | Any |
-| `WrapListEdit` | Wrap a node in a new parent list | Any |
-| `CopyEdit` | Copy a subtree from a source to a target | Any |
-| `ApplyPrimitiveEdit` | Apply a registered custom edit | Primitive |
++----------------------------+--------------------------------------------------+------------------+
+| Edit type                  | Description                                      | Target           |
++============================+==================================================+==================+
+| `RecordAddEdit`            | Add a named field to a record                    | Record           |
++----------------------------+--------------------------------------------------+------------------+
+| `RecordDeleteEdit`         | Delete a named field from a record               | Record           |
++----------------------------+--------------------------------------------------+------------------+
+| `RecordRenameFieldEdit`    | Rename a field                                   | Record           |
++----------------------------+--------------------------------------------------+------------------+
+| `ListInsertEdit`           | Insert an item at a given index                  | List             |
++----------------------------+--------------------------------------------------+------------------+
+| `ListRemoveEdit`           | Remove the item at a given index                 | List             |
++----------------------------+--------------------------------------------------+------------------+
+| `ListReorderEdit`          | Move an item from one index to another           | List             |
++----------------------------+--------------------------------------------------+------------------+
+| `UpdateTagEdit`            | Change a node's structural tag                   | Record or List   |
++----------------------------+--------------------------------------------------+------------------+
+| `WrapRecordEdit`           | Wrap a node in a new parent record               | Any              |
++----------------------------+--------------------------------------------------+------------------+
+| `WrapListEdit`             | Wrap a node in a new parent list                 | Any              |
++----------------------------+--------------------------------------------------+------------------+
+| `CopyEdit`                 | Copy a subtree from a source to a target         | Any              |
++----------------------------+--------------------------------------------------+------------------+
+| `ApplyPrimitiveEdit`       | Apply a registered custom edit                   | Primitive        |
++----------------------------+--------------------------------------------------+------------------+
 
 Three additional edit types --- `UnwrapRecordEdit`, `UnwrapListEdit`, and `RestoreSnapshotEdit` --- exist as internal inverse operations. They are produced only by `computeInverse()` for undo and are not exposed as user-facing edits. `UnwrapRecordEdit` and `UnwrapListEdit` invert the corresponding wrap operations, while `RestoreSnapshotEdit` inverts `CopyEdit` by snapshotting the target subtree before the copy and restoring it on undo (see [@Sec:undo]).
 
