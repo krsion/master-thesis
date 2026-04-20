@@ -149,12 +149,24 @@ The conference table example is the most complex formative example. It demonstra
 ```html
 <table>
   <tr>
-    <td contact={ split-first: "Ada Lovelace" } />
-    <td email={ split-rest: "ada@example.com" } />
+    <td>
+      split-first(source="Ada Lovelace, ada@example.com")
+        → "Ada Lovelace"
+    </td>
+    <td>
+      split-rest(source=ref("../../0/contact/source"))
+        → "ada@example.com"
+    </td>
   </tr>
   <tr>
-    <td contact={ split-first: "Grace Hopper" } />
-    <td email={ split-rest: "grace@example.com" } />
+    <td>
+      split-first(source="Grace Hopper, grace@example.com")
+        → "Grace Hopper"
+    </td>
+    <td>
+      split-rest(source=ref("../../0/contact/source"))
+        → "grace@example.com"
+    </td>
   </tr>
 </table>
 ```
