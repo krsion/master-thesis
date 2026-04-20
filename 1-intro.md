@@ -15,7 +15,7 @@ The main contributions of this thesis are:
 
 - A systematic evaluation of CRDT libraries (Automerge, Loro) for tree-structured collaborative editing, identifying concrete limitations: the concurrent wrap problem (Automerge) and the retargeting problem (Loro).
 - A pure op-based CRDT for tagged-tree documents that uses path-based selectors as the native addressing mode, supporting wildcards, relative references, and strict indices, together with a short proof sketch of strong eventual consistency.
-- A two-level polymorphic design for concurrent selector rewriting that avoids $O(n^2)$ transformation rules by separating selector rewriting (default, one method per structural edit type) from payload rewriting (overrides for structural edits that must also modify a concurrent insert's payload).
+- A two-level polymorphic design for concurrent selector rewriting that avoids $O(n^2)$ transformation rules by separating selector rewriting (default, one method per structural edit type) from payload rewriting and index shifting (virtual methods on the `Edit` base class that concrete edit types override, eliminating `instanceof` checks entirely).
 - Wildcard-affects-concurrent-insertions semantics --- structural edits applied via wildcards automatically affect items inserted concurrently by other peers --- presented as a deliberate design choice enabled by the view-function approach.
 - A replay mechanism that retargets recorded edits through later structural changes, enabling programming by demonstration in a collaborative setting.
 

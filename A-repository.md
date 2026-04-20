@@ -4,7 +4,7 @@ The mydenicek implementation evaluated in this thesis is maintained as a separat
 
 **Repository.** <https://github.com/krsion/mydenicek>
 
-**Evaluated revision.** Commit [`94158789`](https://github.com/krsion/mydenicek/commit/94158789b841a2bdc30eddd3c0e29458c44d834a) is the revision against which all measurements, formative tests, and property-based tests reported in this thesis were produced.
+**Evaluated revision.** Commit [`13159fda`](https://github.com/krsion/mydenicek/commit/13159fdabf626939ccaa5469f04f729786ba36a6) is the revision against which all measurements, formative tests, and property-based tests reported in this thesis were produced.
 
 **Contents.**
 
@@ -21,7 +21,7 @@ deno task check     # type-check + lint across workspace
 deno task test      # run all tests
 ```
 
-The full suite on the evaluated revision passes with 304 tests across 22 files (unit, property-based, and formative), including two 5-peer convergence test suites with 1000 fuzzing runs each.
+The full suite on the evaluated revision passes with 310 tests across 22 files (unit, property-based, and formative), including two 5-peer convergence test suites with 1000 fuzzing runs each.
 
 **Running the demos locally.**
 

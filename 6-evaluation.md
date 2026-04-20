@@ -49,7 +49,7 @@ The conference table example with concurrent editing is the most significant res
 
 The implementation is validated through multiple testing layers:
 
-- **Unit tests** (over 200 cases) covering core operations, OT transformation rules, edge cases, and error handling. Tests verify correct behavior for all edit types, concurrent scenarios (rename + wrap, delete + edit, double pop, triple wrap), and undo/redo.
+- **Unit tests** (over 280 cases) covering core operations, OT transformation rules, edge cases, and error handling. Tests verify correct behavior for all edit types, concurrent scenarios (rename + wrap, delete + edit, double pop, triple wrap), and undo/redo.
 - **Property-based tests** using `fast-check`, described in detail in [@Sec:property-tests].
 - **6 formative example tests** that simulate realistic user workflows and verify end-to-end behavior including recording, replay, formula evaluation, multi-peer convergence, and button replay after schema evolution.
 - **11 sync end-to-end tests** covering basic synchronization, late join, concurrent edits, reconnection, pause/resume, initial document hash validation, and offline convergence.

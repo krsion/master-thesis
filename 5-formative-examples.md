@@ -171,25 +171,61 @@ The conference table example is the most complex formative example. It demonstra
 </table>
 ```
 
-Starting from the conference list (a `<ul>` with `<li>` items containing `"Name, email"` strings), Alice performs the following structural transformation:
+Starting from the conference list (a `<ul>` with `<li>` items containing `"Name, email"` strings), Alice performs the following structural transformation. Each step shows the intermediate document state, demonstrating how the tree evolves:
+
+**Step 1: Change tags.** Retag the list and its items.
 
 ```typescript
-// 1. Change tags: ul -> table, li -> td
 alice.updateTag("speakers", "table");
 alice.updateTag("speakers/*", "td");
+```
 
-// 2. Wrap each <td> in a <tr> list
+```html
+<!-- Before -->                    <!-- After -->
+<ul>                               <table>
+  <li contact="Ada..." />    →      <td contact="Ada..." />
+  <li contact="Grace..." />          <td contact="Grace..." />
+</ul>                              </table>
+```
+
+**Step 2: Wrap each `<td>` in a `<tr>` row.**
+
+```typescript
 alice.wrapList("speakers/*", "tr");
+```
 
-// 3. Wrap contact in split-first formula
-// (the original value becomes the "source" field of the wrapper)
+```html
+<!-- Before -->                    <!-- After -->
+<table>                            <table>
+  <td contact="Ada..." />    →      <tr> <td contact="Ada..." /> </tr>
+  <td contact="Grace..." />          <tr> <td contact="Grace..." /> </tr>
+</table>                           </table>
+```
+
+**Step 3: Wrap the contact string in a `split-first` formula.** The original value becomes the `source` field of the wrapper node.
+
+```typescript
 alice.wrapRecord(
   /* target */ "speakers/*/0/contact",
   /* field  */ "source",
   /* tag    */ "split-first",
 );
+```
 
-// 4. Add email column with split-rest
+```html
+<!-- Before -->                         <!-- After -->
+<tr>                                    <tr>
+  <td contact="Ada Lovelace,     →       <td contact=
+        ada@example.com" />               split-first(source="Ada Lovelace,
+</tr>                                            ada@example.com") />
+                                        </tr>
+```
+
+After formula evaluation, the cell displays `"Ada Lovelace"`.
+
+**Step 4: Add the email column.** Insert a second `<td>` into each `<tr>`, with a `split-rest` formula whose `source` is a reference to the name cell's source string.
+
+```typescript
 alice.insert(
   /* target */ "speakers/*",
   /* index  */ -1,
@@ -203,10 +239,19 @@ alice.insert(
 );
 ```
 
-After this transformation, each table row has two cells:
-
-- **Name cell**: the `split-first` formula evaluates the original `"Ada Lovelace, ada@ex.com"` and returns `"Ada Lovelace"`
-- **Email cell**: the `split-rest` formula references the same source string and returns `"ada@ex.com"`
+```html
+<!-- Final result after formula evaluation -->
+<table>
+  <tr>
+    <td> "Ada Lovelace" </td>
+    <td> "ada@example.com" </td>
+  </tr>
+  <tr>
+    <td> "Grace Hopper" </td>
+    <td> "grace@example.com" </td>
+  </tr>
+</table>
+```
 
 The wildcard `*` in all four steps ensures that the transformation is applied to every row simultaneously. All edits are recorded as events in the DAG. Importantly, the "Add Speaker" button recorded in the list phase continues to work after the refactoring --- see [@Sec:replay-after-refactor].
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="520" height="560" viewBox="0 0 520 560">
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
   <style>
     text { font-family: monospace; font-size: 11px; fill: #333; }
     .name { font-size: 12px; font-weight: bold; }
@@ -15,102 +15,98 @@
   </defs>
 
   <!-- Edit base -->
-  <rect x="30" y="10" width="230" height="75" rx="5" fill="#f5f5f5" stroke="#666" stroke-width="1.5"/>
-  <text x="145" y="28" class="name abstract" text-anchor="middle">Edit (abstract)</text>
-  <line x1="30" y1="34" x2="260" y2="34" stroke="#ccc"/>
+  <rect x="30" y="10" width="280" height="100" rx="5" fill="#f5f5f5" stroke="#666" stroke-width="1.5"/>
+  <text x="170" y="28" class="name abstract" text-anchor="middle">Edit (abstract)</text>
+  <line x1="30" y1="34" x2="310" y2="34" stroke="#ccc"/>
   <text x="40" y="48" class="method">transformSelector(sel): Selector</text>
-  <text x="40" y="60" class="method">transform(prior): Edit</text>
-  <text x="40" y="72" class="method">transformLaterConcurrentEdit(c): Edit</text>
-  <text x="40" y="82" class="note">  default: c.transform(this)</text>
+  <text x="40" y="60" class="method">transformLaterConcurrentEdit(c): Edit</text>
+  <text x="40" y="72" class="method">rewriteInsertedNode(target, fn): Edit?</text>
+  <text x="40" y="84" class="method">applyListIndexShift(t, threshold, δ): Edit?</text>
+  <text x="40" y="96" class="method">mapInsertedPayload(fn): Edit</text>
+  <text x="40" y="106" class="note">  virtual dispatch → no instanceof</text>
 
   <!-- CopyEdit (extends Edit directly) -->
-  <rect x="310" y="10" width="190" height="55" rx="5" fill="#fce8e6" stroke="#ea4335" stroke-width="1.5"/>
-  <text x="405" y="28" class="name" text-anchor="middle" fill="#ea4335">CopyEdit</text>
-  <line x1="310" y1="34" x2="500" y2="34" stroke="#ea4335" stroke-opacity="0.3"/>
-  <text x="320" y="48" class="override">target + source selectors</text>
-  <text x="320" y="60" class="override">mirrors edits to copy target</text>
+  <rect x="340" y="10" width="170" height="55" rx="5" fill="#fce8e6" stroke="#ea4335" stroke-width="1.5"/>
+  <text x="425" y="28" class="name" text-anchor="middle" fill="#ea4335">CopyEdit</text>
+  <line x1="340" y1="34" x2="510" y2="34" stroke="#ea4335" stroke-opacity="0.3"/>
+  <text x="350" y="48" class="override">target + source selectors</text>
+  <text x="350" y="60" class="override">mirrors edits to copy target</text>
 
   <!-- Arrow Edit → CopyEdit -->
-  <line x1="260" y1="37" x2="307" y2="37" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+  <line x1="310" y1="37" x2="337" y2="37" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
 
-  <!-- Arrow Edit → NoOp -->
-  <line x1="145" y1="85" x2="145" y2="105" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
-
-  <!-- NoOpOnRemovedTargetEdit -->
-  <rect x="30" y="110" width="230" height="30" rx="5" fill="#f5f5f5" stroke="#666" stroke-width="1.2"/>
-  <text x="145" y="130" class="name abstract" text-anchor="middle">NoOpOnRemovedTargetEdit</text>
-
-  <!-- Structural edits row 1 -->
-  <line x1="80" y1="140" x2="80" y2="170" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
-  <line x1="210" y1="140" x2="210" y2="170" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
-  <line x1="210" y1="140" x2="380" y2="170" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+  <!-- Arrows Edit → structural edits -->
+  <line x1="80" y1="110" x2="80" y2="145" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+  <line x1="170" y1="110" x2="230" y2="145" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+  <line x1="240" y1="110" x2="412" y2="145" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
 
   <!-- UpdateTagEdit -->
-  <rect x="10" y="175" width="140" height="50" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
-  <text x="80" y="193" class="name" text-anchor="middle" fill="#0078d4">UpdateTagEdit</text>
-  <line x1="10" y1="199" x2="150" y2="199" stroke="#0078d4" stroke-opacity="0.3"/>
-  <text x="20" y="212" class="override">transformSelector ✦</text>
-  <text x="20" y="222" class="override">transformLater... ✦</text>
+  <rect x="10" y="150" width="140" height="50" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="80" y="168" class="name" text-anchor="middle" fill="#0078d4">UpdateTagEdit</text>
+  <line x1="10" y1="174" x2="150" y2="174" stroke="#0078d4" stroke-opacity="0.3"/>
+  <text x="20" y="187" class="override">transformSelector ✦</text>
+  <text x="20" y="197" class="override">transformLater... ✦</text>
 
   <!-- WrapRecordEdit -->
-  <rect x="160" y="175" width="140" height="50" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
-  <text x="230" y="193" class="name" text-anchor="middle" fill="#0078d4">WrapRecordEdit</text>
-  <line x1="160" y1="199" x2="300" y2="199" stroke="#0078d4" stroke-opacity="0.3"/>
-  <text x="170" y="212" class="override">transformSelector ✦</text>
-  <text x="170" y="222" class="override">transformLater... ✦</text>
+  <rect x="160" y="150" width="150" height="50" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="235" y="168" class="name" text-anchor="middle" fill="#0078d4">WrapRecordEdit</text>
+  <line x1="160" y1="174" x2="310" y2="174" stroke="#0078d4" stroke-opacity="0.3"/>
+  <text x="170" y="187" class="override">transformSelector ✦</text>
+  <text x="170" y="197" class="override">transformLater... ✦</text>
 
   <!-- Data edits (right) -->
-  <rect x="320" y="175" width="185" height="50" rx="5" fill="#e6f4ea" stroke="#34a853" stroke-width="1.5"/>
-  <text x="412" y="193" class="name" text-anchor="middle" fill="#34a853">RecordAddEdit, SetEdit ...</text>
-  <line x1="320" y1="199" x2="505" y2="199" stroke="#34a853" stroke-opacity="0.3"/>
-  <text x="330" y="215" class="note">transformSelector → identity</text>
+  <rect x="330" y="150" width="180" height="50" rx="5" fill="#e6f4ea" stroke="#34a853" stroke-width="1.5"/>
+  <text x="420" y="168" class="name" text-anchor="middle" fill="#34a853">RecordAddEdit, SetEdit ...</text>
+  <line x1="330" y1="174" x2="510" y2="174" stroke="#34a853" stroke-opacity="0.3"/>
+  <text x="340" y="190" class="note">transformSelector → identity</text>
 
-  <!-- Structural edits row 2 -->
-  <line x1="80" y1="140" x2="80" y2="245" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>
-  <line x1="210" y1="140" x2="210" y2="245" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>
-  <line x1="210" y1="140" x2="380" y2="245" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- More structural edits row 2 -->
+  <line x1="80" y1="110" x2="80" y2="220" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="170" y1="110" x2="230" y2="220" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="240" y1="110" x2="412" y2="220" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>
 
   <!-- WrapListEdit -->
-  <rect x="10" y="250" width="140" height="50" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
-  <text x="80" y="268" class="name" text-anchor="middle" fill="#0078d4">WrapListEdit</text>
-  <line x1="10" y1="274" x2="150" y2="274" stroke="#0078d4" stroke-opacity="0.3"/>
-  <text x="20" y="287" class="override">transformSelector ✦</text>
-  <text x="20" y="297" class="override">transformLater... ✦</text>
+  <rect x="10" y="225" width="140" height="50" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="80" y="243" class="name" text-anchor="middle" fill="#0078d4">WrapListEdit</text>
+  <line x1="10" y1="249" x2="150" y2="249" stroke="#0078d4" stroke-opacity="0.3"/>
+  <text x="20" y="262" class="override">transformSelector ✦</text>
+  <text x="20" y="272" class="override">transformLater... ✦</text>
 
   <!-- RenameFieldEdit -->
-  <rect x="160" y="250" width="140" height="40" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
-  <text x="230" y="268" class="name" text-anchor="middle" fill="#0078d4">RenameFieldEdit</text>
-  <line x1="160" y1="274" x2="300" y2="274" stroke="#0078d4" stroke-opacity="0.3"/>
-  <text x="170" y="287" class="override">transformSelector ✦</text>
+  <rect x="160" y="225" width="150" height="40" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="235" y="243" class="name" text-anchor="middle" fill="#0078d4">RenameFieldEdit</text>
+  <line x1="160" y1="249" x2="310" y2="249" stroke="#0078d4" stroke-opacity="0.3"/>
+  <text x="170" y="262" class="override">transformSelector ✦</text>
 
   <!-- RemoveAtEdit + ReorderEdit -->
-  <rect x="320" y="250" width="185" height="50" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
-  <text x="412" y="268" class="name" text-anchor="middle" fill="#0078d4">RemoveAtEdit, ReorderEdit</text>
-  <line x1="320" y1="274" x2="505" y2="274" stroke="#0078d4" stroke-opacity="0.3"/>
-  <text x="330" y="287" class="override">transformSelector ✦</text>
-  <text x="330" y="297" class="override">transformLater... ✦</text>
+  <rect x="330" y="225" width="180" height="50" rx="5" fill="#e8f0fe" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="420" y="243" class="name" text-anchor="middle" fill="#0078d4">RemoveAt, ReorderEdit</text>
+  <line x1="330" y1="249" x2="510" y2="249" stroke="#0078d4" stroke-opacity="0.3"/>
+  <text x="340" y="262" class="override">applyListIndexShift ✦</text>
+  <text x="340" y="272" class="override">transformSelector ✦</text>
 
   <!-- ListInsertEdit -->
-  <line x1="80" y1="140" x2="120" y2="330" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
-  <rect x="10" y="335" width="220" height="40" rx="5" fill="#fff4e5" stroke="#f5a623" stroke-width="1.5"/>
-  <text x="120" y="353" class="name abstract" text-anchor="middle" fill="#f5a623">ListInsertEdit (abstract)</text>
-  <text x="120" y="368" class="method" text-anchor="middle">rewriteInsertedNode(target, rewrite)</text>
+  <line x1="80" y1="110" x2="120" y2="300" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+  <rect x="10" y="305" width="240" height="55" rx="5" fill="#fff4e5" stroke="#f5a623" stroke-width="1.5"/>
+  <text x="130" y="323" class="name abstract" text-anchor="middle" fill="#f5a623">ListInsertEdit (abstract)</text>
+  <line x1="10" y1="329" x2="250" y2="329" stroke="#f5a623" stroke-opacity="0.3"/>
+  <text x="20" y="342" class="override">rewriteInsertedNode ✦</text>
+  <text x="20" y="352" class="override">rewritePayloadForWildcard ✦</text>
 
   <!-- InsertAtEdit -->
-  <line x1="120" y1="375" x2="120" y2="395" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
-
-  <rect x="10" y="400" width="220" height="45" rx="5" fill="#fff4e5" stroke="#f5a623" stroke-width="1.2"/>
-  <text x="120" y="420" class="name" text-anchor="middle" fill="#f5a623">InsertAtEdit</text>
-  <text x="120" y="435" class="override" text-anchor="middle">index + strict, transformLater ✦</text>
+  <line x1="130" y1="360" x2="130" y2="380" stroke="#666" stroke-width="1.2" marker-end="url(#tri)"/>
+  <rect x="10" y="385" width="240" height="45" rx="5" fill="#fff4e5" stroke="#f5a623" stroke-width="1.2"/>
+  <text x="130" y="403" class="name" text-anchor="middle" fill="#f5a623">InsertAtEdit</text>
+  <text x="130" y="420" class="override" text-anchor="middle">applyListIndexShift ✦ mapInsertedPayload ✦</text>
 
   <!-- Legend -->
-  <text x="300" y="360" class="note">✦ = overrides base method</text>
-  <rect x="295" y="370" width="12" height="12" fill="#e8f0fe" stroke="#0078d4"/>
-  <text x="312" y="380" class="note">structural (changes paths)</text>
-  <rect x="295" y="388" width="12" height="12" fill="#e6f4ea" stroke="#34a853"/>
-  <text x="312" y="398" class="note">data (identity transform)</text>
-  <rect x="295" y="406" width="12" height="12" fill="#fff4e5" stroke="#f5a623"/>
-  <text x="312" y="416" class="note">insert (rewritable payload)</text>
-  <rect x="295" y="424" width="12" height="12" fill="#fce8e6" stroke="#ea4335"/>
-  <text x="312" y="434" class="note">copy (two selectors, mirroring)</text>
+  <text x="300" y="330" class="note">✦ = overrides base method</text>
+  <rect x="295" y="340" width="12" height="12" fill="#e8f0fe" stroke="#0078d4"/>
+  <text x="312" y="350" class="note">structural (changes paths)</text>
+  <rect x="295" y="358" width="12" height="12" fill="#e6f4ea" stroke="#34a853"/>
+  <text x="312" y="368" class="note">data (identity transform)</text>
+  <rect x="295" y="376" width="12" height="12" fill="#fff4e5" stroke="#f5a623"/>
+  <text x="312" y="386" class="note">insert (rewritable payload)</text>
+  <rect x="295" y="394" width="12" height="12" fill="#fce8e6" stroke="#ea4335"/>
+  <text x="312" y="404" class="note">copy (two selectors, mirroring)</text>
 </svg>
