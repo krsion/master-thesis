@@ -208,7 +208,7 @@ After this transformation, each table row has two cells:
 - **Name cell**: the `split-first` formula evaluates the original `"Ada Lovelace, ada@ex.com"` and returns `"Ada Lovelace"`
 - **Email cell**: the `split-rest` formula references the same source string and returns `"ada@ex.com"`
 
-The wildcard `*` in all four steps ensures that the transformation is applied to every row simultaneously. All edits are recorded as events in the DAG.
+The wildcard `*` in all four steps ensures that the transformation is applied to every row simultaneously. All edits are recorded as events in the DAG. Importantly, the "Add Speaker" button recorded in the list phase continues to work after the refactoring --- see [@Sec:replay-after-refactor].
 
 ## Conference Table: concurrent editing {#sec:conf-concurrent}
 
@@ -236,5 +236,10 @@ The event graph visualization in the web application shows this fork-and-merge p
 
 ![After merge: all four speakers appear in the table. The event graph shows the concurrent fork merging at a single commit.](img/concurrent-merged.png){#fig:concurrent-merged width=95%}
 
+## Button replay after schema evolution {#sec:replay-after-refactor}
+
+The most striking consequence of the replay mechanism is that recorded edit sequences survive structural refactoring. The "Add Speaker" button was recorded against a flat `<ul>` list --- its steps insert a `<li>` item and copy the input value into its `contact` field. After Alice refactors the list into a `<table>` with formula columns, clicking the button still works: `repeatEditsFrom` retargets each recorded step through every structural edit that happened after recording (tag updates, wraps, formula insertions). The replayed insert produces a complete table row with a `split-first` name cell and a `split-rest` email cell, exactly as if the button had been recorded against the table.
+
+This behavior requires no special handling in the button or the application code. The replay mechanism uses the same OT transformations that handle concurrent edits: each recorded edit is resolved against all later events in topological order, and structural edits rewrite the recorded selector. The only difference from concurrent resolution is that replay transforms through *all* later edits, not just concurrent ones --- because the recorded edit's "virtual position" in the DAG is at the recording point, and all subsequent edits are structurally later.
 
 
