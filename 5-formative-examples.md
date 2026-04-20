@@ -133,9 +133,31 @@ When the button is replayed, it creates a new item and fills it with whatever te
 
 ## Conference Table: structural transformation {#sec:conf-table}
 
-The conference table example is the most complex formative example. It demonstrates *schema evolution* --- refactoring a flat list into a structured table using only the edit operations available in the CRDT. [@Fig:conf-table-transform] shows the document tree before and after the transformation.
+The conference table example is the most complex formative example. It demonstrates *schema evolution* --- refactoring a flat list into a structured table using only the edit operations available in the CRDT. The document tree before and after the transformation:
 
-![Conference table transformation. Left: flat list with "Name, email" strings. Right: table with two columns --- name (split-first formula) and email (split-rest formula).](img/conf-table-transform.png){#fig:conf-table-transform width=95%}
+**Before** --- a flat conference list:
+
+```html
+<ul>
+  <li contact="Ada Lovelace, ada@example.com" />
+  <li contact="Grace Hopper, grace@example.com" />
+</ul>
+```
+
+**After** --- a two-column table with formula cells:
+
+```html
+<table>
+  <tr>
+    <td contact={ split-first: "Ada Lovelace" } />
+    <td email={ split-rest: "ada@example.com" } />
+  </tr>
+  <tr>
+    <td contact={ split-first: "Grace Hopper" } />
+    <td email={ split-rest: "grace@example.com" } />
+  </tr>
+</table>
+```
 
 Starting from the conference list (a `<ul>` with `<li>` items containing `"Name, email"` strings), Alice performs the following structural transformation:
 
