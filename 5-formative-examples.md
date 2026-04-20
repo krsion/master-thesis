@@ -53,15 +53,15 @@ const addRightId = dk.add(
 //                                left: 0, right: 1 } } }
 ```
 
-The three event IDs are stored as replay steps in a button node. The `insert` call with index `-1` appends to the end of the list, and the `true` flag marks the index as *strict* --- it always means "append at the end" regardless of concurrent edits, matching the `!` convention used in selectors (see [@Sec:doc-model]):
+The three event IDs are stored as replay steps in a button node. The `insert` call with index `-1` appends to the end of the list. Negative indices are end-relative --- `-1` means the last position, `-2` means before the last item, and so on. They are resolved at replay time relative to the current list length, so concurrent insertions do not shift them:
 
 ```typescript
 dk.insert("counter/btn/steps", -1,
-  { $tag: "replay-step", eventId: wrapId }, true);
+  { $tag: "replay-step", eventId: wrapId });
 dk.insert("counter/btn/steps", -1,
-  { $tag: "replay-step", eventId: renameId }, true);
+  { $tag: "replay-step", eventId: renameId });
 dk.insert("counter/btn/steps", -1,
-  { $tag: "replay-step", eventId: addRightId }, true);
+  { $tag: "replay-step", eventId: addRightId });
 ```
 
 Each time the button is "clicked" (the steps are replayed), a new `x-formula-plus` layer wraps the previous result:
@@ -92,9 +92,9 @@ const copyId = dk.copy("conferenceList/items/!0/text",
 
 // Store as replay steps in the button
 dk.insert("conferenceList/composer/addAction/steps", -1,
-  { $tag: "replay-step", eventId: pushId }, true);
+  { $tag: "replay-step", eventId: pushId });
 dk.insert("conferenceList/composer/addAction/steps", -1,
-  { $tag: "replay-step", eventId: copyId }, true);
+  { $tag: "replay-step", eventId: copyId });
 ```
 
 The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, OT transforms this index if concurrent insertions have shifted it.
@@ -129,7 +129,7 @@ alice.insert("speakers/*", -1, {
     $tag: "split-rest",
     source: { $ref: "../../0/contact/source" }
   }
-}, true);
+});
 ```
 
 After this transformation, each table row has two cells:
@@ -209,9 +209,9 @@ const copyId = peer.copy("items/!0/0",
   "composer/input/value");
 
 peer.insert("composer/addAction/steps", -1,
-  { $tag: "replay-step", eventId: insertId }, true);
+  { $tag: "replay-step", eventId: insertId });
 peer.insert("composer/addAction/steps", -1,
-  { $tag: "replay-step", eventId: copyId }, true);
+  { $tag: "replay-step", eventId: copyId });
 ```
 
 The strict index `!0` in the copy target is essential: during replay it refers to the list position at the *time of replay*, not at recording time, and is not shifted by concurrent insertions ([@Sec:replay]).
