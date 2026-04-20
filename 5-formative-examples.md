@@ -151,21 +151,21 @@ The conference table example is the most complex formative example. It demonstra
   <tr>
     <td>
       split-first(source="Ada Lovelace, ada@example.com")
-        → "Ada Lovelace"
+        = "Ada Lovelace"
     </td>
     <td>
       split-rest(source=ref("../../0/contact/source"))
-        → "ada@example.com"
+        = "ada@example.com"
     </td>
   </tr>
   <tr>
     <td>
       split-first(source="Grace Hopper, grace@example.com")
-        → "Grace Hopper"
+        = "Grace Hopper"
     </td>
     <td>
       split-rest(source=ref("../../0/contact/source"))
-        → "grace@example.com"
+        = "grace@example.com"
     </td>
   </tr>
 </table>
