@@ -370,7 +370,7 @@ For example, `/speakers updateTag table` changes the tag of the speakers node, a
 
 ### Document initialization
 
-On first load, the application initializes a template document (a conference list) and registers application-specific primitive edits and recorded action sequences. When joining an existing room, the application fetches the current document state from the sync server instead of using the template.
+On first load without a share link, the application shows an empty state with template buttons. The user creates a document by selecting a template (e.g., "Formative Examples"), which initializes the document, registers application-specific primitive edits and recorded action sequences, and generates a shareable room link. When opening a share link, the application joins the existing room and fetches the current document state from the sync server.
 
 ## CI/CD and hosting {#sec:ci-hosting}
 
