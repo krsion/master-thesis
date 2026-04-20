@@ -36,19 +36,28 @@ The document starts with a simple `counter/value = 0`. We record three edits tha
 // Step 1: Wrap the value in a formula node.
 // Before: { counter: { value: 0 } }
 const wrapId = doc.wrapRecord(
-  /* target */ "counter/value", /* field */ "value", /* tag */ "x-formula-plus");
+  /* target */ "counter/value",
+  /* field  */ "value",
+  /* tag    */ "x-formula-plus",
+);
 // After:  { counter: { value: { $tag: "x-formula-plus",
 //                                value: 0 } } }
 
 // Step 2: Rename "value" to "left" inside the formula.
 const renameId = doc.rename(
-  /* target */ "counter/value", /* from */ "value", /* to */ "left");
+  /* target */ "counter/value",
+  /* from   */ "value",
+  /* to     */ "left",
+);
 // After:  { counter: { value: { $tag: "x-formula-plus",
 //                                left: 0 } } }
 
 // Step 3: Add the "right" operand.
 const addRightId = doc.add(
-  /* target */ "counter/value", /* field */ "right", /* value */ 1);
+  /* target */ "counter/value",
+  /* field  */ "right",
+  /* value  */ 1,
+);
 // After:  { counter: { value: { $tag: "x-formula-plus",
 //                                left: 0, right: 1 } } }
 ```
@@ -56,12 +65,21 @@ const addRightId = doc.add(
 The three event IDs are stored as replay steps in a button node. The `insert` call with index `-1` appends to the end of the list. Negative indices are end-relative --- `-1` means the last position, `-2` means before the last item, and so on. They are resolved at replay time relative to the current list length, so concurrent insertions do not shift them:
 
 ```typescript
-doc.insert(/* target */ "counter/btn/steps", /* index */ -1,
-  /* value */ { $tag: "replay-step", eventId: wrapId });
-doc.insert(/* target */ "counter/btn/steps", /* index */ -1,
-  /* value */ { $tag: "replay-step", eventId: renameId });
-doc.insert(/* target */ "counter/btn/steps", /* index */ -1,
-  /* value */ { $tag: "replay-step", eventId: addRightId });
+doc.insert(
+  /* target */ "counter/btn/steps",
+  /* index  */ -1,
+  /* value  */ { $tag: "replay-step", eventId: wrapId },
+);
+doc.insert(
+  /* target */ "counter/btn/steps",
+  /* index  */ -1,
+  /* value  */ { $tag: "replay-step", eventId: renameId },
+);
+doc.insert(
+  /* target */ "counter/btn/steps",
+  /* index  */ -1,
+  /* value  */ { $tag: "replay-step", eventId: addRightId },
+);
 ```
 
 Each time the button is "clicked" (the steps are replayed), a new `x-formula-plus` layer wraps the previous result:
@@ -85,16 +103,28 @@ The document contains a list of speakers (each with a `"Name, email"` string), a
 
 ```typescript
 // Record the "add speaker" recipe
-const pushId = doc.insert(/* target */ "conferenceList/items", /* index */ 0,
-  /* value */ { $tag: "li", text: "" }, /* strict */ true);
-const copyId = doc.copy(/* target */ "conferenceList/items/!0/text",
-  /* source */ "conferenceList/composer/input/value");
+const pushId = doc.insert(
+  /* target */ "conferenceList/items",
+  /* index  */ 0,
+  /* value  */ { $tag: "li", text: "" },
+  /* strict */ true,
+);
+const copyId = doc.copy(
+  /* target */ "conferenceList/items/!0/text",
+  /* source */ "conferenceList/composer/input/value",
+);
 
 // Store as replay steps in the button
-doc.insert(/* target */ "conferenceList/composer/addAction/steps", /* index */ -1,
-  /* value */ { $tag: "replay-step", eventId: pushId });
-doc.insert(/* target */ "conferenceList/composer/addAction/steps", /* index */ -1,
-  /* value */ { $tag: "replay-step", eventId: copyId });
+doc.insert(
+  /* target */ "conferenceList/composer/addAction/steps",
+  /* index  */ -1,
+  /* value  */ { $tag: "replay-step", eventId: pushId },
+);
+doc.insert(
+  /* target */ "conferenceList/composer/addAction/steps",
+  /* index  */ -1,
+  /* value  */ { $tag: "replay-step", eventId: copyId },
+);
 ```
 
 The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, OT transforms this index if concurrent insertions have shifted it.
@@ -120,16 +150,23 @@ alice.wrapList("speakers/*", "tr");
 // 3. Wrap contact in split-first formula
 // (the original value becomes the "source" field of the wrapper)
 alice.wrapRecord(
-  /* target */ "speakers/*/0/contact", /* field */ "source", /* tag */ "split-first");
+  /* target */ "speakers/*/0/contact",
+  /* field  */ "source",
+  /* tag    */ "split-first",
+);
 
 // 4. Add email column with split-rest
-alice.insert(/* target */ "speakers/*", /* index */ -1, /* value */ {
-  $tag: "td",
-  email: {
-    $tag: "split-rest",
-    source: { $ref: "../../0/contact/source" }
-  }
-});
+alice.insert(
+  /* target */ "speakers/*",
+  /* index  */ -1,
+  /* value  */ {
+    $tag: "td",
+    email: {
+      $tag: "split-rest",
+      source: { $ref: "../../0/contact/source" },
+    },
+  },
+);
 ```
 
 After this transformation, each table row has two cells:
@@ -203,15 +240,27 @@ const doc = new Denicek("alice", {
 The "Add" recipe is two edits: prepend an empty list item, then copy the current input value into that item's first child. The event IDs of those edits are recorded as replay steps on the button:
 
 ```typescript
-const insertId = doc.insert(/* target */ "items", /* index */ 0,
-  /* value */ { $tag: "li", $items: [""] }, /* strict */ true);
-const copyId = doc.copy(/* target */ "items/!0/0",
-  /* source */ "composer/input/value");
+const insertId = doc.insert(
+  /* target */ "items",
+  /* index  */ 0,
+  /* value  */ { $tag: "li", $items: [""] },
+  /* strict */ true,
+);
+const copyId = doc.copy(
+  /* target */ "items/!0/0",
+  /* source */ "composer/input/value",
+);
 
-doc.insert(/* target */ "composer/addAction/steps", /* index */ -1,
-  /* value */ { $tag: "replay-step", eventId: insertId });
-doc.insert(/* target */ "composer/addAction/steps", /* index */ -1,
-  /* value */ { $tag: "replay-step", eventId: copyId });
+doc.insert(
+  /* target */ "composer/addAction/steps",
+  /* index  */ -1,
+  /* value  */ { $tag: "replay-step", eventId: insertId },
+);
+doc.insert(
+  /* target */ "composer/addAction/steps",
+  /* index  */ -1,
+  /* value  */ { $tag: "replay-step", eventId: copyId },
+);
 ```
 
 The strict index `!0` in the copy target is essential: during replay it refers to the list position at the *time of replay*, not at recording time, and is not shifted by concurrent insertions ([@Sec:replay]).
