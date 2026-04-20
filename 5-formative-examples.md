@@ -1,6 +1,6 @@
 # Formative Examples {#chap:formative}
 
-This chapter demonstrates the mydenicek system through five formative examples. Each example illustrates a different aspect of the system's capabilities and is backed by a passing test in the repository. The examples progress from simple operations to complex concurrent structural transformations. Three examples have dedicated test files (`hello-world-formative.test.ts`, `counter-formative.test.ts`, `traffic-accidents-formative.test.ts`); the conference list ([@Sec:conf-list]), the conference table transformation ([@Sec:conf-table]), and its concurrent editing variant ([@Sec:conf-concurrent]) share a single test file (`conference-list-formative.test.ts`) because the concurrent scenario builds directly on the transformation scenario's document state.
+This chapter demonstrates the mydenicek system through five formative examples, progressing from simple operations to complex concurrent structural transformations. Each example is backed by a passing test in the repository.
 
 ## Hello World: custom primitive edits and replay {#sec:hello-world}
 
@@ -257,21 +257,9 @@ The wildcard `*` in all four steps ensures that the transformation is applied to
 
 ## Conference Table: concurrent editing {#sec:conf-concurrent}
 
-This is the key demonstration of the system's convergence properties. Two peers start from the same conference list, disconnect, and make concurrent edits:
+Two peers start from the same conference list, disconnect, and make concurrent edits: **Alice** refactors the list into a table (as above), while **Bob** adds two new speakers via `insert`. When they reconnect and sync, Alice's wildcard edits automatically expand to include Bob's concurrently inserted items: `updateTag` changes their tags, `wrapList` wraps them in `<tr>` lists, and `insert` adds the split formula cells. The result is a table with all four speakers --- each with correctly split name and email columns --- even though Bob inserted plain `<li>` items into a `<ul>` list. This *wildcard-affects-concurrent-insertions* property ([@Sec:wildcard-concurrent]) is a direct consequence of the replay-based OT approach.
 
-- **Alice** (offline) performs the structural transformation described above --- refactoring the list into a table with split-first/split-rest formula columns.
-- **Bob** (offline) adds two new speakers to the list via `insert`.
-
-When they reconnect and sync, the event DAG shows a *concurrent fork*: Alice's structural edits (5 events) and Bob's insertions (2 events) branch from the same parent event and merge at the frontier.
-
-This example demonstrates the *wildcard-affects-concurrent-insertions* property described in [@Sec:wildcard-concurrent]: Alice's wildcard edits (`updateTag("speakers/*", ...)`, `wrapList("speakers/*", ...)`) expand at replay time to include Bob's concurrently inserted items. The result is that Bob's new speakers are automatically wrapped in `<tr>` lists and receive the split formula cells, even though they were inserted as plain `<li>` items into a `<ul>` list. This semantics is a direct consequence of the replay-based OT approach and is uncommon in traditional CRDTs.
-
-The OT transformation rules handle this correctly:
-
-- Bob's `insert` edits originally target a `<ul>` list and insert `<li>` items. After merging with Alice's events, the OT transforms them: `updateTag` changes the inserted items' tags, `wrapList` wraps them in `<tr>` lists, and `insert` adds the split formula cells.
-- The result is a table containing all four speakers --- the original two from the initial document plus Bob's two concurrent additions --- each with correctly split name and email columns.
-
-The event graph visualization in the web application shows this fork-and-merge pattern clearly: two branches of events with different peer colors converging at a merge point. [@Fig:concurrent-initial;@Fig:concurrent-alice;@Fig:concurrent-bob;@Fig:concurrent-merged] show the four stages of this process.
+[@Fig:concurrent-initial;@Fig:concurrent-alice;@Fig:concurrent-bob;@Fig:concurrent-merged] show the four stages of this process.
 
 ![Initial state: both peers synced with a flat conference speaker list.](img/concurrent-initial.png){#fig:concurrent-initial width=95%}
 
@@ -283,8 +271,8 @@ The event graph visualization in the web application shows this fork-and-merge p
 
 ## Button replay after schema evolution {#sec:replay-after-refactor}
 
-The most striking consequence of the replay mechanism is that recorded edit sequences survive structural refactoring. The "Add Speaker" button was recorded against a flat `<ul>` list --- its steps insert a `<li>` item and copy the input value into its `contact` field. After Alice refactors the list into a `<table>` with formula columns, clicking the button still works: `repeatEditsFrom` retargets each recorded step through every structural edit that happened after recording (tag updates, wraps, formula insertions). The replayed insert produces a complete table row with a `split-first` name cell and a `split-rest` email cell, exactly as if the button had been recorded against the table.
+Recorded edit sequences survive structural refactoring. The "Add Speaker" button was recorded against a flat `<ul>` list --- its steps insert a `<li>` item and copy the input value. After Alice refactors the list into a `<table>` with formula columns, clicking the button still works: each recorded step is retargeted through all structural edits that happened after recording. The replayed insert produces a complete table row with split-first and split-rest cells, as if recorded against the table.
 
-This behavior requires no special handling in the button or the application code. The replay mechanism uses the same OT transformations that handle concurrent edits: each recorded edit is resolved against all later events in topological order, and structural edits rewrite the recorded selector. The only difference from concurrent resolution is that replay transforms through *all* later edits, not just concurrent ones --- because the recorded edit's "virtual position" in the DAG is at the recording point, and all subsequent edits are structurally later.
+This uses the same OT transformations as concurrent editing. The only difference is that replay transforms through *all* later edits (not just concurrent ones), because the recorded edit's position in the DAG is at the recording point.
 
 
