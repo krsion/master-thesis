@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="280" height="420" viewBox="0 0 280 420">
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="460" viewBox="0 0 400 460">
   <style>
     text { font-family: monospace; font-size: 11px; fill: #333; }
     .label { font-size: 10px; fill: #666; font-style: italic; }
@@ -13,50 +13,50 @@
   </defs>
 
   <!-- User edit -->
-  <rect x="70" y="10" width="140" height="36" class="box" fill="#e6f4ea" stroke="#34a853"/>
-  <text x="140" y="28" text-anchor="middle" font-weight="bold">User edit</text>
-  <text x="140" y="40" text-anchor="middle" class="label">add, rename, insert, …</text>
+  <rect x="80" y="10" width="200" height="44" class="box" fill="#e6f4ea" stroke="#34a853"/>
+  <text x="180" y="30" text-anchor="middle" font-weight="bold">User edit</text>
+  <text x="180" y="44" text-anchor="middle" class="label">add, rename, insert, …</text>
 
   <!-- Arrow down: prepare -->
-  <line x1="140" y1="46" x2="140" y2="76" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
-  <text x="155" y="66" class="op">prepare</text>
+  <line x1="180" y1="54" x2="180" y2="84" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="198" y="74" class="op">prepare</text>
 
   <!-- Event -->
-  <rect x="70" y="80" width="140" height="36" class="box" fill="#fff4e5" stroke="#f5a623"/>
-  <text x="140" y="98" text-anchor="middle" font-weight="bold">Event</text>
-  <text x="140" y="110" text-anchor="middle" class="label">edit + vector clock + parents</text>
+  <rect x="60" y="88" width="240" height="44" class="box" fill="#fff4e5" stroke="#f5a623"/>
+  <text x="180" y="108" text-anchor="middle" font-weight="bold">Event</text>
+  <text x="180" y="122" text-anchor="middle" class="label">edit + vector clock + parents</text>
 
   <!-- Arrow down: effect -->
-  <line x1="140" y1="116" x2="140" y2="146" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
-  <text x="155" y="136" class="op">effect</text>
+  <line x1="180" y1="132" x2="180" y2="162" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="198" y="152" class="op">effect</text>
 
   <!-- PO-Log -->
-  <rect x="50" y="150" width="180" height="56" class="box" fill="#f5f5f5" stroke="#666"/>
-  <text x="140" y="170" text-anchor="middle" font-weight="bold">PO-Log (Event DAG)</text>
-  <text x="140" y="184" text-anchor="middle" class="label">G-Set of events = CRDT state</text>
-  <text x="140" y="198" text-anchor="middle" class="label">append-only, never pruned</text>
+  <rect x="40" y="166" width="280" height="64" class="box" fill="#f5f5f5" stroke="#666"/>
+  <text x="180" y="186" text-anchor="middle" font-weight="bold">PO-Log (Event DAG)</text>
+  <text x="180" y="202" text-anchor="middle" class="label">G-Set of events = CRDT state</text>
+  <text x="180" y="218" text-anchor="middle" class="label">append-only, never pruned</text>
 
   <!-- Arrow down: eval -->
-  <line x1="140" y1="206" x2="140" y2="236" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
-  <text x="155" y="226" class="op">eval</text>
+  <line x1="180" y1="230" x2="180" y2="260" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="198" y="250" class="op">eval</text>
 
   <!-- materialize -->
-  <rect x="40" y="240" width="200" height="76" class="box" fill="#e8f0fe" stroke="#0078d4"/>
-  <text x="140" y="258" text-anchor="middle" font-weight="bold">materialize</text>
-  <text x="140" y="274" text-anchor="middle" class="label">1. topological sort (Kahn)</text>
-  <text x="140" y="288" text-anchor="middle" class="label">2. resolveAgainst (selector rewriting)</text>
-  <text x="140" y="302" text-anchor="middle" class="label">3. apply each edit to document</text>
+  <rect x="20" y="264" width="320" height="86" class="box" fill="#e8f0fe" stroke="#0078d4"/>
+  <text x="180" y="284" text-anchor="middle" font-weight="bold">materialize</text>
+  <text x="180" y="302" text-anchor="middle" class="label">1. topological sort (Kahn's algorithm)</text>
+  <text x="180" y="318" text-anchor="middle" class="label">2. resolveAgainst (selector rewriting)</text>
+  <text x="180" y="334" text-anchor="middle" class="label">3. apply each edit to document</text>
 
   <!-- Arrow down -->
-  <line x1="140" y1="316" x2="140" y2="346" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
+  <line x1="180" y1="350" x2="180" y2="380" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
 
   <!-- Document -->
-  <rect x="70" y="350" width="140" height="36" class="box" fill="#e6f4ea" stroke="#34a853"/>
-  <text x="140" y="368" text-anchor="middle" font-weight="bold">Document</text>
-  <text x="140" y="380" text-anchor="middle" class="label">tagged Node tree</text>
+  <rect x="80" y="384" width="200" height="44" class="box" fill="#e6f4ea" stroke="#34a853"/>
+  <text x="180" y="404" text-anchor="middle" font-weight="bold">Document</text>
+  <text x="180" y="418" text-anchor="middle" class="label">tagged Node tree</text>
 
-  <!-- Sync arrow (right side) -->
-  <line x1="230" y1="178" x2="255" y2="178" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
-  <text x="243" y="170" class="op" text-anchor="middle">sync</text>
-  <text x="243" y="194" class="label" text-anchor="middle">peers</text>
+  <!-- Sync arrow (right side from PO-Log) -->
+  <line x1="320" y1="198" x2="350" y2="198" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="365" y="192" class="op">sync</text>
+  <text x="365" y="206" class="label">peers</text>
 </svg>
