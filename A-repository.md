@@ -30,7 +30,8 @@ deno task sync-server    # start the relay server on ws://localhost:8080
 deno task mywebnicek:dev # start the web app on http://localhost:5173
 ```
 
-Deployed instances of the server and web app (used to reproduce the Playwright browser tests) are described in [@Sec:hosting]. The live demo is at <https://krsion.github.io/mydenicek>.
+Deployed instances of the server and web app (used to reproduce the Playwright browser tests) are described in [@Sec:ci-hosting]. The live demo is at <https://krsion.github.io/mydenicek>.
 
 **Thesis repository.** The Markdown-plus-LaTeX source of this thesis is at <https://github.com/krsion/master-thesis>.
+
 

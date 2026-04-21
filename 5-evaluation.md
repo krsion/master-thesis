@@ -381,7 +381,7 @@ Two points soften this conclusion for present use without dissolving it:
 
 Further reducing the per-event cost of `resolveAgainst` --- for instance, by skipping priors whose structural effect provably cannot overlap the current edit's selector --- is left as future work.
 
-**Memory footprint.** Events are held in memory as a `Map<string, Event>`. Each `Event` carries an `EventId`, a `parents` array, an `Edit` subclass instance with its own fields, and a `VectorClock`. On the sync-linear N=2000 workload the serialized on-disk JSON is approximately 0.4 MB (roughly 200 bytes per event, dominated by the vector-clock and edit payloads); in-memory the `Map` overhead adds a constant factor. This linear growth in event count is the main scalability constraint, mitigated by the server-side compaction mechanism described in [@Sec:compaction-offline], which materializes the document and discards old events once all active peers have acknowledged a common frontier.
+**Memory footprint.** Events are held in memory as a `Map<string, Event>`. Each `Event` carries an `EventId`, a `parents` array, an `Edit` subclass instance with its own fields, and a `VectorClock`. On the sync-linear N=2000 workload the serialized on-disk JSON is approximately 0.4 MB (roughly 200 bytes per event, dominated by the vector-clock and edit payloads); in-memory the `Map` overhead adds a constant factor. This linear growth in event count is the main scalability constraint, mitigated by the server-side compaction mechanism described in [@Sec:sync], which materializes the document and discards old events once all active peers have acknowledged a common frontier.
 
 ## Determinism audit {#sec:determinism-audit}
 
@@ -409,4 +409,5 @@ The current implementation has several known limitations:
 **Vector clocks grow linearly with the number of peers.** Each event carries a vector clock with one entry per peer that has contributed to its causal history. For a session with $P$ peers, each vector clock has up to $P$ entries, and the serialized size of each event grows as $O(P)$. For the typical use case of 2--5 peers, this overhead is negligible. For large peer counts, alternative representations such as tree clocks could reduce this overhead but are not implemented.
 
 **In-memory event storage and no server hardening.** The sync server stores all events in memory with append-only JSON file persistence. There is no database-backed storage, rate limiting, or payload size enforcement. Rooms are evicted from memory after 10 minutes of inactivity, but room data files on disk are never deleted. These are acceptable trade-offs for a thesis prototype but would need to be addressed for a production deployment.
+
 

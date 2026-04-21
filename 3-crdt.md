@@ -64,9 +64,9 @@ Because the sort order is deterministic and the selector-rewriting transformatio
 
 ### mydenicek as a pure op-based CRDT {#sec:crdt-framing}
 
-As described in [@Sec:pure-op-crdt], mydenicek is a *pure operation-based CRDT* [@baquero2017pureop]. The replica state is the event set $\mathcal{E}$ (a G-Set). The document is produced by a deterministic *eval* function $\text{materialize}: 2^{\text{Event}} \to \text{Node}$ --- the composition of topological ordering, `resolveAgainst` (selector rewriting), and `apply`. Convergence requires only that `materialize` is deterministic; the G-Set guarantees eventual agreement on the event set ([@Sec:sync-protocol]).
+As described in [@Sec:pure-op-crdt], mydenicek is a *pure operation-based CRDT* [@baquero2017pureop]. The replica state is the event set $\mathcal{E}$ (a G-Set). The document is produced by a deterministic *eval* function $\text{materialize}: 2^{\text{Event}} \to \text{Node}$ --- the composition of topological ordering, `resolveAgainst` (selector rewriting), and `apply`. Convergence requires only that `materialize` is deterministic; the G-Set guarantees eventual agreement on the event set ([@Sec:sync]).
 
-**Assumption (peer-ID uniqueness).** Every `EventId = (peer, seq)` produced across all replicas is globally unique, enforced at ingest (see [@Sec:peer-id]).
+**Assumption (peer-ID uniqueness).** Every `EventId = (peer, seq)` produced across all replicas is globally unique, enforced at ingest (see [@Sec:crdt-framing]).
 
 **Theorem (deterministic eval).** *For any two replicas $R_1, R_2$ with $\mathcal{E}(R_1) = \mathcal{E}(R_2)$, $\text{materialize}(R_1) = \text{materialize}(R_2)$.*
 
@@ -188,5 +188,6 @@ This holds regardless of replay order, but the mechanism differs in each case:
 - **Edit first** (Alice's wildcard edit is replayed before Bob's `insert`): Alice's `updateTag` is applied to the existing items. When Bob's `insert` is then resolved against Alice's preceding wildcard edit, the selector-rewriting step modifies the inserted item: instead of inserting a `<li>` item, the transformed insert produces a `<tr>` item. This works because materialization replays events in a deterministic order --- when Bob's insert comes after Alice's wildcard edit in that order, the insert is transformed to be consistent with the already-applied edit.
 
 This semantics is uncommon in CRDTs. In most CRDT-based systems, an operation only affects the items that existed at the time the operation was created. Items inserted concurrently by other peers are not affected. Weidner [@weidner2023foreach] describes this as the *for-each* problem and proposes a dedicated CRDT operation to address it. In mydenicek, the replay-based *eval* naturally achieves the "for-each-including-concurrent-additions" semantics because the wildcard is expanded at replay time, not at creation time --- no special for-each CRDT is needed.
+
 
 

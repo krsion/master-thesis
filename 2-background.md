@@ -16,7 +16,7 @@ Denicek provides four key end-user programming experiences:
 
 - **Programming by demonstration.** Users perform edits interactively --- such as adding a list item and copying a value from an input field --- and the system records these edits as a replayable script. When the user clicks a button, the recorded edits are replayed, potentially on different targets.
 - **Schema evolution.** Structural edits allow users to refactor the document's structure without losing data.
-- **Collaborative editing.** Multiple peers can edit the same document concurrently, and the system merges their edits deterministically. Notably, Denicek supports wildcard selectors (`speakers/*`) that target all children of a node. When combined with concurrent insertions, this produces a unique semantics: a wildcard edit affects not only items that existed when the edit was made, but also items inserted concurrently by other peers. This *edit-all-including-concurrent-additions* property is discussed further in [@Sec:foreach] and [@Sec:wildcard-concurrent].
+- **Collaborative editing.** Multiple peers can edit the same document concurrently, and the system merges their edits deterministically. Notably, Denicek supports wildcard selectors (`speakers/*`) that target all children of a node. When combined with concurrent insertions, this produces a unique semantics: a wildcard edit affects not only items that existed when the edit was made, but also items inserted concurrently by other peers. This *edit-all-including-concurrent-additions* property is discussed further in [@Sec:wildcard-concurrent] and [@Sec:wildcard-concurrent].
 - **Formula recomputation.** Nodes can contain formulas that reference other nodes via relative paths. When the referenced data changes, the formula result is recomputed.
 
 ### Edit operations
@@ -125,7 +125,7 @@ mydenicek implements this framework directly. The mapping is:
 | PO-Log pruning     | Not implemented (see below)                |
 +--------------------+--------------------------------------------+
 
-The event DAG is strictly richer than a PO-Log: it stores explicit parent pointers, enabling checkpoint-based incremental materialization. One deviation from the framework: **the PO-Log cannot be pruned**, because Denicek's programming-by-demonstration mechanism ([@Sec:replay]) references event IDs for replay. Pruning causally stable operations would invalidate replay references. The PO-Log is therefore append-only; the server-side compaction mechanism ([@Sec:compaction-offline]) snapshots the document and discards events only when no replay references point to them.
+The event DAG is strictly richer than a PO-Log: it stores explicit parent pointers, enabling checkpoint-based incremental materialization. One deviation from the framework: **the PO-Log cannot be pruned**, because Denicek's programming-by-demonstration mechanism ([@Sec:replay]) references event IDs for replay. Pruning causally stable operations would invalidate replay references. The PO-Log is therefore append-only; the server-side compaction mechanism ([@Sec:sync]) snapshots the document and discards events only when no replay references point to them.
 
 Common CRDT building blocks relevant to this thesis include:
 
@@ -148,4 +148,5 @@ Several existing CRDT libraries were evaluated as potential backends for Denicek
 **Other systems.** Yjs [@yjs] shares Automerge's limitations for Denicek: no atomic move, no path-based selectors, no native tree CRDT. Eg-walker [@gentle2025egwalker] stores operations in a causal event graph with topological replay --- mydenicek borrows this architectural idea but applies it to trees with selector rewriting, framed as a pure operation-based CRDT rather than an OT/CRDT hybrid. Diamond Types [@diamondtypes] shares the event-graph approach but targets text. json-joy [@jsonjoy] operates on JSON structures but lacks wildcard selectors and structural edits. Grove [@grove2025] targets code editing with commutative operations on fixed-schema ASTs, incompatible with Denicek's schema-free trees. Webstrates [@klokmose2015webstrates] inspired the naming lineage: Webstrates, myWebstrates, Denicek, mydenicek.
 
 Weidner [@weidner2023foreach] identifies the *for-each problem*: operations applied to every element in a range miss concurrently inserted elements. mydenicek's wildcard selectors solve this without a dedicated CRDT for-each operation: wildcards expand at replay time to include all elements that exist at that point, including concurrent insertions ([@Sec:wildcard-concurrent]).
+
 
