@@ -324,31 +324,31 @@ The conference table example with concurrent editing is the most significant res
 
 ## Testing strategy {#sec:testing}
 
-The implementation is validated through multiple testing layers:
+Testing distributed systems is fundamentally harder than testing sequential programs: bugs arise from specific interleavings of concurrent events, message orderings, and failure patterns that are difficult to reproduce [@ozkan2025modelfuzz]. mydenicek addresses this through multiple testing layers, combining unit tests for individual edit types with property-based randomized testing for concurrent interactions:
 
-- **Unit tests** (over 280 cases) covering core operations, OT transformation rules, edge cases, and error handling. Tests verify correct behavior for all edit types, concurrent scenarios (rename + wrap, delete + edit, double pop, triple wrap), and undo/redo.
+- **Unit tests** (over 280 cases) covering core operations, OT transformation rules, edge cases, and error handling.
 - **Property-based tests** using `fast-check`, described in detail in [@Sec:property-tests].
-- **6 formative example tests** that simulate realistic user workflows and verify end-to-end behavior including recording, replay, formula evaluation, multi-peer convergence, and button replay after schema evolution.
-- **11 sync end-to-end tests** covering basic synchronization, late join, concurrent edits, reconnection, pause/resume, initial document hash validation, and offline convergence.
-- **Playwright browser tests** that verify the web application renders correctly and two browser peers can sync edits via the deployed server.
-- **Continuous integration** via GitHub Actions: every push triggers lint, type-check, test, build, and deployment.
+- **6 formative example tests** that simulate realistic multi-peer workflows including recording, replay, formula evaluation, and button replay after schema evolution.
+- **11 sync end-to-end tests** covering synchronization, late join, concurrent edits, reconnection, and offline convergence.
+- **Playwright browser tests** verifying two browser peers can sync edits via the deployed server.
+- **Continuous integration** via GitHub Actions on every push.
 
 ## Property-based tests {#sec:property-tests}
 
-The file `tests/core-properties.test.ts` uses the `fast-check` library to randomize edit sequences, sync operations, and delivery orders, then asserts invariants on the resulting document states. Unlike unit tests, property tests explore the space of concurrent interactions that a human author would not write down exhaustively.
+The file `tests/core-properties.test.ts` uses the `fast-check` library to randomize edit sequences, sync operations, and delivery orders, then asserts invariants on the resulting document states. This approach is a form of *randomized concurrency testing* [@ozkan2025modelfuzz]: instead of enumerating all possible interleavings (infeasible for concurrent edit operations on tree structures), the fuzzer samples random edit sequences and `fast-check`'s shrinking algorithm reduces failing cases to minimal counterexamples.
 
-The tests run against five document schemas (flat list, flat record, nested list-of-records, deeply nested lists, document with references) and exercise all eleven edit types. The default configuration models three `Denicek` peers; a separate test suite uses five peers to verify that convergence holds beyond pairwise interactions --- with five peers, the topological sort encounters richer tie-breaking patterns and the transformation pipeline processes longer chains of concurrent edits. Operations are either local edits or pairwise sync actions; each test generates sequences of 5 to 50 operations per run, with `fast-check` shrinking to the minimal failing sequence on any violation.
+The tests run against five document schemas (flat list, flat record, nested list-of-records, deeply nested lists, document with references) and exercise all eleven edit types. The default configuration models three `Denicek` peers; a separate test suite uses five peers to verify that convergence holds beyond pairwise interactions. Operations are either local edits or pairwise sync actions; each test generates sequences of 5 to 50 operations per run.
 
 The invariants checked are:
 
 - **Convergence.** After a final full sync round, all peers serialize to the same JSON. This directly exercises the theorem of [@Sec:crdt-framing].
-- **Idempotency.** Re-delivering an already-ingested event has no effect on the document.
+- **Idempotency.** Re-delivering an already-ingested event has no effect.
 - **Commutativity.** For two disjoint remote event batches, ingesting them in either order produces the same document.
-- **Associativity.** For three peers producing disjoint events, any pairwise merge order yields the same merged state.
-- **Intent preservation for non-conflicting edits.** Non-conflicting concurrent additions (to disjoint record fields or to a list) all appear in the merged document --- no intent is silently lost.
-- **Out-of-order delivery tolerance.** Shuffled event delivery with a causal-buffer layer produces the same state as causal delivery.
+- **Associativity.** For three peers producing disjoint events, any pairwise merge order yields the same state.
+- **Intent preservation.** Non-conflicting concurrent additions all appear in the merged document.
+- **Out-of-order delivery tolerance.** Shuffled event delivery with the causal buffer produces the same state as causal delivery.
 
-The property suite has been effective as a regression guard during development --- earlier iterations of the selector-rewriting rules were caught by shrunk counter-examples that exposed wildcard-over-concurrent-insert bugs and copy-then-rename retargeting errors. We make no claim of exhaustive coverage; `fast-check` samples from a large but not complete space. The tests complement, rather than replace, the paper argument of [@Sec:crdt-framing] and the informal audit of [@Sec:determinism-audit].
+The property suite caught several bugs during development: wildcard-over-concurrent-insert failures and copy-then-rename retargeting errors were both discovered by shrunk counterexamples. The existing TLA+ model ([@Sec:limitations]) could further strengthen testing by serving as a *coverage guide* for the fuzzer --- Ozkan et al. [@ozkan2025modelfuzz] show that using a TLA+ model to direct test generation toward under-explored states finds bugs that random fuzzing misses.
 
 ## Performance {#sec:performance}
 

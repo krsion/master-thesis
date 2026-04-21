@@ -16,6 +16,8 @@ The system was validated on five formative examples, 310 tests (including proper
 
 **Optimized materialization.** The `resolveAgainst` step scans all prior events per replayed event ($O(N^2)$). Indexing priors by target prefix would reduce this. The current implementation could serve as a reference oracle for validating faster versions via model-guided fuzzing [@ozkan2025modelfuzz].
 
+**Efficient set reconciliation for sync.** The current sync protocol exchanges events via `eventsSince(frontiers)`, which requires the server to retain the full event history. Baquero et al. [@baquero2025sync] show that CRDT states can be split into sets of smaller CRDTs and synchronized using distributed set reconciliation algorithms, reducing bandwidth when replicas share similar content. Applying this to mydenicek's event sync could reduce the data transmitted during reconnection after long offline periods.
+
 **Extended verification.** The TLA+ model covers five edit types on a flat record. Extending it to nested trees and wildcards, or encoding the selector rewriting rules in VeriFx [@bauwens2022verifx] — an automated verification tool designed specifically for CRDTs — would provide mechanical convergence guarantees beyond the current bounded model.
 
 **Character-level text.** Integrating a text CRDT (e.g., Fugue) for primitive strings would replace last-writer-wins semantics.
