@@ -101,13 +101,31 @@ A hybrid approach, *delta-state CRDTs*, sends only the part of the state that ch
 
 ### Pure operation-based CRDTs {#sec:pure-op-crdt}
 
-*Pure operation-based CRDTs* [@baquero2017pureop] are the theoretical foundation of mydenicek. Traditional operation-based CRDTs require all concurrent operations to commute pairwise --- a property that is hard to design and prove for complex data types. Baquero et al. sidestep this entirely by making the **replica state the set of all delivered operations** (a *PO-Log* --- partially ordered log). The observable value is computed on demand by a **pure function** (*eval*) over that set.
+*Pure operation-based CRDTs* [@baquero2017pureop] are the theoretical foundation of mydenicek. Traditional operation-based CRDTs require concurrent operations to commute pairwise --- hard to design and prove for complex data types. Baquero et al. sidestep this by making the **replica state the set of all delivered operations** (a *PO-Log* --- partially ordered log). The observable value is computed on demand by a deterministic function *eval* over that set.
 
-The key insight is that the operation set is a G-Set (grow-only set), and G-Set merge is set union --- associative, commutative, and idempotent --- making it the simplest possible CRDT. Shapiro et al. [@shapiro2011crdt] proved that state-based CRDTs with a monotonic join-semilattice merge converge; the G-Set satisfies this trivially. Strong eventual consistency then follows from two conditions: (1) every operation is eventually delivered to every replica (reliable broadcast), and (2) the *eval* function is deterministic. Condition (1) is a transport-layer concern; condition (2) is the only property the data type designer must prove.
+The framework defines three operations: **prepare** reads the current state and produces a tagged operation; **effect** adds the operation to the PO-Log; **eval** computes the observable value from the PO-Log. The PO-Log is a G-Set (grow-only set) whose merge is set union --- associative, commutative, and idempotent. Shapiro et al. [@shapiro2011crdt] proved that state-based CRDTs with a monotonic join-semilattice merge converge; the G-Set satisfies this trivially. Strong eventual consistency follows from two conditions: (1) every operation is eventually delivered to every replica (*eventual delivery*), and (2) *eval* is deterministic. Condition (1) is a transport-layer concern; condition (2) is the only property the data type designer must prove.
 
-The framework also defines a **redundancy relation** for compaction: once an operation is *causally stable* (delivered to all replicas), it can be pruned from the PO-Log if a more recent operation subsumes it. mydenicek's server-side compaction ([@Sec:compaction-offline]) corresponds to this mechanism.
+The framework assumes *tagged reliable causal broadcast* [@baquero2017pureop, §3]: each operation is tagged with causal metadata (a vector clock), delivery is causal (if $a \to b$, then $a$ is delivered before $b$), and every operation is eventually delivered. The framework also defines a **redundancy relation** for compaction: once an operation is *causally stable* (delivered to all replicas), it can be pruned from the PO-Log if a more recent operation subsumes it.
 
-This thesis adopts the Baquero framing directly. mydenicek stores the full event DAG including explicit parent pointers, which is strictly richer than a PO-Log and enables checkpoint-based incremental materialization. The mapping is: the event DAG is the PO-Log, `materialize` is the *eval* function, and server-side compaction corresponds to PO-Log pruning. The convergence proof ([@Sec:crdt-framing]) reduces to showing that `materialize` is deterministic --- the G-Set guarantees the rest.
+mydenicek implements this framework directly. The mapping is:
+
++--------------------+--------------------------------------------+
+| Baquero            | mydenicek                                  |
++====================+============================================+
+| PO-Log             | Event DAG (`Map<string, Event>`)           |
++--------------------+--------------------------------------------+
+| prepare            | `Denicek.add()`, `.insert()`, etc.         |
++--------------------+--------------------------------------------+
+| effect             | `EventGraph.effect()` (= `insertEvent`)   |
++--------------------+--------------------------------------------+
+| eval               | `EventGraph.eval()` (= `materialize`)     |
++--------------------+--------------------------------------------+
+| Causal broadcast   | WebSocket relay + causal delivery buffer   |
++--------------------+--------------------------------------------+
+| PO-Log pruning     | Not implemented (see below)                |
++--------------------+--------------------------------------------+
+
+The event DAG is strictly richer than a PO-Log: it stores explicit parent pointers, enabling checkpoint-based incremental materialization. One deviation from the framework: **the PO-Log cannot be pruned**, because Denicek's programming-by-demonstration mechanism ([@Sec:replay]) references event IDs for replay. Pruning causally stable operations would invalidate replay references. The PO-Log is therefore append-only; the server-side compaction mechanism ([@Sec:compaction-offline]) snapshots the document and discards events only when no replay references point to them.
 
 Common CRDT building blocks relevant to this thesis include:
 
