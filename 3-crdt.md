@@ -98,26 +98,25 @@ The system supports 11 edit types: record operations (`RecordAdd`, `RecordDelete
 
 Each structural edit implements a `transformSelector` method that rewrites a concurrent edit's selector through its structural effect. [@Tbl:selector-rules] summarizes the rules.
 
-: Selector rewriting rules. Each structural edit transforms concurrent selectors through its effect. {#tbl:selector-rules}
+: Selector rewriting rules. Each structural edit transforms concurrent selectors. {#tbl:selector-rules}
 
-+-------------------+-------------------------------+--------------------------------------------+
-| Edit              | Rule                          | Example                                    |
-+===================+===============================+============================================+
-| Rename `a` → `b`  | `a/...` → `b/...`            | `speakers/0/name` → `talks/0/name`         |
-+-------------------+-------------------------------+--------------------------------------------+
-| WrapRecord(f)     | `a/...` → `a/f/...`          | `x/value` → `x/inner/value`               |
-+-------------------+-------------------------------+--------------------------------------------+
-| WrapList          | `a/...` → `a/*/...`          | `x/data` → `x/*/data`                     |
-+-------------------+-------------------------------+--------------------------------------------+
-| Delete            | `a/...` → removed            | concurrent edit becomes no-op              |
-+-------------------+-------------------------------+--------------------------------------------+
-| Insert at $i$     | indices $\geq i$ shift $+1$  | `items/3` → `items/4`                     |
-+-------------------+-------------------------------+--------------------------------------------+
-| Remove at $i$     | index $i$ → removed,         | `items/3` → `items/2`                     |
-|                   | indices $> i$ shift $-1$      |                                            |
-+-------------------+-------------------------------+--------------------------------------------+
-| Reorder($f$,$t$)  | $f$ → $t$, range shifts      | `items/1` → `items/3`                     |
-+-------------------+-------------------------------+--------------------------------------------+
++--------------------+------------------------------------------+----------------------------------------------+
+| Edit               | Rule                                     | Example                                      |
++====================+==========================================+==============================================+
+| Rename a to b      | a/… becomes b/…                          | speakers/0/name becomes talks/0/name         |
++--------------------+------------------------------------------+----------------------------------------------+
+| WrapRecord(f)      | a/… becomes a/f/…                        | x/value becomes x/inner/value                |
++--------------------+------------------------------------------+----------------------------------------------+
+| WrapList           | a/… becomes a/\*/…                       | x/data becomes x/\*/data                     |
++--------------------+------------------------------------------+----------------------------------------------+
+| Delete             | a/… removed                              | concurrent edit becomes no-op                |
++--------------------+------------------------------------------+----------------------------------------------+
+| Insert at i        | indices $\geq$ i shift +1                | items/3 becomes items/4                      |
++--------------------+------------------------------------------+----------------------------------------------+
+| Remove at i        | index i removed; indices $>$ i shift −1  | items/3 becomes items/2                      |
++--------------------+------------------------------------------+----------------------------------------------+
+| Reorder(f, t)      | f becomes t; range shifts                | items/1 becomes items/3                      |
++--------------------+------------------------------------------+----------------------------------------------+
 
 Negative indices are resolved to absolute positions using a stored `listLength` before shifting. Strict indices (`strict=true`) shift concurrent selectors but are not themselves shifted by concurrent edits.
 
