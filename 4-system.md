@@ -20,7 +20,7 @@ Each `Edit` implements `computeInverse(preDoc)` returning the inverse edit (e.g.
 
 ## Recording and replay {#sec:replay}
 
-Programming by demonstration stores event IDs as replay steps (typically in a button node). On replay, the system replays the full event history in topological order, captures the source event's edit, and transforms its selector through every later structural edit via the same OT rules used for concurrent resolution. The result is a new event at the current frontier with a retargeted selector. Strict indices (`!0`) ensure the replayed edit targets the same logical position rather than being shifted by later insertions.
+Programming by demonstration stores event IDs as replay steps (typically in a button node). On replay, the system replays the full event history in topological order, captures the source event's edit, and transforms its selector through every later edit — both structural edits (which rewrite the selector) and wildcard-targeting data edits (which modify the inserted payload). This is the same OT pipeline used for concurrent resolution. The result is a new event at the current frontier with a retargeted selector and payload. Strict indices (`!0`) ensure the replayed edit targets the same logical position rather than being shifted by later insertions.
 
 ## Sync and server {#sec:sync}
 
