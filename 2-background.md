@@ -50,7 +50,7 @@ The original Denicek defines three core operations on edit histories:
 
 Denicek's histories are *linear sequences* of edits. Merging two linear histories produces a new linear history. Importantly, merge is *not commutative* --- merging history A into B may produce a different result than merging B into A, because the OT transformation order differs. The paper mentions that histories could form a graph rather than a linear sequence, but does not elaborate on this direction.
 
-This thesis takes exactly that step: replacing linear histories with a *causal event graph* (DAG), where merge order does not matter because all peers replay the same deterministic topological order. Under the pure operation-based CRDT framework of Baquero et al. [@baquero2017pureop], convergence follows directly from the fact that the event set is a G-Set and the view function is pure (see [@Sec:crdts]).
+This thesis takes exactly that step: replacing linear histories with a *causal event graph* (DAG), where merge order does not matter because all peers replay the same deterministic topological order. Under the pure operation-based CRDT framework [@baquero2017pureop], convergence follows directly from the fact that the event set is a G-Set and the *eval* function is deterministic (see [@Sec:crdts]).
 
 ## Operational Transformation {#sec:ot}
 
