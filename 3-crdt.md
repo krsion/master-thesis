@@ -16,6 +16,7 @@ Reference nodes are unusual in collaborative editing systems. In most CRDT-based
 Nodes are addressed by *selectors* --- slash-separated paths that describe how to navigate the tree from the root. The selector `speakers/0/name` navigates to the `speakers` field, then to the first list item (index 0), then to the `name` field. Unless stated otherwise, examples in this thesis use selectors *relative to the document root*, without a leading `/`. A leading `/` is only significant in reference nodes (see `Reference` above), where it distinguishes absolute paths from paths relative to the reference's own position. Selectors support three special forms:
 
 - **Wildcards** (`*`): `speakers/*` expands to all children of the `speakers` list. An edit targeting `speakers/*` is applied to every item.
+- **Negative indices** (`-1`, `-2`): end-relative list addressing. `-1` means the last position (append for insert, last item for remove), `-2` means second-to-last, and so on. Resolved to absolute positions at replay time using a stored `listLength`.
 - **Strict indices** (`!0`): `speakers/!0` refers to the item at index 0 *at the time of the edit*. Unlike plain `0`, strict indices are not shifted by concurrent insertions --- they always refer to the original position. This is essential for the recording and replay mechanism described in [@Sec:replay].
 - **Parent navigation** (`..`): used in references to navigate up the tree. `../../0/contact` goes up two levels, then navigates to `0/contact`.
 
@@ -27,6 +28,7 @@ Nodes are addressed by *selectors* --- slash-separated paths that describe how t
 |------|---------|---------|
 | Field name | `speakers/0/name` | Navigate by field name or list index (root-relative) |
 | Wildcard | `speakers/*` | Expand to all children of the target node |
+| Negative index | `insert(items, -1, ...)` | End-relative: `-1` = last position, `-2` = second-to-last |
 | Strict index | `speakers/!0` | Index at edit-creation time; not shifted by concurrent inserts |
 | Parent (`..`) | `../../0/contact` | Navigate up the tree (used in `$ref` paths) |
 | Absolute `$ref` | `$ref: "/speakers/0"` | Reference resolved from document root |
