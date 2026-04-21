@@ -6,7 +6,12 @@ This chapter describes the engineering aspects of mydenicek. The implementation 
 
 ## Extensibility {#sec:extensibility}
 
-The core engine is extended via registries. **Primitive edits** (`registerPrimitiveEdit(name, fn)`) let applications define custom transformations on primitive values (e.g., `splitFirst` and `splitRest` for the conference table). **Formula operations** (`registerFormulaOperation`, `registerTagEvaluator`) define how formula nodes are evaluated. Both are stored by name in the event DAG and replayed on all peers; the sync server does not need to know about them.
+The core engine is extended via two registries:
+
+- **Primitive edits.** Applications register custom transformations on primitive values via `registerPrimitiveEdit(name, fn)` — for example, `splitFirst` and `splitRest` for the conference table.
+- **Formula operations.** Custom formula evaluators are registered via `registerFormulaOperation` and `registerTagEvaluator`.
+
+Both are stored by name in the event DAG and replayed on all peers. The sync server does not need to know about them.
 
 ## Formula engine {#sec:formulas}
 
