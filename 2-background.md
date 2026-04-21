@@ -116,10 +116,10 @@ mydenicek implements this framework directly. The mapping is:
 +--------------------+--------------------------------------------+
 | Causal broadcast   | WebSocket relay + causal delivery buffer   |
 +--------------------+--------------------------------------------+
-| PO-Log pruning     | Stability-based (see below)                |
+| PO-Log pruning     | Not feasible on relay server (see below)   |
 +--------------------+--------------------------------------------+
 
-The event DAG is strictly richer than a PO-Log: it stores explicit parent pointers, enabling checkpoint-based incremental materialization. Causal stability is tracked following Bauwens and Gonzalez Boix [@bauwens2020stability]: the server monitors each peer's observation progress and marks events as stable when all peers have seen them. However, **stable events can only be pruned if they are not referenced by replay steps** — Denicek's programming-by-demonstration mechanism ([@Sec:replay]) stores event IDs for later replay. The pruning condition is therefore `causally stable AND unreferenced`, a principled deviation from the Baquero framework where stability alone suffices.
+The event DAG is strictly richer than a PO-Log: it stores explicit parent pointers, enabling checkpoint-based incremental materialization. Causal stability is tracked following Bauwens and Gonzalez Boix [@bauwens2020stability]: the server monitors each peer's observation progress and identifies stable events. However, **PO-Log pruning is not feasible on the relay server** for two reasons: (1) the server operates in relay mode and cannot materialize the document (it lacks application-specific edit implementations), and (2) Denicek's replay mechanism ([@Sec:replay]) references event IDs that must remain in the DAG. Stability information is instead used for observability and as a prerequisite for future client-side metadata pruning ([@Sec:future-work]).
 
 Common CRDT building blocks relevant to this thesis include:
 
