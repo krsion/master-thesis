@@ -116,9 +116,9 @@ mydenicek implements this framework directly. The mapping is:
 +--------------------+--------------------------------------------+
 | prepare            | `Denicek.add()`, `.insert()`, etc.         |
 +--------------------+--------------------------------------------+
-| effect             | `EventGraph.effect()` (= `insertEvent`)   |
+| effect             | `EventGraph.insertEvent()`               |
 +--------------------+--------------------------------------------+
-| eval               | `EventGraph.eval()` (= `materialize`)     |
+| eval               | `EventGraph.materialize()`                |
 +--------------------+--------------------------------------------+
 | Causal broadcast   | WebSocket relay + causal delivery buffer   |
 +--------------------+--------------------------------------------+
