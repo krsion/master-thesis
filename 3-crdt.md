@@ -92,37 +92,7 @@ As described in [@Sec:pure-op-crdt], mydenicek is a *pure operation-based CRDT* 
 
 ## Edit types and selector transformation rules {#sec:edit-types}
 
-The system supports the following edit types, listed in [@Tbl:edit-types].
-
-: Edit types supported by the mydenicek engine, grouped by target node type. {#tbl:edit-types}
-
-+----------------------------+--------------------------------------------------+------------------+
-| Edit type                  | Description                                      | Target           |
-+============================+==================================================+==================+
-| `RecordAddEdit`            | Add a named field to a record                    | Record           |
-+----------------------------+--------------------------------------------------+------------------+
-| `RecordDeleteEdit`         | Delete a named field from a record               | Record           |
-+----------------------------+--------------------------------------------------+------------------+
-| `RecordRenameFieldEdit`    | Rename a field                                   | Record           |
-+----------------------------+--------------------------------------------------+------------------+
-| `ListInsertEdit`           | Insert an item at a given index                  | List             |
-+----------------------------+--------------------------------------------------+------------------+
-| `ListRemoveEdit`           | Remove the item at a given index                 | List             |
-+----------------------------+--------------------------------------------------+------------------+
-| `ListReorderEdit`          | Move an item from one index to another           | List             |
-+----------------------------+--------------------------------------------------+------------------+
-| `UpdateTagEdit`            | Change a node's structural tag                   | Record or List   |
-+----------------------------+--------------------------------------------------+------------------+
-| `WrapRecordEdit`           | Wrap a node in a new parent record               | Any              |
-+----------------------------+--------------------------------------------------+------------------+
-| `WrapListEdit`             | Wrap a node in a new parent list                 | Any              |
-+----------------------------+--------------------------------------------------+------------------+
-| `CopyEdit`                 | Copy a subtree from a source to a target         | Any              |
-+----------------------------+--------------------------------------------------+------------------+
-| `ApplyPrimitiveEdit`       | Apply a registered custom edit                   | Primitive        |
-+----------------------------+--------------------------------------------------+------------------+
-
-Three additional edit types --- `UnwrapRecordEdit`, `UnwrapListEdit`, and `RestoreSnapshotEdit` --- are internal inverse operations produced only by `computeInverse()` for undo.
+The system supports 11 edit types: record operations (`RecordAdd`, `RecordDelete`, `RecordRename`), list operations (`ListInsert`, `ListRemove`, `ListReorder`), structural operations (`UpdateTag`, `WrapRecord`, `WrapList`), `CopyEdit` (subtree copy with managed mirroring), and `ApplyPrimitiveEdit` (extensible custom edits). Three additional inverse types (`UnwrapRecord`, `UnwrapList`, `RestoreSnapshot`) are produced only by `computeInverse()` for undo.
 
 ### Selector rewriting rules {#sec:selector-rules}
 
