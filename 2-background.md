@@ -54,75 +54,39 @@ This thesis takes exactly that step: replacing linear histories with a *causal e
 
 ## Operational Transformation {#sec:ot}
 
-Operational Transformation (OT) is a technique for collaborative editing introduced by Ellis and Gibbs [@ellis1989concurrency] in 1989. When two users make concurrent edits, one user's operation is *transformed* with respect to the other's so that both can be applied and produce the same result. [@Fig:ot-text-example] shows a simple example: two concurrent insertions at the same position are transformed so both peers converge.
+Operational Transformation (OT), introduced by Ellis and Gibbs [@ellis1989concurrency], transforms concurrent operations so that both peers converge to the same state. [@Fig:ot-text-example] illustrates the basic idea with two concurrent text insertions.
 
 ![OT text example. Two concurrent insertions are transformed so both peers converge to the same state.](img/ot-text-example.png){#fig:ot-text-example width=75%}
 
-OT is notoriously difficult to get right.Correctness in the decentralized setting requires satisfying two *transformation properties* formalized by Ressel et al. [@ressel1996integrating]. TP1 states that for concurrent operations $a$ and $b$, applying $a$ then $T(b, a)$ must reach the same state as applying $b$ then $T(a, b)$. TP2 states that transforming a third operation $c$ through both $a$ and $b$ must yield the same result regardless of which of $a$ or $b$ is transformed through first: $T(T(c, a), T(b, a)) = T(T(c, b), T(a, b))$. Several published OT algorithms were later proven to violate TP2, causing peers to diverge under specific interleaving patterns; Imine et al.~[@imine2003proving] give an automated-reasoning framework that exhibits concrete counter-examples for the canonical dOPT algorithm. Subsequent OT variants --- SOCT2 and SOCT4 [@suleiman1998soct], the Tombstone Transformation Framework (TTF) [@oster2006ttf], and Jupiter [@nichols1995jupiter] --- differ in whether they require TP2 (peer-to-peer settings), only TP1 (centralized serializer), or neither (transformation-less approaches). The number of transformation rules grows with each new edit type, and the interactions between rules are hard to reason about exhaustively. This fragility is one of the main motivations for exploring CRDT-based alternatives, and it is also why mydenicek sidesteps TP1/TP2 entirely by using a single deterministic replay order (see [@Sec:event-dag]).
+Correctness in the decentralized setting requires two *transformation properties* [@ressel1996integrating]: **TP1** (applying $a$ then $T(b,a)$ reaches the same state as $b$ then $T(a,b)$) and **TP2** (transforming a third operation through two concurrent ones is order-independent). Several published algorithms were later proven to violate TP2 [@imine2003proving], and the number of pairwise rules grows with each new edit type. mydenicek sidesteps TP1/TP2 entirely by using a single deterministic replay order ([@Sec:event-dag]).
 
-Sun et al.~[@sun1998achieving] decompose OT correctness into the **CCI model** with three independent properties: **convergence** (all replicas eventually reach the same state), **causality preservation** (operations are applied in an order consistent with the happens-before relation), and **intention preservation** (the effect visible to each user matches the intent of the operation they issued). TP1/TP2 are sufficient conditions for convergence under peer-local OT; intention preservation is a user-facing property that depends on the specific transformation rules and cannot be derived from TP1/TP2 alone. This thesis proves convergence for mydenicek in [@Sec:crdt-framing], relies on causal delivery for causality preservation ([@Sec:causal-delivery]), and validates intention preservation only empirically through the formative examples of [@Chap:formative].
-
-The Jupiter algorithm [@nichols1995jupiter], used in Google Docs, simplifies OT by requiring a central server that serializes all operations. This makes transformation simpler (only two-way transforms are needed) but introduces a single point of failure and prevents peer-to-peer collaboration.
+Sun et al.~[@sun1998achieving] decompose OT correctness into three properties: **convergence**, **causality preservation**, and **intention preservation** (the effect matches the user's intent). TP1/TP2 address convergence; intention preservation depends on the transformation rules and cannot be derived from them. This thesis proves convergence in [@Sec:crdt-framing] and validates intention preservation empirically through the formative examples of [@Chap:formative].
 
 ## Causality {#sec:causality}
 
-A fundamental concept in distributed systems is *causality* --- the relationship between events produced by different peers. Lamport's *happens-before* relation [@lamport1978] defines a partial order over events in a distributed system:
+Lamport's *happens-before* relation [@lamport1978] defines a partial order over events in a distributed system:
 
-> **Definition (happens-before).** The *happens-before* relation, written $a \to b$, is the smallest relation satisfying:
->
-> 1. If $a$ and $b$ were produced by the same peer, and $a$ was produced before $b$, then $a \to b$.
-> 2. If $a = \text{send}(m)$ and $b = \text{receive}(m)$ for some message $m$, then $a \to b$.
-> 3. If $a \to c$ and $c \to b$, then $a \to b$ (transitivity).
->
-> Two events $a$ and $b$ are *concurrent*, written $a \parallel b$, if neither $a \to b$ nor $b \to a$.
+> **Definition (happens-before).** $a \to b$ if (1) $a$ and $b$ are from the same peer and $a$ preceded $b$, (2) $a$ is the sending and $b$ the receipt of the same message, or (3) transitivity. Two events are *concurrent* ($a \parallel b$) if neither $a \to b$ nor $b \to a$.
 
 [@Fig:causality] illustrates these relationships in an event graph.
 
-![Causality in a distributed system. Alice creates two events locally. Bob's first event (bob:0) is the receipt of Alice's message, establishing alice:0 $\to$ alice:1 $\to$ bob:0. Note that alice:1 happens-before bob:0 despite the higher sequence number --- cross-peer causality is determined by messages, not by numbering.](img/causality.png){#fig:causality width=55%}
+![Causality in a distributed system. Alice creates two events locally. Bob's first event (bob:0) receives Alice's message, establishing alice:0 $\to$ alice:1 $\to$ bob:0. Cross-peer causality is determined by messages, not by sequence numbers.](img/causality.png){#fig:causality width=55%}
 
-Happens-before is defined abstractly, but an efficient implementation requires a concrete mechanism for detecting it. *Vector clocks* [@mattern1989virtual; @fidge1988timestamps] provide this mechanism.
-
-> **Definition (vector clock).** A vector clock $V$ is a map from peer ID to a non-negative integer. Each event $a$ carries a vector clock $V_a$ where $V_a[p]$ is the highest sequence number from peer $p$ that is a causal ancestor of $a$ (including $a$ itself if $a$ was produced by $p$). Vector clocks are updated as follows:
->
-> - **Local event.** When peer $p$ creates an event with sequence number $n$: $V[p] = n$, all other entries unchanged.
-> - **Receive event.** When peer $p$ receives a message carrying vector clock $V_m$ and creates event with sequence number $n$: $V[q] = \max(V_{\text{local}}[q], V_m[q])$ for all peers $q \neq p$, and $V[p] = n$.
-
-Vector clocks characterize the happens-before relation:
-
-> $a \to b$ if and only if $V_a[p] \leq V_b[p]$ for all peers $p$, and $V_a[q] < V_b[q]$ for at least one peer $q$.
->
-> $a \parallel b$ if and only if neither $a \to b$ nor $b \to a$.
-
-This allows concurrency detection in O(P) time (where P is the number of peers) by comparing two vectors, without traversing the event graph.
+*Vector clocks* [@mattern1989virtual; @fidge1988timestamps] implement happens-before detection. A vector clock $V$ maps each peer ID to its highest known sequence number. $a \to b$ iff $V_a[p] \leq V_b[p]$ for all $p$ with strict inequality for at least one. This allows concurrency detection in O(P) time.
 
 ### Event DAG
 
-Causal relationships between events can be represented as a *directed acyclic graph* (DAG). Each event is a node, and a directed edge from event $a$ to event $b$ means $a$ directly caused $b$ (i.e., $b$ lists $a$ as a parent). The graph is acyclic because causality cannot be circular --- an event cannot transitively depend on itself, since each event's vector clock strictly advances from its parents.
-
-The event DAG provides a natural data structure for storing the history of a collaborative editing session. Each peer appends new events to the DAG, and synchronization consists of exchanging missing events between peers. The edges encode the causal structure, enabling deterministic replay.
-
-### Frontier
-
-The *frontier* is the set of events with no descendants --- the "tips" of the DAG. [@Fig:frontier] shows a frontier with two events from different peers.
-
-![Frontier of an event DAG. Events `alice:2` and `bob:0` are both frontier events --- neither has a descendant. A new event created by either peer will have both as parents.](img/frontier.png){#fig:frontier width=55%}
-
-A frontier implicitly represents the entire causal history beneath it --- all ancestors of the frontier events are included. This makes frontiers extremely compact: regardless of how many peers have contributed or how long the editing history is, the frontier typically contains just one or two event IDs. By contrast, a vector clock grows linearly with the number of peers.
-
-However, frontiers require access to the event history to be useful. Given only a frontier, a peer cannot determine which events are included without having the DAG to traverse. Vector clocks are self-contained --- a peer can compare two vector clocks without any additional data. This leads to a natural division of roles:
-
-- **Vector clocks** are used for concurrency detection (comparing two events requires no DAG traversal).
-- **Frontiers** (explicit parent pointers) represent the DAG structure directly --- each event stores the frontier at its creation time as its parents. This makes DAG traversal, topological sorting, and sync (`eventsSince`) straightforward. The same structure could in principle be reconstructed from vector clocks alone, but this would require recomputing the transitive reduction of the happens-before relation.
-
-When a peer creates a new event, the current frontier becomes the event's parents. After both peers sync and one makes a new edit, the resulting event has *multiple parents* --- one from each branch --- merging the frontier back to a single point. This is analogous to a merge commit in version control.
+Causal relationships form a directed acyclic graph (DAG): each event lists its parents (direct causes). The DAG encodes the full causal structure and enables deterministic replay. The *frontier* --- events with no descendants --- compactly represents the current state. When a peer creates a new event, the current frontier becomes its parents; after sync, a new event merges multiple parents back to a single point, analogous to a merge commit.
 
 ## Reliable causal delivery {#sec:causal-delivery}
 
-Network messages can *arrive* (be received) in any order --- the network provides no ordering guarantees. *Causal delivery* means that messages are *delivered to the application* in an order consistent with causality: if event $a$ causally precedes event $b$, then $a$ must be delivered before $b$. Concurrent events may be delivered in any order.
+The pure op-based CRDT framework [@baquero2017pureop] requires two delivery guarantees:
 
-In mydenicek, causal delivery is implemented with a buffer: when a message arrives whose causal dependencies have not yet been delivered, it is held until those dependencies arrive. Parent pointers are used to check whether all dependencies are satisfied --- the event graph's `ingestEvents` method buffers out-of-order events and flushes them in causal order once their parent events have been inserted (see [@Sec:sync]).
+> **Causal consistency.** If operation $a$ is delivered, all operations causally before $a$ have already been delivered.
+>
+> **Eventual delivery.** Every operation generated by a correct process is eventually delivered to all correct processes.
 
-*Reliability* --- ensuring that no messages are permanently lost --- is a separate concern. In mydenicek, this is handled by frontier-based catch-up: on each sync round, a peer sends its current frontier, and the other peer responds with all events the sender is missing (computed via `eventsSince`). If a message is lost, the sender's frontier does not advance, and the missing events are resent on the next round. This is simple but requires the server to retain the full event history. mydenicek does not use virtual synchrony or any of the more sophisticated reliable broadcast protocols described below; the frontier-based catch-up mechanism is sufficient for the current use cases where the sync server retains the full event history. More efficient approaches exist: the Trans protocol [@melliarsmith1990trans] provides reliable broadcast over local area networks, and Transis [@amir1992transis] extends it with *virtual synchrony* --- dynamic group membership that handles peers connecting and disconnecting while maintaining consistent message delivery guarantees. Tanenbaum and Van Steen [@tanenbaum2017distributed] provide a comprehensive overview of these and other reliable broadcast protocols.
+In mydenicek, causal delivery is implemented by buffering: when a message arrives whose parents have not yet been delivered, it is held until they arrive. Eventual delivery is ensured by frontier-based catch-up: on each sync round, a peer sends its frontier, and the server responds with all missing events. If a message is lost, the frontier does not advance and missing events are resent on the next round.
 
 ## Conflict-free Replicated Data Types {#sec:crdts}
 
