@@ -1,7 +1,5 @@
 # Evaluation {#chap:evaluation}
 
-This chapter presents formative examples, compares the approaches investigated, and evaluates correctness and performance.
-
 ## Formative examples {#sec:formative-examples}
 
 
@@ -279,8 +277,6 @@ Recorded edit sequences survive structural refactoring. The "Add Speaker" button
 This uses the same OT transformations as concurrent editing. The only difference is that replay transforms through *all* later edits (not just concurrent ones), because the recorded edit's position in the DAG is at the recording point.
 
 
-
-This chapter evaluates the mydenicek implementation against Denicek's requirements, compares the three approaches investigated, discusses the testing strategy, and identifies limitations.
 
 ## Approach comparison {#sec:comparison}
 
