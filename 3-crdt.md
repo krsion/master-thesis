@@ -1,6 +1,6 @@
 # The mydenicek CRDT {#chap:implementation}
 
-mydenicek is a collaborative editing engine for tagged document trees that uses selector-rewriting transformations on an event DAG. These transformations rewrite selectors through concurrent structural edits, but the system is a pure operation-based CRDT, not an OT system: convergence follows from the pure view function over a G-Set, not from TP1/TP2. When subsequent sections refer to "OT-style" transformations, they mean selector rewriting specifically.
+mydenicek is a pure operation-based CRDT for collaborative editing of tagged document trees. The replica state is a grow-only set of edit events; the document is computed by a deterministic view function that replays events in topological order, rewriting selectors through concurrent structural edits. This chapter describes the document model, the convergence argument, and the selector-rewriting rules that achieve intention preservation.
 
 ## Architecture overview {#sec:architecture}
 
