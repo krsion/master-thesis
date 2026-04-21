@@ -16,6 +16,6 @@ The system was validated on five formative examples, 310 tests (including proper
 
 **Optimized materialization.** The `resolveAgainst` step scans all prior events per replayed event ($O(N^2)$). Indexing priors by target prefix would reduce this. The current implementation could serve as a reference oracle for validating faster versions via model-guided fuzzing [@ozkan2025modelfuzz].
 
-**Extended verification.** The TLA+ model covers five edit types on a flat record. Extending it to nested trees and wildcards, or mechanizing the proof in Isabelle/HOL, would provide stronger guarantees.
+**Extended verification.** The TLA+ model covers five edit types on a flat record. Extending it to nested trees and wildcards, or encoding the selector rewriting rules in VeriFx [@bauwens2022verifx] — an automated verification tool designed specifically for CRDTs — would provide mechanical convergence guarantees beyond the current bounded model.
 
 **Character-level text.** Integrating a text CRDT (e.g., Fugue) for primitive strings would replace last-writer-wins semantics.
