@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="520" height="200" viewBox="0 0 520 200">
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="420" viewBox="0 0 280 420">
   <style>
     text { font-family: monospace; font-size: 11px; fill: #333; }
     .label { font-size: 10px; fill: #666; font-style: italic; }
-    .op { font-size: 10px; fill: #0078d4; }
+    .op { font-size: 10px; fill: #0078d4; font-weight: bold; }
     .box { rx: 6; ry: 6; stroke-width: 1.5; }
   </style>
   <defs>
@@ -13,57 +13,50 @@
   </defs>
 
   <!-- User edit -->
-  <rect x="10" y="70" width="80" height="40" class="box" fill="#e6f4ea" stroke="#34a853"/>
-  <text x="50" y="87" text-anchor="middle" font-weight="bold">User edit</text>
-  <text x="50" y="100" text-anchor="middle" class="label">add, rename, …</text>
+  <rect x="70" y="10" width="140" height="36" class="box" fill="#e6f4ea" stroke="#34a853"/>
+  <text x="140" y="28" text-anchor="middle" font-weight="bold">User edit</text>
+  <text x="140" y="40" text-anchor="middle" class="label">add, rename, insert, …</text>
 
-  <!-- Arrow: edit → prepare -->
-  <line x1="90" y1="90" x2="115" y2="90" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
-  <text x="103" y="82" class="op">prepare</text>
+  <!-- Arrow down: prepare -->
+  <line x1="140" y1="46" x2="140" y2="76" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="155" y="66" class="op">prepare</text>
 
   <!-- Event -->
-  <rect x="118" y="70" width="70" height="40" class="box" fill="#fff4e5" stroke="#f5a623"/>
-  <text x="153" y="87" text-anchor="middle" font-weight="bold">Event</text>
-  <text x="153" y="100" text-anchor="middle" class="label">edit + clock</text>
+  <rect x="70" y="80" width="140" height="36" class="box" fill="#fff4e5" stroke="#f5a623"/>
+  <text x="140" y="98" text-anchor="middle" font-weight="bold">Event</text>
+  <text x="140" y="110" text-anchor="middle" class="label">edit + vector clock + parents</text>
 
-  <!-- Arrow: event → effect -->
-  <line x1="188" y1="90" x2="213" y2="90" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
-  <text x="200" y="82" class="op">effect</text>
+  <!-- Arrow down: effect -->
+  <line x1="140" y1="116" x2="140" y2="146" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="155" y="136" class="op">effect</text>
 
-  <!-- PO-Log (Event DAG) -->
-  <rect x="216" y="55" width="90" height="70" class="box" fill="#f5f5f5" stroke="#666"/>
-  <text x="261" y="78" text-anchor="middle" font-weight="bold">PO-Log</text>
-  <text x="261" y="91" text-anchor="middle" class="label">(Event DAG)</text>
-  <text x="261" y="104" text-anchor="middle" class="label">G-Set of events</text>
-  <text x="261" y="117" text-anchor="middle" class="label">= CRDT state</text>
+  <!-- PO-Log -->
+  <rect x="50" y="150" width="180" height="56" class="box" fill="#f5f5f5" stroke="#666"/>
+  <text x="140" y="170" text-anchor="middle" font-weight="bold">PO-Log (Event DAG)</text>
+  <text x="140" y="184" text-anchor="middle" class="label">G-Set of events = CRDT state</text>
+  <text x="140" y="198" text-anchor="middle" class="label">append-only, never pruned</text>
 
-  <!-- Arrow: PO-Log → eval -->
-  <line x1="306" y1="90" x2="331" y2="90" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
-  <text x="318" y="82" class="op">eval</text>
+  <!-- Arrow down: eval -->
+  <line x1="140" y1="206" x2="140" y2="236" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="155" y="226" class="op">eval</text>
 
-  <!-- materialize box -->
-  <rect x="334" y="45" width="100" height="90" class="box" fill="#e8f0fe" stroke="#0078d4"/>
-  <text x="384" y="65" text-anchor="middle" font-weight="bold">materialize</text>
-  <text x="384" y="80" text-anchor="middle" class="label">1. topological sort</text>
-  <text x="384" y="93" text-anchor="middle" class="label">2. resolveAgainst</text>
-  <text x="384" y="106" text-anchor="middle" class="label">   (selector rewriting)</text>
-  <text x="384" y="119" text-anchor="middle" class="label">3. apply each edit</text>
+  <!-- materialize -->
+  <rect x="40" y="240" width="200" height="76" class="box" fill="#e8f0fe" stroke="#0078d4"/>
+  <text x="140" y="258" text-anchor="middle" font-weight="bold">materialize</text>
+  <text x="140" y="274" text-anchor="middle" class="label">1. topological sort (Kahn)</text>
+  <text x="140" y="288" text-anchor="middle" class="label">2. resolveAgainst (selector rewriting)</text>
+  <text x="140" y="302" text-anchor="middle" class="label">3. apply each edit to document</text>
 
-  <!-- Arrow: materialize → document -->
-  <line x1="434" y1="90" x2="459" y2="90" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
+  <!-- Arrow down -->
+  <line x1="140" y1="316" x2="140" y2="346" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
 
   <!-- Document -->
-  <rect x="462" y="70" width="50" height="40" class="box" fill="#e6f4ea" stroke="#34a853"/>
-  <text x="487" y="87" text-anchor="middle" font-weight="bold">Doc</text>
-  <text x="487" y="100" text-anchor="middle" class="label">Node tree</text>
+  <rect x="70" y="350" width="140" height="36" class="box" fill="#e6f4ea" stroke="#34a853"/>
+  <text x="140" y="368" text-anchor="middle" font-weight="bold">Document</text>
+  <text x="140" y="380" text-anchor="middle" class="label">tagged Node tree</text>
 
-  <!-- Sync arrow (below) -->
-  <line x1="261" y1="125" x2="261" y2="155" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
-  <rect x="216" y="158" width="90" height="30" class="box" fill="#fce8e6" stroke="#ea4335"/>
-  <text x="261" y="177" text-anchor="middle" class="label">sync to peers</text>
-
-  <!-- Baquero labels -->
-  <text x="50" y="40" text-anchor="middle" class="op">Baquero: prepare</text>
-  <text x="261" y="40" text-anchor="middle" class="op">state (G-Set)</text>
-  <text x="384" y="35" text-anchor="middle" class="op">eval</text>
+  <!-- Sync arrow (right side) -->
+  <line x1="230" y1="178" x2="260" y2="178" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="245" y="170" class="op" text-anchor="middle">sync</text>
+  <text x="264" y="184" class="label">peers</text>
 </svg>
