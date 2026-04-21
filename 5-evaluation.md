@@ -301,26 +301,13 @@ This chapter evaluates the mydenicek implementation against Denicek's requiremen
 
 Automerge and Loro excel at general-purpose collaborative JSON editing but lack the path-based features Denicek requires. The custom approach sacrifices character-level text editing (a limitation) but gains native support for all of Denicek's programming-by-demonstration features.
 
-**Comparison with the original Denicek.** The original Denicek system uses a Git-like collaboration model: each peer works on a local branch, and merging requires a manual three-way merge step where the user resolves conflicts by hand. mydenicek replaces this with automatic merge --- when peers sync, the CRDT's deterministic replay produces a converged document with no manual intervention. Concurrent structural edits (renames, wraps, schema evolution) and concurrent data edits (insertions, value changes) are resolved automatically by the OT transformation rules. This is essential for real-time collaboration: users see each other's changes appear live, without merge dialogs or conflict markers. The trade-off is that the automatic resolution follows fixed rules (e.g., topological order determines which concurrent add "wins" for the same field), whereas manual merge lets the user choose. For Denicek's use case --- structural transformations and programming by demonstration --- the automatic approach is the right default, because the wildcard-affects-concurrent-insertions semantics ([@Sec:wildcard-concurrent]) produces the intuitively correct result in the common case.
+**Comparison with the original Denicek.** The original Denicek uses a Git-like model: peers work on local branches and merge manually. mydenicek replaces this with automatic merge — the CRDT's deterministic replay resolves concurrent edits without user intervention. The trade-off: automatic resolution follows fixed rules (topological order determines winners), whereas manual merge lets the user choose.
 
 [@Tbl:approach-comparison] is evaluated against Denicek's requirements. For other use cases, Automerge and Loro offer advantages: character-level text editing, compact binary encoding for millions of operations, mature ecosystems, and peer-to-peer transport. mydenicek sacrifices these for native path-based selectors, wildcards, and structural edit rewriting.
 
 ## Formative example results {#sec:results}
 
-All six formative examples described in [@Sec:formative-examples] are implemented and pass their respective tests, as shown in [@Tbl:formative-results].
-
-: Formative example test results. {#tbl:formative-results}
-
-| Example | Test file | Features |
-|---------|-----------|----------|
-| Hello World | `hello-world` | Custom edits, wildcard replay |
-| Counter | `counter` | Formulas, recording/replay |
-| Conf. List | `conference-list` | Recorded adds, concurrent insert |
-| Conf. Table | `conference-list` | Structural transform, split formulas |
-| Conf. Table (concurrent) | `conference-list` | Concurrent structural + data edits, wildcard expansion |
-| Button replay after refactor | `conference-list` | Button replay after schema evolution, retargeted insert |
-
-The conference table example with concurrent editing is the most significant result: it exercises the full OT pipeline --- wildcard expansion, structural transformations (tag updates, wraps), formula creation, and concurrent list insertions all interacting in a single scenario. It demonstrates that the system handles the composition of these features correctly, producing a consistent merged table from independently edited list and table structures.
+All six formative examples pass their tests. The conference table with concurrent editing is the most significant: it exercises the full OT pipeline — wildcard expansion, structural transformations, formula creation, and concurrent list insertions — in a single scenario, producing a consistent merged table from independently edited structures.
 
 ## Testing strategy {#sec:testing}
 
