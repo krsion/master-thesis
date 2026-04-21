@@ -100,7 +100,7 @@ This is not a one-off interaction: any edit that a path-OT layer would rewrite t
 
 ## The custom approach {#sec:custom}
 
-Inspired by Eg-walker [@gentle2025egwalker] but framed as a *pure operation-based CRDT* [@baquero2017pureop] rather than an OT/CRDT hybrid, we built a custom event-graph design that combines the robustness of CRDTs (peer-to-peer sync without a central server) with the simplicity of OT-style selector rewriting (path-based addressing, no per-node metadata).
+Framed as a *pure operation-based CRDT* [@baquero2017pureop] and borrowing the event-graph architecture from Eg-walker [@gentle2025egwalker], we built a custom design that combines the robustness of CRDTs with the simplicity of OT-style selector rewriting.
 
 The key design decisions are:
 
