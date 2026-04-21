@@ -120,13 +120,13 @@ The classical TP1 and TP2 properties [@ressel1996integrating] are not needed: th
 
 **Concurrent structural conflicts.** Several concurrent scenarios illustrate the resolution semantics.
 
-*Concurrent renames of the same field.* The first rename in replay order succeeds; the second's source selector is transformed through the first, so it renames the already-renamed field. The last rename wins.
+*Concurrent renames of the same field.* Alice renames `name` → `fullName`, Bob renames `name` → `title`. The first rename in replay order succeeds. The second's source selector is transformed through the first (`name` becomes `fullName`), so it renames `fullName` → `title`. Result: the field ends up as `title` on both peers.
 
-*Concurrent wraps of the same target.* Both wraps succeed in sequence, producing a doubly-wrapped structure --- the original value nested two levels deep. Neither peer intended this; it is a known compromise that preserves both edits. In practice, concurrent wraps of the same node are uncommon.
+*Concurrent wraps of the same target.* Alice wraps `value` into a `formula` record, Bob wraps `value` into a `container` record. Both wraps succeed in sequence: the second wrap's selector is transformed through the first, producing a doubly-wrapped structure. Neither peer intended double nesting; this is a known compromise that preserves both edits.
 
-*Concurrent indexed insert and remove.* Non-strict indices are shifted through concurrent operations. A concurrent `insert(0, "NEW")` and `remove(0)` both converge to the same result regardless of replay order: the original item is removed and the new item is inserted, because OT shifts the remove's target past the insertion.
+*Concurrent indexed insert and remove.* Starting from `["a", "b", "c"]`, Alice inserts `"NEW"` at index 0, Bob removes index 0. With non-strict indices, OT shifts the remove's target past the insertion: the remove still targets `"a"` (now at index 1), and the insert lands at 0. Both replay orders converge to `["NEW", "b", "c"]`.
 
-*Strict indices.* With `strict=true`, the index is not shifted by OT. A concurrent strict insert and strict remove at index 0 can cancel each other out, because the remove targets the newly inserted item. Non-strict indices provide better intent preservation for concurrent list modifications.
+*Strict indices.* With `strict=true`, the index is not shifted by OT --- it refers to the position at replay time. A concurrent strict insert and strict remove at index 0 can cancel each other: if the insert replays first, the remove targets the *newly inserted* item, not the original. Non-strict indices provide better intent preservation for concurrent list modifications.
 
 *Negative indices.* Non-strict negative indices (e.g., `-1` for append) are resolved to absolute positions using a stored `listLength` and then shifted like positive indices. Strict negative indices are resolved at replay time and not shifted.
 
