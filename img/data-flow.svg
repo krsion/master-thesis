@@ -56,7 +56,7 @@
   <text x="140" y="380" text-anchor="middle" class="label">tagged Node tree</text>
 
   <!-- Sync arrow (right side) -->
-  <line x1="230" y1="178" x2="260" y2="178" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
-  <text x="245" y="170" class="op" text-anchor="middle">sync</text>
-  <text x="264" y="184" class="label">peers</text>
+  <line x1="230" y1="178" x2="255" y2="178" stroke="#666" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="243" y="170" class="op" text-anchor="middle">sync</text>
+  <text x="243" y="194" class="label" text-anchor="middle">peers</text>
 </svg>
