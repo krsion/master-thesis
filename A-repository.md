@@ -10,7 +10,7 @@ The mydenicek implementation evaluated in this thesis is maintained as a separat
 
 - `packages/core/` --- the core CRDT engine (event graph, edits, selector rewriting, materialization). All theorems and invariants in [@Chap:implementation] refer to code in this package.
 - `packages/sync/` --- the WebSocket relay server library.
-- `apps/mywebnicek/` --- the React single-page application used for the web demos referenced in [@Chap:formative].
+- `apps/mywebnicek/` --- the React single-page application used for the web demos referenced in [@Sec:formative-examples].
 - `apps/sync-server/` --- the deployed sync server.
 - `packages/core/tests/` --- unit, property-based, and formative tests.
 
@@ -33,3 +33,4 @@ deno task mywebnicek:dev # start the web app on http://localhost:5173
 Deployed instances of the server and web app (used to reproduce the Playwright browser tests) are described in [@Sec:hosting]. The live demo is at <https://krsion.github.io/mydenicek>.
 
 **Thesis repository.** The Markdown-plus-LaTeX source of this thesis is at <https://github.com/krsion/master-thesis>.
+

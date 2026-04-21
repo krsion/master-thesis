@@ -36,11 +36,10 @@ keywords-en:
 thesis_chapters:
   - 1-intro
   - 2-background
-  - 3-journey
-  - 4-implementation
-  - 5-formative-examples
-  - 6-evaluation
-  - 7-conclusion
+  - 3-crdt
+  - 4-system
+  - 5-evaluation
+  - 6-conclusion
 
 appendicies:
   - A-repository

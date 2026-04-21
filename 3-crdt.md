@@ -1,0 +1,213 @@
+# The mydenicek CRDT {#chap:implementation}
+
+mydenicek is a collaborative editing engine for tagged document trees that uses selector-rewriting transformations on an event DAG. These transformations rewrite selectors through concurrent structural edits, but the system is a pure operation-based CRDT, not an OT system: convergence follows from the pure view function over a G-Set, not from TP1/TP2. When subsequent sections refer to "OT-style" transformations, they mean selector rewriting specifically.
+
+## Architecture overview {#sec:architecture}
+
+The system is organized in five packages, as shown in [@Fig:architecture].
+
+![Architecture of the mydenicek monorepo. The web application depends on React bindings and the sync package, both of which depend on the core engine. The deployed sync server (apps/sync-server) also uses the sync package.](img/architecture.png){#fig:architecture width=70%}
+
+The packages are:
+
+- **`packages/core`** (`@mydenicek/core`\footnote{\url{https://jsr.io/@mydenicek/core}}) --- the collaborative editing engine. Contains the document model, event DAG, edit types, selector rewriting rules, undo/redo, formula engine, and recording/replay. Minimal runtime dependency: only `@std/data-structures/binary-heap` from the Deno standard library, used for the Kahn priority queue. Pure TypeScript, no WASM. The core has no concept of a server or network --- it only knows about events and peers, making it compatible with any transport layer.
+- **`packages/react`** (`@mydenicek/react`\footnote{\url{https://jsr.io/@mydenicek/react}}) --- React bindings. The `useDenicek` hook provides reactive document state, mutation helpers, and sync lifecycle management.
+- **`packages/sync`** (`@mydenicek/sync`\footnote{\url{https://jsr.io/@mydenicek/sync}}) --- a client-server sync implementation built on top of the core. Provides a WebSocket-based client and relay server for exchanging events via a central server. The server operates in *relay mode*: it stores and forwards events without materializing documents or understanding edit semantics. This package is one possible transport --- the core could equally be used with peer-to-peer transport such as WebRTC.
+- **`apps/mywebnicek`** --- web application. React 19 interface with a terminal-style command bar, rendered document view, raw JSON view, and event DAG visualization.
+- **`apps/sync-server`** --- deployed sync server. A Deno HTTP server that hosts WebSocket rooms using `@mydenicek/sync`, persists events to disk, and runs on Azure Container Apps.
+
+The layered design ensures that the core engine has no knowledge of the UI or transport layer, and the sync server has no knowledge of edit types. Custom primitive edits (such as `splitFirst` and `splitRest`) are registered only in the application layer and do not need to be known by the server.
+
+### Core class architecture {#sec:core-classes}
+
+The core engine is organized around five main class hierarchies:
+
+- **`Denicek`** is the top-level facade. It owns an `EventGraph` and a peer ID, and exposes all editing operations (`add`, `delete`, `rename`, `insert`, `wrapRecord`, etc.) as methods that create `Edit` objects and commit them as `Event` objects to the graph. It also manages undo/redo stacks and replay.
+- **`EventGraph`** stores all `Event` objects in a map keyed by `EventId`, maintains the current frontier, and implements materialization (deterministic topological replay), `resolveReplayEdit` (for recording/replay), and `ingestEvents` (for sync with causal delivery buffering).
+- **`Event`** is an immutable value object containing an `EventId`, a list of parent `EventId`s, an `Edit`, and a `VectorClock`. Its `resolveAgainst` method transforms the edit through all previously applied concurrent edits during materialization.
+- **`Node`** is the abstract base class for the four document node types: `RecordNode`, `ListNode`, `PrimitiveNode`, and `ReferenceNode`. Nodes support navigation by `Selector`, cloning, and structural mutation (used during materialization).
+- **`Edit`** is the abstract base class for all edit types, described in detail in [@Sec:ot-architecture]. Each edit knows how to `apply` itself to a document, `transform` its selector through a prior edit, and `computeInverse` for undo.
+
+`Selector` and `VectorClock` are value objects. `Selector` handles parsing, matching, wildcard expansion, and prefix comparison. `VectorClock` supports merge (component-wise max), dominance comparison, and advancement.
+
+### Technology choices {#sec:tech-choices}
+
+**TypeScript.** Local-first applications target the browser, where JavaScript is the dominant language. TypeScript adds static type safety, which is particularly valuable in a collaborative editing engine where subtle type errors (e.g., confusing a selector path with a plain string, or passing the wrong event structure) can cause silent convergence failures.
+
+**Deno.** Deno is a JavaScript and TypeScript runtime created by Ryan Dahl, the original creator of Node.js. Unlike Node.js, Deno runs TypeScript natively without a compilation step and includes a built-in formatter, linter, and test runner. This eliminates the configuration overhead of separate tools (ESLint, Prettier, Jest, tsconfig) that a Node.js project would require.
+
+**React.** React is a widely-used JavaScript library for building user interfaces, developed by Meta. The core engine is framework-agnostic, but the `@mydenicek/react` package provides React-specific bindings because React is the most mainstream frontend framework, making the library accessible to the widest audience.
+
+**JSR.** JSR (JavaScript Registry) is a package registry developed by the Deno team as an alternative to npm. It accepts TypeScript source directly (npm requires pre-compiled JavaScript), which simplifies the publishing workflow. The three mydenicek packages are published on JSR.
+
+## Document model {#sec:doc-model}
+
+Documents are modeled as tagged trees with four node types:
+
+- **Record** --- a set of named fields, each containing a child node, plus a structural tag.
+- **List** --- an ordered sequence of child nodes with a structural tag.
+- **Primitive** --- a scalar value: string, number, or boolean.
+- **Reference** --- a pointer to another node via a relative or absolute path.
+
+Reference nodes are unusual in collaborative editing systems. In most CRDT-based systems (Automerge, Loro, json-joy), nodes reference each other via opaque unique IDs --- stable across moves and structural changes, but unable to express relative relationships like "my sibling at index 0." CRDT spreadsheets (e.g., Sypytkowski's work) similarly use stable UIDs for cell references, avoiding the need for reference transformation entirely. In mydenicek, references are *path-based* (`../0/source`), meaning they navigate the tree relative to their position. This enables patterns like formula nodes referencing sibling data, but requires OT to keep references valid when structural edits (rename, wrap) change the paths they traverse.
+
+Nodes are addressed by *selectors* --- slash-separated paths that describe how to navigate the tree from the root. The selector `speakers/0/name` navigates to the `speakers` field, then to the first list item (index 0), then to the `name` field. Unless stated otherwise, examples in this thesis use selectors *relative to the document root*, without a leading `/`. A leading `/` is only significant in reference nodes (see `Reference` above), where it distinguishes absolute paths from paths relative to the reference's own position. Selectors support three special forms:
+
+- **Wildcards** (`*`): `speakers/*` expands to all children of the `speakers` list. An edit targeting `speakers/*` is applied to every item.
+- **Strict indices** (`!0`): `speakers/!0` refers to the item at index 0 *at the time of the edit*. Unlike plain `0`, strict indices are not shifted by concurrent insertions --- they always refer to the original position. This is essential for the recording and replay mechanism described in [@Sec:replay].
+- **Parent navigation** (`..`): used in references to navigate up the tree. `../../0/contact` goes up two levels, then navigates to `0/contact`.
+
+[@Tbl:selector-notation] summarizes the selector notation used throughout this thesis.
+
+: Selector notation summary. {#tbl:selector-notation}
+
+| Form | Example | Meaning |
+|------|---------|---------|
+| Field name | `speakers/0/name` | Navigate by field name or list index (root-relative) |
+| Wildcard | `speakers/*` | Expand to all children of the target node |
+| Strict index | `speakers/!0` | Index at edit-creation time; not shifted by concurrent inserts |
+| Parent (`..`) | `../../0/contact` | Navigate up the tree (used in `$ref` paths) |
+| Absolute `$ref` | `$ref: "/speakers/0"` | Reference resolved from document root |
+| Relative `$ref` | `$ref: "../0/source"` | Reference resolved from the reference node's own position |
+
+## Event DAG {#sec:event-dag}
+
+The event directed acyclic graph (DAG) is the core data structure of mydenicek. It is a grow-only, append-only structure --- events are immutable once created, and new events can only be added, never modified or removed. This makes the event set a G-Set (grow-only set), one of the simplest CRDTs: two peers that have received the same set of events will always produce the same document. Each edit creates an *event* containing:
+
+- **EventId** --- a unique identifier `peer:seq`, where `peer` is the peer's string identifier and `seq` is a monotonically increasing sequence number. For example, `alice:3` is Alice's third event.
+- **Parents** --- the set of event IDs that formed the *frontier* of the creating peer's DAG immediately before this event was appended. Equivalently, they are the most recent events the peer had seen. After the new event is inserted, those parents are no longer on the frontier --- the frontier collapses to this new event alone. An event with multiple parents therefore corresponds to the first edit after a sync that brought in another peer's branch, and is the merge point of the two branches.
+- **Edit** --- the actual edit operation (add, delete, rename, set, insert, wrapRecord, etc.) with its target selector and arguments.
+- **Vector clock** --- a map from peer ID to the highest sequence number seen from that peer. The vector clock enables causal ordering: event A *happens-before* event B if A's vector clock is dominated by B's. Two events are *concurrent* if neither dominates the other.
+
+Parents and vector clocks serve complementary roles. Parents define the direct edges of the DAG --- they are needed for topological sorting and for the sync protocol's `eventsSince(frontiers)` computation. Vector clocks summarize the full causal ancestry of an event, enabling efficient concurrency detection: checking whether two events are concurrent requires only comparing their vector clocks (O(P) where P is the number of peers) rather than traversing the DAG to test reachability. For example, Alice's event with clock `{alice: 5, bob: 3}` and Bob's event with clock `{alice: 2, bob: 4}` are concurrent because neither clock dominates the other (`alice: 5 > 2` but `bob: 3 < 4`).
+
+For wire transport and persistence, events are serialized as JSON using a codec layer (`remote-edit-codec.ts` and `remote-events.ts`). Each `Edit` subclass implements `encodeRemoteEdit()` to produce its serialized form --- this works through polymorphism, since the encoder has a concrete `Edit` object and can call its method directly. Decoding is the inverse problem: the receiver has a plain JSON object and must reconstruct the correct `Edit` subclass, but does not know which class to instantiate until it reads the `kind` field. This is solved via a decoder registry: each edit type registers a decoder function via `registerRemoteEditDecoder(kind, decoderFn)` at module load time. The registry maps the `kind` string to the corresponding factory function, avoiding a central switch statement and keeping the codec extensible.
+
+### Materialization
+
+To reconstruct the document from the event DAG, we perform *deterministic topological replay*:
+
+1. Sort all events in topological order using Kahn's algorithm. When multiple events have no unprocessed dependencies (i.e., they are concurrent), break ties deterministically by comparing their `EventId` values lexicographically.
+2. Starting from the initial document, apply each event's edit in order. Before applying, call `resolveAgainst` --- the OT step that transforms the edit's selector through all previously applied concurrent edits.
+3. If a transformed edit becomes invalid (e.g., it targets a node that was deleted by a concurrent edit), it becomes a *no-op conflict* that is recorded but does not modify the document. The original event remains in the DAG (events are immutable and never removed), and the conflict is recorded in a separate conflict list returned by `materialize()`. Application code can inspect these conflicts to inform the user, but no automatic recovery is attempted --- the event simply has no effect on the materialized document.
+
+Two optimizations avoid replaying from scratch on every call:
+
+- **Linear extension cache.** When a new event's parents exactly match the current frontier (the common case during local editing and live sync), the event is a *linear extension* of the graph. In that case, `resolveAgainst` is a no-op (every prior is a causal ancestor), so the edit is applied directly to the cached document in O(1) amortized time.
+- **Checkpoint-based merge resumption.** When a merge invalidates the linear cache (because the new event has parents from a different branch), the current materialized state is saved as a *checkpoint* keyed by its frontier hash. On the next `materialize()`, the system finds the longest checkpoint whose topological order is a prefix of the current order and resumes replay from that point. This means a merge replays only the events after the fork point, not the entire history. Up to 16 checkpoints are retained with LRU eviction.
+
+The `resolveAgainst` step is the heart of convergence. When the materializer is about to apply event E, it iterates over all previously applied events. For each prior event P, it first checks whether E's vector clock dominates P's --- if so, P is a causal ancestor of E and is skipped. Otherwise, if neither clock dominates the other, the events are concurrent, and the materializer calls `transformLaterConcurrentEdit(P.edit, E.edit)`, which rewrites E's selector (and potentially its payload) through P's structural effect. Transformations compose: if E is concurrent with priors P₁, P₂, and P₃, the edit is first transformed through P₁, then the result through P₂, then through P₃. The iteration is O(N) per event (where N is the total number of applied events), making the full materialization O(N²) in the worst case. In practice, most priors are causal ancestors and are skipped after a cheap vector clock comparison (O(P) where P is the number of peers). After all priors have been processed, the materializer checks whether the final transformed edit can still be applied to the current document state (via `canApply`). If not --- for example, because a concurrent delete removed the target node --- the edit is downgraded to a no-op conflict.
+
+Because the sort order is deterministic and the selector-rewriting transformations are deterministic, any two peers that have received the same set of events produce the same document. This is the strong eventual consistency guarantee, stated precisely in [@Sec:crdt-framing] below.
+
+### mydenicek as a pure op-based CRDT {#sec:crdt-framing}
+
+As described in [@Sec:pure-op-crdt], mydenicek is a *pure operation-based CRDT* [@baquero2017pureop]. The replica state is the event set $\mathcal{E}$ (a G-Set). The document is a **pure view function** $\text{materialize}: 2^{\text{Event}} \to \text{Node}$ --- the composition of topological ordering, `resolveAgainst` (selector rewriting), and `apply`. Convergence requires only that `materialize` is deterministic; the G-Set guarantees eventual agreement on the event set ([@Sec:sync-protocol]).
+
+**Assumption (peer-ID uniqueness).** Every `EventId = (peer, seq)` produced across all replicas is globally unique, enforced at ingest (see [@Sec:peer-id]).
+
+**Theorem (deterministic view function).** *For any two replicas $R_1, R_2$ with $\mathcal{E}(R_1) = \mathcal{E}(R_2)$, $\text{materialize}(R_1) = \text{materialize}(R_2)$.*
+
+**Proof sketch.** The proof relies on three determinism properties: (1) `topologicalOrder` is deterministic because `EventId` lexicographic comparison is a strict total order and the implementation accesses events only via keyed `Map.get`; (2) `resolveAgainst` is pure --- it walks the applied list sequentially, dispatching `transformLaterConcurrentEdit` on each edit's class with no hidden state; (3) `apply` is pure --- small local mutations over node types with no randomness or iteration-order dependence. Given these, an induction on the topological order shows that $d_k$ and the applied-prefix list are identical on both replicas at every step $k$, so $d_n = \text{materialize}(\mathcal{E})$ is the same on both. $\square$
+
+**Strong eventual consistency** then follows from the Baquero framework ([@Sec:pure-op-crdt]): the G-Set ensures all replicas eventually hold the same event set, and the deterministic view function produces the same document. Implementation-level determinism is audited in [@Sec:determinism-audit].
+
+**Convergence vs. intention preservation.** Convergence --- replicas agreeing on the same document --- is the easy part: it follows from the G-Set + pure view function. The hard part is **intention preservation**: ensuring that the converged document reflects what each user intended. This means references must survive structural edits, wildcard operations must expand over concurrent inserts, index-based operations must shift through concurrent modifications, and recorded edit sequences must replay correctly after schema evolution. These properties are not formalized; they are design choices validated empirically by the formative examples ([@Sec:formative-examples]) and property-based tests ([@Sec:property-tests]). The classical TP1 and TP2 properties [@ressel1996integrating] are not needed --- they are conditions for peer-local OT where peers apply operations in different local orders, while mydenicek's replay order is fixed by the DAG.
+
+**Concurrent structural conflicts.** Several concurrent scenarios illustrate the resolution semantics.
+
+*Concurrent renames of the same field.* Alice renames `name` → `fullName`, Bob renames `name` → `title`. The first rename in replay order succeeds. The second's source selector is transformed through the first (`name` becomes `fullName`), so it renames `fullName` → `title`. Result: the field ends up as `title` on both peers.
+
+*Concurrent wraps of the same target.* Alice wraps `value` into a `formula` record, Bob wraps `value` into a `container` record. Both wraps succeed in sequence: the second wrap's selector is transformed through the first, producing a doubly-wrapped structure. Neither peer intended double nesting; this is a known compromise that preserves both edits.
+
+*Concurrent indexed insert and remove.* Starting from `["a", "b", "c"]`, Alice inserts `"NEW"` at index 0, Bob removes index 0. With non-strict indices, OT shifts the remove's target past the insertion: the remove still targets `"a"` (now at index 1), and the insert lands at 0. Both replay orders converge to `["NEW", "b", "c"]`.
+
+*Strict indices.* With `strict=true`, the index is not shifted by OT --- it refers to the position at replay time. A concurrent strict insert and strict remove at index 0 can cancel each other: if the insert replays first, the remove targets the *newly inserted* item, not the original. Non-strict indices provide better intent preservation for concurrent list modifications.
+
+*Negative indices.* Non-strict negative indices (e.g., `-1` for append) are resolved to absolute positions using a stored `listLength` and then shifted like positive indices. Strict negative indices are resolved at replay time and not shifted.
+
+*Double remove.* When both peers remove the same index concurrently, the second becomes a no-op conflict.
+
+## Edit types and selector transformation rules {#sec:edit-types}
+
+The system supports the following edit types, listed in [@Tbl:edit-types].
+
+: Edit types supported by the mydenicek engine, grouped by target node type. {#tbl:edit-types}
+
++----------------------------+--------------------------------------------------+------------------+
+| Edit type                  | Description                                      | Target           |
++============================+==================================================+==================+
+| `RecordAddEdit`            | Add a named field to a record                    | Record           |
++----------------------------+--------------------------------------------------+------------------+
+| `RecordDeleteEdit`         | Delete a named field from a record               | Record           |
++----------------------------+--------------------------------------------------+------------------+
+| `RecordRenameFieldEdit`    | Rename a field                                   | Record           |
++----------------------------+--------------------------------------------------+------------------+
+| `ListInsertEdit`           | Insert an item at a given index                  | List             |
++----------------------------+--------------------------------------------------+------------------+
+| `ListRemoveEdit`           | Remove the item at a given index                 | List             |
++----------------------------+--------------------------------------------------+------------------+
+| `ListReorderEdit`          | Move an item from one index to another           | List             |
++----------------------------+--------------------------------------------------+------------------+
+| `UpdateTagEdit`            | Change a node's structural tag                   | Record or List   |
++----------------------------+--------------------------------------------------+------------------+
+| `WrapRecordEdit`           | Wrap a node in a new parent record               | Any              |
++----------------------------+--------------------------------------------------+------------------+
+| `WrapListEdit`             | Wrap a node in a new parent list                 | Any              |
++----------------------------+--------------------------------------------------+------------------+
+| `CopyEdit`                 | Copy a subtree from a source to a target         | Any              |
++----------------------------+--------------------------------------------------+------------------+
+| `ApplyPrimitiveEdit`       | Apply a registered custom edit                   | Primitive        |
++----------------------------+--------------------------------------------------+------------------+
+
+Three additional edit types --- `UnwrapRecordEdit`, `UnwrapListEdit`, and `RestoreSnapshotEdit` --- exist as internal inverse operations. They are produced only by `computeInverse()` for undo and are not exposed as user-facing edits. `UnwrapRecordEdit` and `UnwrapListEdit` invert the corresponding wrap operations, while `RestoreSnapshotEdit` inverts `CopyEdit` by snapshotting the target subtree before the copy and restoring it on undo (see [@Sec:undo]).
+
+Each structural edit (rename, wrap, delete, insert, remove, reorder) has a `transformSelector` method that rewrites the selector of a concurrent edit. The key transformation rules are:
+
+- **Rename**: if a concurrent edit targets `speakers/0/name` and a rename changes `speakers` to `talks`, the concurrent edit's selector is transformed to `talks/0/name`.
+- **WrapRecord**: if a concurrent edit targets `speakers/0/value` and a wrap turns `value` into `{$tag: "wrapper", value: <original>}`, the concurrent edit's selector gains a segment: `speakers/0/value/value`.
+- **WrapList**: similar to WrapRecord but wraps into a list, adding an index segment.
+- **Delete**: if a concurrent edit targets a field that was deleted, the edit becomes a no-op conflict.
+- **Insert**: shifts numeric indices at or above the insertion point (e.g., `insert(items, 2, ...)` transforms `items/3` to `items/4` but leaves `items/1` unchanged). Negative indices are resolved to absolute positions using the stored `listLength` and then shift concurrent selectors the same way as positive indices. Strict-index inserts (`strict=true`) shift concurrent selectors but are not themselves shifted.
+- **Remove**: shifts numeric indices above the removal point down by one, and marks the exact index as removed (e.g., `remove(items, 2)` transforms `items/3` to `items/2`, and a concurrent edit targeting `items/2` becomes a no-op conflict). Negative indices are resolved via `listLength` before shifting. Strict-index removes shift concurrent selectors but are not themselves shifted.
+- **Reorder**: remaps indices to reflect the move (e.g., `reorder(items, 1, 3)` transforms `items/1` to `items/3`, and shifts items between the old and new positions accordingly).
+
+To illustrate how transformations compose, consider a conference list where Alice, Bob, and Carol make concurrent edits: Alice renames the field `speakers` to `talks`, Bob wraps each item in a `<tr>` record (so `talks/0` becomes `talks/0/value`), and Carol edits the first speaker's name at `speakers/0/name`. During deterministic replay, suppose the topological order is Alice → Bob → Carol. Carol's selector `speakers/0/name` is first transformed through Alice's rename: the `speakers` prefix matches the rename, so the selector becomes `talks/0/name`. It is then transformed through Bob's wrap: the `talks/0` prefix matches the wrap target `talks/*`, so a `value` segment is inserted, yielding `talks/0/value/name`. Carol's edit now correctly targets the name field inside the new wrapper structure --- even though Carol's original selector knew nothing about the rename or the wrap. Each transformation examines only whether the concurrent edit's selector is a prefix of (or overlaps with) the edit being transformed, making the composition both local and linear in the number of prior concurrent edits.
+
+### Two-level polymorphic design {#sec:ot-architecture}
+
+A naive transformation implementation requires a rule for every pair of edit types --- $n^2$ rules for $n$ edit types. With 11 edit types, that would be 121 hand-written rules. mydenicek avoids this through a two-level object-oriented design, shown in [@Fig:edit-class-diagram].
+
+![Edit class hierarchy with two-level OT. All edit types extend `Edit` directly. Structural edits (blue) override `transformSelector` and optionally `transformLaterConcurrentEdit`. Data edits (green) return the identity transformation. CopyEdit (red) has two selectors and mirrors concurrent edits. Insert edits (orange) carry a payload and override virtual methods (`rewriteInsertedNode`, `applyListIndexShift`, `mapInsertedPayload`) for generic OT dispatch.](img/edit-class-diagram.png){#fig:edit-class-diagram width=75%}
+
+The design rests on two key methods in the `Edit` base class:
+
+- **`transformSelector(sel)`** --- given another edit's selector, returns the transformed selector after this edit's structural effect. For example, a rename from `speakers` to `talks` transforms the selector `speakers/0/name` into `talks/0/name`. Non-structural edits (add, set, etc.) return the selector unchanged.
+- **`transformLaterConcurrentEdit(concurrent)`** --- given a concurrent edit that will replay *after* this one, returns a transformed version of the concurrent edit. The default implementation simply calls `concurrent.transform(this)`, which rewrites the concurrent edit's target selector through `transformSelector`. This handles the vast majority of edit pairs.
+
+**Why this avoids n² rules.** The default `transformLaterConcurrentEdit` delegates to `transformSelector`, which each edit type implements once. A `RenameFieldEdit` knows how to transform *any* selector (not just selectors from specific edit types), so one method handles all pairs involving rename. This gives n methods total instead of n².
+
+**When the default is insufficient.** Selector rewriting alone does not handle cases where a structural edit must modify the *payload* of a concurrent list insert. Consider: `updateTag("items/*", "tr")` is concurrent with `insert("items", -1, {$tag: "li", ...})`. The default would only transform the insert's target selector (which is `items`, unchanged by the tag edit). But the *inserted node* should also change its tag from `<li>` to `<tr>`. To handle this, structural edits call `concurrent.rewriteInsertedNode(target, rewriteFn)` --- a virtual method on `Edit` that is overridden by `ListInsertEdit` to modify its inserted payload. The caller provides the rewrite logic; the callee provides the payload. This avoids `instanceof` checks: structural edits do not need to know the concrete type of the concurrent edit.
+
+Similarly, list edits that shift indices (insert shifts by +1, remove shifts by −1) use `concurrent.applyListIndexShift(target, threshold, delta)` --- another virtual method where each list edit type knows how to shift its own indices. `ListInsertAtEdit` shifts its single index, `ListRemoveAtEdit` shifts and detects same-position collisions (returning a no-op), and `ListReorderEdit` shifts both its `from` and `to` indices. This replaces what would otherwise be $3 \times 3 = 9$ pairwise `instanceof` checks with three single-method overrides.
+
+### CopyEdit and mirroring {#sec:copy-edit}
+
+`CopyEdit` extends `Edit` directly because it has two selectors --- `target` and `source` --- both of which must be checked for removal. If either is deleted by a concurrent edit, the copy becomes a no-op. More importantly, `CopyEdit` *mirrors* concurrent edits: when a concurrent edit modifies the source, the same modification is replicated onto the copy target. This is implemented by `transformLaterConcurrentEdit` wrapping the concurrent edit in a `CompositeEdit` that applies it to both the original target and the mirrored copy target. This ensures that copied data stays consistent with its source as both evolve under concurrent editing.
+
+### Wildcard edits and concurrent insertions {#sec:wildcard-concurrent}
+
+A notable property of the replay-based view function is how wildcard edits interact with concurrent insertions, illustrated in [@Fig:wildcard-diamond]. *This is a deliberate design choice*, not a consequence of the convergence proof: both "wildcard includes concurrent inserts" and "wildcard does not include concurrent inserts" are pure view functions and therefore both yield strong eventual consistency. We choose the former because wildcard edits are a core feature of Denicek's end-user programming model --- users apply structural transformations to all items in a list (e.g., refactoring a conference list into a table, as demonstrated in [@Sec:conf-concurrent]). When one user refactors the list while another concurrently adds new items, the new items should also be refactored.
+
+When Alice applies `updateTag("speakers/*", "tr")` --- changing the tag of every item in the list --- and Bob concurrently inserts a new item via `insert("speakers", -1, ...)`, the result is that Alice's tag update also affects Bob's newly inserted item.
+
+![Wildcard edit and concurrent insertion. Alice's wildcard `updateTag` and Bob's `insert` are concurrent. After merge, Bob's inserted `<li> C` becomes `<tr> C` --- the wildcard edit affects the concurrent insertion.](img/wildcard-diamond.png){#fig:wildcard-diamond width=55%}
+
+This holds regardless of replay order, but the mechanism differs in each case:
+
+- **Insert first** (Bob's `insert` is replayed before Alice's wildcard edit): Bob's new item is added to the list. When Alice's `updateTag("speakers/*", "tr")` is then replayed, the wildcard `*` expands to include *all items that exist at the point of replay* --- including Bob's concurrent insertion. The tag update naturally applies to the new item without any transformation needed.
+- **Edit first** (Alice's wildcard edit is replayed before Bob's `insert`): Alice's `updateTag` is applied to the existing items. When Bob's `insert` is then resolved against Alice's preceding wildcard edit, the selector-rewriting step modifies the inserted item: instead of inserting a `<li>` item, the transformed insert produces a `<tr>` item. This works because materialization replays events in a deterministic order --- when Bob's insert comes after Alice's wildcard edit in that order, the insert is transformed to be consistent with the already-applied edit.
+
+This semantics is uncommon in CRDTs. In most CRDT-based systems, an operation only affects the items that existed at the time the operation was created. Items inserted concurrently by other peers are not affected. Weidner [@weidner2023foreach] describes this as the *for-each* problem and proposes a dedicated CRDT operation to address it. In mydenicek, the replay-based view function naturally achieves the "for-each-including-concurrent-additions" semantics because the wildcard is expanded at replay time, not at creation time --- no special for-each CRDT is needed.
+
+

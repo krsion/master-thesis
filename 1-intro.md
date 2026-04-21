@@ -19,4 +19,4 @@ The main contributions are:
 
 ## Thesis structure {-}
 
-[@Chap:background] covers CRDTs, OT, and the Baquero framework. [@Chap:journey] describes the path from Automerge through Loro to the custom design. [@Chap:implementation] presents the mydenicek CRDT. [@Chap:formative] demonstrates five formative examples. [@Chap:evaluation] evaluates the results. [@Chap:conclusion] concludes with future work.
+[@Chap:background] covers CRDTs, OT, and related work. [@Chap:implementation] presents the mydenicek CRDT. [@Chap:system] describes the system engineering. [@Chap:evaluation] demonstrates formative examples and evaluates correctness and performance. [@Chap:conclusion] concludes with future work.
