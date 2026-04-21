@@ -1,6 +1,8 @@
 # System {#chap:system}
 
-This chapter describes the engineering aspects of mydenicek: extensibility, formulas, undo, the sync protocol, server architecture, and the web application.
+This chapter describes the engineering aspects of mydenicek. The implementation is a Deno/TypeScript monorepo published on JSR, organized in three packages ([@Fig:architecture]): `@mydenicek/core` (the CRDT engine --- pure TypeScript, no WASM, single runtime dependency), `@mydenicek/react` (React bindings), and `@mydenicek/sync` (WebSocket relay). Two applications use them: a web frontend (`apps/mywebnicek`) and a deployed sync server (`apps/sync-server`). The core has no knowledge of the transport layer; the server has no knowledge of edit types.
+
+![Architecture of the mydenicek monorepo. The core engine is transport-agnostic; the sync server operates in relay mode.](img/architecture.png){#fig:architecture width=70%}
 
 ## Extensibility, formulas, and undo {#sec:extensibility-formulas-undo}
 
@@ -124,56 +126,12 @@ The server uses Deno's single-threaded event loop. Rooms are independent (no sha
 
 ## Web application {#sec:webapp}
 
-The web application (`apps/mywebnicek`) serves as both a demonstration of the core engine and a tool for interactively exploring collaborative editing scenarios. It is built with React 19 and connects to the sync server via WebSocket.
+The web application (`apps/mywebnicek`) demonstrates the core engine and supports interactive exploration of collaborative editing. Built with React 19, it uses the `useDenicek` hook from `@mydenicek/react` for reactive document state and WebSocket sync. The interface provides three panels ([@Fig:webapp-ui]): a rendered HTML view (formula results, clickable replay buttons), a raw JSON view, and an event DAG visualization. A command bar at the bottom executes edits via `/selector command args` syntax with tab completion.
 
-### Integration with the core engine
-
-The application uses the `useDenicek` hook from `@mydenicek/react`, which wraps the core `Denicek` instance and provides:
-
-- **Reactive document state** --- the hook re-renders the component whenever the document changes, whether from local edits or remote events arriving via sync.
-- **Sync lifecycle** --- the hook manages the WebSocket connection, automatically sending local events to the server and ingesting remote events. Connection status (connected, connecting, disconnected) is displayed in the header.
-- **Peer identity** --- each browser tab generates a unique peer ID (stored in `sessionStorage` to survive page refreshes) that identifies events in the causal DAG.
-
-### User interface
-
-[@Fig:webapp-ui] shows the web application after two peers have merged concurrent edits on a conference speaker list. The interface provides three synchronized panels, each showing a different aspect of the same document state:
-
-![The mydenicek web application after a concurrent edit merge. Left: the conference table with four speakers --- two added by each peer. Center: raw JSON showing the merged document structure with split-first/split-rest formula nodes. Right: the event DAG with a visible fork (two branches from different peers, green and purple) merging at event 9. Bottom: command bar with the last executed edit.](img/concurrent-merged.png){#fig:webapp-ui width=95%}
-
-- **Rendered view** --- the document tree rendered as HTML elements based on node tags. Formula nodes display their evaluated results. Buttons trigger replay of recorded edit sequences.
-- **Raw JSON view** --- syntax-highlighted JSON representation of the materialized document tree, useful for understanding the exact structure.
-- **Event graph view** --- an SVG visualization of the causal DAG showing events as nodes, causal dependencies as edges, peer colors, and frontier indicators. Clicking an event shows its details (edit type, selector, vector clock).
-
-### Command bar
-
-The command bar at the bottom provides a terminal-style interface for executing edits. The syntax is:
-
-    /selector command args
-
-For example, `/speakers updateTag table` changes the tag of the speakers node, and `/speakers/*/0/contact splitFirst ,` applies the `splitFirst` edit to every row's contact field. Tab completion suggests path segments based on the current document structure, and valid commands for the selected node type. All registered primitive edits (including application-defined ones like `splitFirst` and `splitRest`) are automatically available as commands via `listRegisteredPrimitiveEdits()`.
-
-### Document initialization
-
-On first load without a share link, the application shows an empty state with template buttons. The user creates a document by selecting a template (e.g., "Formative Examples"), which initializes the document, registers application-specific primitive edits and recorded action sequences, and generates a shareable room link. When opening a share link, the application joins the existing room and fetches the current document state from the sync server.
+![The mydenicek web application after merging concurrent edits. Left: rendered conference table. Center: raw JSON. Right: event DAG showing a fork-and-merge.](img/concurrent-merged.png){#fig:webapp-ui width=95%}
 
 ## CI/CD and hosting {#sec:ci-hosting}
 
-### Continuous integration and deployment {#sec:ci}
-
-The project uses GitHub Actions for continuous integration. Every push to the `main` branch triggers five parallel CI jobs: formatting check, linting (including JSDoc validation), type checking, tests (206+ unit tests, 4 formative example tests, sync tests), and build verification. All five must pass before any deployment proceeds.
-
-After CI passes, the web application is deployed to GitHub Pages as a static site, and the sync server is deployed to Azure (see [@Sec:hosting]). After both deployments complete, Playwright browser tests run against the live site to verify that two browser peers can connect, sync edits, and produce consistent document states.
-
-JSR package publishing is a separate workflow (`deno publish`) triggered manually on demand, since package versions should be bumped deliberately rather than on every push. Publishing through GitHub Actions rather than locally is important for *provenance*: JSR uses GitHub's OIDC tokens to generate a cryptographic attestation (via Sigstore) that links each published package version to a specific Git commit and CI workflow. This allows consumers to verify that the package was built from the claimed source code and was not modified after the fact. Local publishing cannot provide this guarantee because there is no trusted build environment.
-
-### Hosting {#sec:hosting}
-
-**Web application.** The Vite build output is deployed as a static site to GitHub Pages. The application is a single-page app that connects to the sync server via WebSocket.
-
-**Sync server.** The sync server runs as a Docker container on Azure Container Apps. Container Apps was chosen because it scales to zero (no cost when idle), supports WebSockets without a separate per-instance connection limit, and requires no pre-allocated plan.[^azure-alternatives] The trade-off is a *cold start* delay: when the container has scaled to zero, the first WebSocket connection takes a few seconds while the container starts up.
-
-[^azure-alternatives]: Alternatives considered: Azure App Service (no scale-to-zero; the free F1 tier caps WebSockets at five concurrent connections per instance [@azure_app_service_limits]; the cheapest plan with unlimited connections, Basic B1, costs approximately \$100/month regardless of usage), Azure Container Instances (no scale-to-zero, no built-in HTTPS ingress, no automatic restarts), and Azure Kubernetes Service (full orchestration, unnecessary complexity for a single container).
-
-The deployment builds a Docker image via Azure Container Registry, then deploys it using a Bicep infrastructure-as-code template. Event data is persisted to an Azure Files *share* --- a network-mounted file system, analogous to an SMB network drive --- attached to the container. Azure Files was chosen over Blob Storage or Table Storage because it provides a POSIX file system interface, allowing the sync server to append events to NDJSON files directly without needing a storage SDK. A database would provide indexed queries and transactional guarantees, but is typically more expensive to operate than file storage --- unnecessary for a thesis prototype where the entire persistence requirement is appending immutable events to a log.
+Every push triggers CI (formatting, linting, type checking, tests, build). After CI passes, the web app deploys to GitHub Pages and the sync server to Azure Container Apps (scales to zero). Playwright browser tests verify live two-peer sync. Packages are published to JSR via `deno publish` with Sigstore provenance attestation. Event data is persisted to Azure Files as append-only NDJSON.
 
 The source code is available at <https://github.com/krsion/mydenicek> and the live demo is deployed at <https://krsion.github.io/mydenicek>.

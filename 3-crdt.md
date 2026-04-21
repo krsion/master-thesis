@@ -2,44 +2,6 @@
 
 mydenicek is a pure operation-based CRDT for collaborative editing of tagged document trees. The replica state is a grow-only set of edit events; the document is computed by a deterministic *eval* function (`materialize`) that replays events in topological order, rewriting selectors through concurrent structural edits. This chapter describes the document model, the convergence argument, and the selector-rewriting rules that achieve intention preservation.
 
-## Architecture overview {#sec:architecture}
-
-The system is organized in five packages, as shown in [@Fig:architecture].
-
-![Architecture of the mydenicek monorepo. The web application depends on React bindings and the sync package, both of which depend on the core engine. The deployed sync server (apps/sync-server) also uses the sync package.](img/architecture.png){#fig:architecture width=70%}
-
-The packages are:
-
-- **`packages/core`** (`@mydenicek/core`\footnote{\url{https://jsr.io/@mydenicek/core}}) --- the collaborative editing engine. Contains the document model, event DAG, edit types, selector rewriting rules, undo/redo, formula engine, and recording/replay. Minimal runtime dependency: only `@std/data-structures/binary-heap` from the Deno standard library, used for the Kahn priority queue. Pure TypeScript, no WASM. The core has no concept of a server or network --- it only knows about events and peers, making it compatible with any transport layer.
-- **`packages/react`** (`@mydenicek/react`\footnote{\url{https://jsr.io/@mydenicek/react}}) --- React bindings. The `useDenicek` hook provides reactive document state, mutation helpers, and sync lifecycle management.
-- **`packages/sync`** (`@mydenicek/sync`\footnote{\url{https://jsr.io/@mydenicek/sync}}) --- a client-server sync implementation built on top of the core. Provides a WebSocket-based client and relay server for exchanging events via a central server. The server operates in *relay mode*: it stores and forwards events without materializing documents or understanding edit semantics. This package is one possible transport --- the core could equally be used with peer-to-peer transport such as WebRTC.
-- **`apps/mywebnicek`** --- web application. React 19 interface with a terminal-style command bar, rendered document view, raw JSON view, and event DAG visualization.
-- **`apps/sync-server`** --- deployed sync server. A Deno HTTP server that hosts WebSocket rooms using `@mydenicek/sync`, persists events to disk, and runs on Azure Container Apps.
-
-The layered design ensures that the core engine has no knowledge of the UI or transport layer, and the sync server has no knowledge of edit types. Custom primitive edits (such as `splitFirst` and `splitRest`) are registered only in the application layer and do not need to be known by the server.
-
-### Core class architecture {#sec:core-classes}
-
-The core engine is organized around five main class hierarchies:
-
-- **`Denicek`** is the top-level facade. It owns an `EventGraph` and a peer ID, and exposes all editing operations (`add`, `delete`, `rename`, `insert`, `wrapRecord`, etc.) as methods that create `Edit` objects and commit them as `Event` objects to the graph. It also manages undo/redo stacks and replay.
-- **`EventGraph`** stores all `Event` objects in a map keyed by `EventId`, maintains the current frontier, and implements materialization (deterministic topological replay), `resolveReplayEdit` (for recording/replay), and `ingestEvents` (for sync with causal delivery buffering).
-- **`Event`** is an immutable value object containing an `EventId`, a list of parent `EventId`s, an `Edit`, and a `VectorClock`. Its `resolveAgainst` method transforms the edit through all previously applied concurrent edits during materialization.
-- **`Node`** is the abstract base class for the four document node types: `RecordNode`, `ListNode`, `PrimitiveNode`, and `ReferenceNode`. Nodes support navigation by `Selector`, cloning, and structural mutation (used during materialization).
-- **`Edit`** is the abstract base class for all edit types, described in detail in [@Sec:ot-architecture]. Each edit knows how to `apply` itself to a document, `transform` its selector through a prior edit, and `computeInverse` for undo.
-
-`Selector` and `VectorClock` are value objects. `Selector` handles parsing, matching, wildcard expansion, and prefix comparison. `VectorClock` supports merge (component-wise max), dominance comparison, and advancement.
-
-### Technology choices {#sec:tech-choices}
-
-**TypeScript.** Local-first applications target the browser, where JavaScript is the dominant language. TypeScript adds static type safety, which is particularly valuable in a collaborative editing engine where subtle type errors (e.g., confusing a selector path with a plain string, or passing the wrong event structure) can cause silent convergence failures.
-
-**Deno.** Deno is a JavaScript and TypeScript runtime created by Ryan Dahl, the original creator of Node.js. Unlike Node.js, Deno runs TypeScript natively without a compilation step and includes a built-in formatter, linter, and test runner. This eliminates the configuration overhead of separate tools (ESLint, Prettier, Jest, tsconfig) that a Node.js project would require.
-
-**React.** React is a widely-used JavaScript library for building user interfaces, developed by Meta. The core engine is framework-agnostic, but the `@mydenicek/react` package provides React-specific bindings because React is the most mainstream frontend framework, making the library accessible to the widest audience.
-
-**JSR.** JSR (JavaScript Registry) is a package registry developed by the Deno team as an alternative to npm. It accepts TypeScript source directly (npm requires pre-compiled JavaScript), which simplifies the publishing workflow. The three mydenicek packages are published on JSR.
-
 ## Document model {#sec:doc-model}
 
 Documents are modeled as tagged trees with four node types:
@@ -160,19 +122,36 @@ The system supports the following edit types, listed in [@Tbl:edit-types].
 | `ApplyPrimitiveEdit`       | Apply a registered custom edit                   | Primitive        |
 +----------------------------+--------------------------------------------------+------------------+
 
-Three additional edit types --- `UnwrapRecordEdit`, `UnwrapListEdit`, and `RestoreSnapshotEdit` --- exist as internal inverse operations. They are produced only by `computeInverse()` for undo and are not exposed as user-facing edits. `UnwrapRecordEdit` and `UnwrapListEdit` invert the corresponding wrap operations, while `RestoreSnapshotEdit` inverts `CopyEdit` by snapshotting the target subtree before the copy and restoring it on undo (see [@Sec:undo]).
+Three additional edit types --- `UnwrapRecordEdit`, `UnwrapListEdit`, and `RestoreSnapshotEdit` --- are internal inverse operations produced only by `computeInverse()` for undo.
 
-Each structural edit (rename, wrap, delete, insert, remove, reorder) has a `transformSelector` method that rewrites the selector of a concurrent edit. The key transformation rules are:
+### Selector rewriting rules {#sec:selector-rules}
 
-- **Rename**: if a concurrent edit targets `speakers/0/name` and a rename changes `speakers` to `talks`, the concurrent edit's selector is transformed to `talks/0/name`.
-- **WrapRecord**: if a concurrent edit targets `speakers/0/value` and a wrap turns `value` into `{$tag: "wrapper", value: <original>}`, the concurrent edit's selector gains a segment: `speakers/0/value/value`.
-- **WrapList**: similar to WrapRecord but wraps into a list, adding an index segment.
-- **Delete**: if a concurrent edit targets a field that was deleted, the edit becomes a no-op conflict.
-- **Insert**: shifts numeric indices at or above the insertion point (e.g., `insert(items, 2, ...)` transforms `items/3` to `items/4` but leaves `items/1` unchanged). Negative indices are resolved to absolute positions using the stored `listLength` and then shift concurrent selectors the same way as positive indices. Strict-index inserts (`strict=true`) shift concurrent selectors but are not themselves shifted.
-- **Remove**: shifts numeric indices above the removal point down by one, and marks the exact index as removed (e.g., `remove(items, 2)` transforms `items/3` to `items/2`, and a concurrent edit targeting `items/2` becomes a no-op conflict). Negative indices are resolved via `listLength` before shifting. Strict-index removes shift concurrent selectors but are not themselves shifted.
-- **Reorder**: remaps indices to reflect the move (e.g., `reorder(items, 1, 3)` transforms `items/1` to `items/3`, and shifts items between the old and new positions accordingly).
+Each structural edit implements a `transformSelector` method that rewrites a concurrent edit's selector through its structural effect. [@Tbl:selector-rules] summarizes the rules.
 
-To illustrate how transformations compose, consider a conference list where Alice, Bob, and Carol make concurrent edits: Alice renames the field `speakers` to `talks`, Bob wraps each item in a `<tr>` record (so `talks/0` becomes `talks/0/value`), and Carol edits the first speaker's name at `speakers/0/name`. During deterministic replay, suppose the topological order is Alice → Bob → Carol. Carol's selector `speakers/0/name` is first transformed through Alice's rename: the `speakers` prefix matches the rename, so the selector becomes `talks/0/name`. It is then transformed through Bob's wrap: the `talks/0` prefix matches the wrap target `talks/*`, so a `value` segment is inserted, yielding `talks/0/value/name`. Carol's edit now correctly targets the name field inside the new wrapper structure --- even though Carol's original selector knew nothing about the rename or the wrap. Each transformation examines only whether the concurrent edit's selector is a prefix of (or overlaps with) the edit being transformed, making the composition both local and linear in the number of prior concurrent edits.
+: Selector rewriting rules. Each structural edit transforms concurrent selectors through its effect. {#tbl:selector-rules}
+
++-------------------+-------------------------------+--------------------------------------------+
+| Edit              | Rule                          | Example                                    |
++===================+===============================+============================================+
+| Rename `a` → `b`  | `a/...` → `b/...`            | `speakers/0/name` → `talks/0/name`         |
++-------------------+-------------------------------+--------------------------------------------+
+| WrapRecord(f)     | `a/...` → `a/f/...`          | `x/value` → `x/inner/value`               |
++-------------------+-------------------------------+--------------------------------------------+
+| WrapList          | `a/...` → `a/*/...`          | `x/data` → `x/*/data`                     |
++-------------------+-------------------------------+--------------------------------------------+
+| Delete            | `a/...` → removed            | concurrent edit becomes no-op              |
++-------------------+-------------------------------+--------------------------------------------+
+| Insert at $i$     | indices $\geq i$ shift $+1$  | `items/3` → `items/4`                     |
++-------------------+-------------------------------+--------------------------------------------+
+| Remove at $i$     | index $i$ → removed,         | `items/3` → `items/2`                     |
+|                   | indices $> i$ shift $-1$      |                                            |
++-------------------+-------------------------------+--------------------------------------------+
+| Reorder($f$,$t$)  | $f$ → $t$, range shifts      | `items/1` → `items/3`                     |
++-------------------+-------------------------------+--------------------------------------------+
+
+Negative indices are resolved to absolute positions using a stored `listLength` before shifting. Strict indices (`strict=true`) shift concurrent selectors but are not themselves shifted by concurrent edits.
+
+**Composition.** Transformations compose sequentially. If Alice renames `speakers` → `talks`, Bob wraps each item in a `<tr>` record, and Carol edits `speakers/0/name`, then Carol's selector is first transformed through Alice's rename (`talks/0/name`), then through Bob's wrap (`talks/0/value/name`). Each transformation is local --- it examines only whether the prior edit's target overlaps with the selector being transformed.
 
 ### Two-level polymorphic design {#sec:ot-architecture}
 
