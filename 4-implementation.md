@@ -102,17 +102,17 @@ Because the sort order is deterministic and the selector-rewriting transformatio
 
 ### mydenicek as a pure op-based CRDT {#sec:crdt-framing}
 
-Under the framing of [@Sec:crdts], mydenicek is a *pure operation-based CRDT* [@baquero2017pureop]. The replica state is the **set of all delivered events** $\mathcal{E}$. This set is a grow-only set (G-Set): a canonical state-based CRDT whose merge operation is set union, which is associative, commutative, and idempotent, so any two replicas with the same received events have the same state regardless of delivery order.
+Under the framing of [@Sec:crdts], mydenicek is a *pure operation-based CRDT* [@baquero2017pureop]. The replica state is the **set of all delivered events** $\mathcal{E}$. This set is a grow-only set (G-Set): a canonical state-based CRDT whose merge operation is set union, which is associative, commutative, and idempotent. Shapiro et al. [@shapiro2011crdt] proved that state-based CRDTs with a monotonic join-semilattice merge converge; the G-Set satisfies this trivially. Baquero et al. [@baquero2017pureop] showed that pure op-based CRDTs --- where the state is the set of delivered operations and the observable value is a pure function of that set --- inherit strong eventual consistency from the underlying G-Set, provided that (1) every operation is eventually delivered to every replica (reliable broadcast) and (2) the view function is deterministic. Condition (1) is ensured by the sync protocol ([@Sec:sync-protocol]); condition (2) is what we prove below.
 
 The document is not the state; it is a **pure view function** $\text{materialize}: 2^{\text{Event}} \to \text{Node}$ computed on demand. The view function is the composition of three pure steps described above: topological ordering with an `EventId` tie-break, `resolveAgainst` (selector rewriting through concurrent prior edits), and `apply` (executing the resolved edit against the current document).
 
 **Assumption (peer-ID uniqueness).** Every `EventId = (peer, seq)` produced across all replicas is globally unique, enforced at ingest (see [@Sec:peer-id]).
 
-**Theorem (strong eventual consistency).** *For any two replicas $R_1, R_2$ with $\mathcal{E}(R_1) = \mathcal{E}(R_2)$, $\text{materialize}(R_1) = \text{materialize}(R_2)$.*
+**Theorem (deterministic view function).** *For any two replicas $R_1, R_2$ with $\mathcal{E}(R_1) = \mathcal{E}(R_2)$, $\text{materialize}(R_1) = \text{materialize}(R_2)$.*
 
 **Proof sketch.** The proof relies on three determinism properties: (1) `topologicalOrder` is deterministic because `EventId` lexicographic comparison is a strict total order and the implementation accesses events only via keyed `Map.get`; (2) `resolveAgainst` is pure --- it walks the applied list sequentially, dispatching `transformLaterConcurrentEdit` on each edit's class with no hidden state; (3) `apply` is pure --- small local mutations over node types with no randomness or iteration-order dependence. Given these, an induction on the topological order shows that $d_k$ and the applied-prefix list are identical on both replicas at every step $k$, so $d_n = \text{materialize}(\mathcal{E})$ is the same on both. $\square$
 
-This is a proof sketch; implementation-level determinism is audited in [@Sec:determinism-audit]. Mechanical verification is left as future work.
+**Strong eventual consistency** then follows from the Baquero framework: the G-Set ensures all replicas eventually hold the same event set, and the deterministic view function produces the same document from that set. This is a proof sketch; implementation-level determinism is audited in [@Sec:determinism-audit].
 
 **What this theorem does and does not establish.** The theorem establishes **convergence** --- the first property in the CCI model [@sun1998achieving]. **Causality preservation** follows from causal delivery ([@Sec:causal-delivery]). **Intention preservation** is validated only empirically by the formative examples in [@Chap:formative]; formalizing it would require specifying "user intent" for each edit type under each concurrent interaction, which remains an open problem.
 
