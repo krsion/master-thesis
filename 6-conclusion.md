@@ -8,7 +8,7 @@ The system was validated on five formative examples, 310 tests (including proper
 
 ## Future work {#sec:future-work}
 
-**Incremental eval (reactivity).** Currently, `materialize` recomputes the full document from the PO-Log. Bauwens et al. [@bauwens2021reactivity] propose *reactive pure operation-based CRDTs* that track which parts of the state changed and emit fine-grained notifications. Adapting this to mydenicek would make `materialize` incremental --- instead of replaying all events, the system would propagate only the effect of the new event through the existing document, reducing per-edit cost from $O(N^2)$ to $O(1)$ for the common case of sequential edits. This is essential for scaling to large documents (thousands of events).
+**Incremental eval (reactivity).** Currently, `materialize` recomputes the full document from the PO-Log. Bauwens et al. [@bauwens2021reactivity] propose *reactive pure operation-based CRDTs* that include buffered (not yet causally delivered) operations in the eval result, giving optimistic local reads. For simpler CRDTs (sets, counters), this is straightforward. For mydenicek, optimistic reads are unsafe: a buffered structural edit whose causal dependencies haven't arrived would corrupt the selector rewriting chain. A safer form of reactivity — incremental eval that propagates only the new event's effect through the existing document — would reduce per-edit cost from $O(N^2)$ to $O(1)$ for sequential edits.
 
 **Client-side metadata pruning.** The causal stability tracker ([@Sec:sync]) identifies stable events; extending this to prune vector clock entries on clients would reduce per-event metadata from $O(P)$ to $O(1)$ for stable events [@bauwens2020stability].
 
