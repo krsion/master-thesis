@@ -54,9 +54,7 @@ This thesis takes exactly that step: replacing linear histories with a *causal e
 
 ## Operational Transformation {#sec:ot}
 
-Operational Transformation (OT), introduced by Ellis and Gibbs [@ellis1989concurrency], transforms concurrent operations so that both peers converge to the same state. [@Fig:ot-text-example] illustrates the basic idea with two concurrent text insertions.
-
-![OT text example. Two concurrent insertions are transformed so both peers converge to the same state.](img/ot-text-example.png){#fig:ot-text-example width=75%}
+Operational Transformation (OT), introduced by Ellis and Gibbs [@ellis1989concurrency], transforms concurrent operations so that both peers converge to the same state (e.g., two concurrent text insertions at the same position are shifted so both apply correctly).
 
 Correctness in the decentralized setting requires two *transformation properties* [@ressel1996integrating]: **TP1** (applying $a$ then $T(b,a)$ reaches the same state as $b$ then $T(a,b)$) and **TP2** (transforming a third operation through two concurrent ones is order-independent). Several published algorithms were later proven to violate TP2 [@imine2003proving], and the number of pairwise rules grows with each new edit type. mydenicek sidesteps TP1/TP2 entirely by using a single deterministic replay order ([@Sec:event-dag]).
 
@@ -67,10 +65,6 @@ Sun et al.~[@sun1998achieving] decompose OT correctness into three properties: *
 Lamport's *happens-before* relation [@lamport1978] defines a partial order over events in a distributed system:
 
 > **Definition (happens-before).** $a \to b$ if (1) $a$ and $b$ are from the same peer and $a$ preceded $b$, (2) $a$ is the sending and $b$ the receipt of the same message, or (3) transitivity. Two events are *concurrent* ($a \parallel b$) if neither $a \to b$ nor $b \to a$.
-
-[@Fig:causality] illustrates these relationships in an event graph.
-
-![Causality in a distributed system. Alice creates two events locally. Bob's first event (bob:0) receives Alice's message, establishing alice:0 $\to$ alice:1 $\to$ bob:0. Cross-peer causality is determined by messages, not by sequence numbers.](img/causality.png){#fig:causality width=55%}
 
 *Vector clocks* [@mattern1989virtual; @fidge1988timestamps] implement happens-before detection. A vector clock $V$ maps each peer ID to its highest known sequence number. $a \to b$ iff $V_a[p] \leq V_b[p]$ for all $p$ with strict inequality for at least one. This allows concurrency detection in O(P) time.
 
@@ -146,6 +140,8 @@ Several existing CRDT libraries were evaluated as potential backends for Denicek
 **Why not layer path OT on top of Loro?** Layering creates two independent conflict-resolution regimes. Loro resolves concurrent moves by its internal CRDT semantics; a path-OT layer resolves conflicts by rewriting selectors. When they disagree on the same concurrent edit --- which happens precisely in Denicek's core use case of wildcard structural transformations with concurrent inserts --- the path layer retargets selectors to paths that Loro's resolution left empty. This mismatch is systematic, not a corner case. We chose to build a unified system where path-based selectors are the native addressing mode.
 
 **Other systems.** Yjs [@yjs] shares Automerge's limitations for Denicek: no atomic move, no path-based selectors, no native tree CRDT. Eg-walker [@gentle2025egwalker] stores operations in a causal event graph with topological replay --- mydenicek borrows this architectural idea but applies it to trees with selector rewriting, framed as a pure operation-based CRDT rather than an OT/CRDT hybrid. Diamond Types [@diamondtypes] shares the event-graph approach but targets text. json-joy [@jsonjoy] operates on JSON structures but lacks wildcard selectors and structural edits. Grove [@grove2025] targets code editing with commutative operations on fixed-schema ASTs, incompatible with Denicek's schema-free trees. Mogk et al. [@mogk2025prdts] propose *Protocol RDTs* that treat programs --- not just data --- as the replicated entity; mydenicek's replay mechanism, where recorded edit sequences are retargeted through structural changes on any peer, is a concrete instance of this idea. Webstrates [@klokmose2015webstrates] inspired the naming lineage: Webstrates, myWebstrates, Denicek, mydenicek.
+
+**Pure op-based CRDT frameworks.** Bauwens and Gonzalez Boix at VUB Brussels have developed a comprehensive ecosystem for pure operation-based CRDTs: Flec [@bauwens2023nested] is a TypeScript framework that implements PO-Log-based CRDTs with support for nesting and composition; the same authors address metadata reduction via causal stability [@bauwens2020stability], incremental *eval* for reactive UI updates [@bauwens2021reactivity], and automated verification via VeriFx [@bauwens2022verifx]. Weidner et al. [@weidner2023collabs] provide Collabs, a TypeScript CRDT framework with composable types and a `TestingRuntimes` harness for controlled deterministic network interleaving. mydenicek's current implementation is standalone rather than built on these frameworks; integrating with them --- particularly for testing and verification --- is discussed in [@Sec:future-work].
 
 Weidner [@weidner2023foreach] identifies the *for-each problem*: operations applied to every element in a range miss concurrently inserted elements. mydenicek's wildcard selectors solve this without a dedicated CRDT for-each operation: wildcards expand at replay time to include all elements that exist at that point, including concurrent insertions ([@Sec:wildcard-concurrent]).
 

@@ -20,4 +20,6 @@ The system was validated on five formative examples, 310 tests (including proper
 
 **Extended verification.** The TLA+ model covers five edit types on a flat record. Extending it to nested trees and wildcards, or encoding the selector rewriting rules in VeriFx [@bauwens2022verifx] — an automated verification tool designed specifically for CRDTs — would provide mechanical convergence guarantees beyond the current bounded model.
 
+**Framework integration.** mydenicek is a standalone implementation. Porting the selector rewriting rules to Flec [@bauwens2023nested] would provide PO-Log management, causal stability tracking, and reactivity as framework-level features rather than custom code. Adopting the `TestingRuntimes` harness from Collabs [@weidner2023collabs] would replace the current random-fuzzing approach with controlled deterministic network interleaving, enabling systematic exploration of concurrent edit orderings. Both integrations would replace ad-hoc implementations with principled, peer-reviewed infrastructure.
+
 **Character-level text.** Integrating a text CRDT (e.g., Fugue) for primitive strings would replace last-writer-wins semantics.
