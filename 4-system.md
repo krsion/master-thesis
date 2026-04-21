@@ -24,7 +24,7 @@ Programming by demonstration stores event IDs as replay steps (typically in a bu
 
 ## Sync and server {#sec:sync}
 
-Convergence requires only that all peers eventually receive the same event set. mydenicek uses a centralized WebSocket relay server ([@Fig:sync-protocol]). The protocol has three phases: **connect** (client sends hello, receives initial document), **sync** (exchange frontiers and missing events via `eventsSince`), and **ongoing** (incremental event exchange).
+Convergence requires only that all peers eventually receive the same event set. mydenicek uses a centralized WebSocket relay server ([@Fig:sync-protocol]). On connection, the server sends a **hello** with the room's initial document. After that, both sides exchange **sync** messages containing their current frontiers and any events the other side is missing (computed via `eventsSince`). The same sync message format is used for the initial catch-up and for every subsequent exchange.
 
 ![Sync protocol sequence diagram.](img/sync-protocol.png){#fig:sync-protocol width=80%}
 
