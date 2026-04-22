@@ -331,14 +331,15 @@ All six formative examples pass their tests. The conference table with concurren
 
 ## Testing strategy {#sec:testing}
 
-Testing distributed systems is fundamentally harder than testing sequential programs: bugs arise from specific interleavings of concurrent events, message orderings, and failure patterns that are difficult to reproduce [@ozkan2025modelfuzz]. mydenicek addresses this through multiple testing layers, combining unit tests for individual edit types with property-based randomized testing for concurrent interactions:
+Testing distributed systems is fundamentally harder than testing sequential programs: bugs arise from specific interleavings of concurrent events, message orderings, and failure patterns that are difficult to reproduce [@ozkan2025modelfuzz]. mydenicek addresses this through a layered testing strategy, organized as a testing pyramid:
 
-- **Unit tests** (over 280 cases) covering core operations, OT transformation rules, edge cases, and error handling.
-- **Property-based tests** using `fast-check`, described in detail in [@Sec:property-tests].
-- **6 formative example tests** that simulate realistic multi-peer workflows including recording, replay, formula evaluation, and button replay after schema evolution.
-- **11 sync end-to-end tests** covering synchronization, late join, concurrent edits, reconnection, and offline convergence.
-- **Playwright browser tests** verifying two browser peers can sync edits via the deployed server.
-- **Continuous integration** via GitHub Actions on every push.
+- **Unit tests** (over 280 cases) test individual edit types in isolation: does a rename produce the expected document? Does an insert land at the correct index? Does a structural edit's `transformSelector` rewrite a given path correctly?
+- **Integration tests** (over 40 cases) test edit *interactions*: two concurrent edits on a shared document, the full `resolveAgainst` pipeline on a small DAG, reference rewriting through structural changes, and undo/redo across peers.
+- **Property-based tests** using `fast-check` (described in [@Sec:property-tests]) randomize across all layers: they generate random edit sequences, random sync orderings, and assert convergence and intention preservation invariants. This is the highest-value layer — it exercises scenarios that hand-written tests would never cover.
+- **Formative example tests** (6 cases) simulate realistic multi-peer workflows: recording, replay, formula evaluation, schema evolution, and button replay after refactoring.
+- **Sync end-to-end tests** (21 cases) cover the WebSocket relay: synchronization, late join, concurrent edits, reconnection, compaction, and offline convergence.
+- **Browser end-to-end tests** (Playwright) verify that two browser peers can sync edits via the deployed server, closing the loop from UI to transport to CRDT and back.
+- **Continuous integration** via GitHub Actions runs all layers on every push.
 
 ## Property-based tests {#sec:property-tests}
 
