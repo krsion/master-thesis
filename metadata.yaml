@@ -34,12 +34,12 @@ keywords-en:
   - end-user programming
   - Denicek
 thesis_chapters:
-  - 1-intro
-  - 2-background
-  - 3-crdt
-  - 4-system
-  - 5-evaluation
-  - 6-conclusion
+  - 0-intro
+  - 1-background
+  - 2-crdt
+  - 3-system
+  - 4-evaluation
+  - 5-conclusion
 
 appendicies:
   - A-repository
