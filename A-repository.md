@@ -4,7 +4,7 @@ The mydenicek implementation evaluated in this thesis is maintained as a separat
 
 **Repository.** <https://github.com/krsion/mydenicek>
 
-**Evaluated revision.** Commit [`b2a2714d`](https://github.com/krsion/mydenicek/commit/b2a2714d) is the revision against which all measurements, formative tests, and property-based tests reported in this thesis were produced.
+**Evaluated revision.** Commit [`cb803b96`](https://github.com/krsion/mydenicek/commit/cb803b96) is the revision against which all measurements, formative tests, and property-based tests reported in this thesis were produced.
 
 **Contents.**
 
