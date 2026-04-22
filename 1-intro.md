@@ -21,4 +21,4 @@ The main contributions are:
 
 ## Thesis structure {-}
 
-[@Chap:background] covers CRDTs, OT, causality, and related systems. [@Chap:implementation] presents the mydenicek CRDT --- document model, convergence argument, and selector rewriting rules. [@Chap:system] describes the implementation: extensibility, sync protocol, and the web application. [@Chap:evaluation] demonstrates formative examples and evaluates correctness and performance. [@Chap:conclusion] concludes with future work.
+[@Chap:background] covers CRDTs, OT, causality, and related work. [@Chap:implementation] presents the mydenicek CRDT. [@Chap:system] describes the implementation. [@Chap:evaluation] evaluates correctness and performance on formative examples. [@Chap:conclusion] concludes with future work.
