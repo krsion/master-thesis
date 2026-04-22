@@ -188,11 +188,17 @@ alice.updateTag("speakers/*", "td");
 ```
 
 ```html
-<!-- Before -->                    <!-- After -->
-<ul>                               <table>
-  <li contact="Ada..." />    →      <td contact="Ada..." />
-  <li contact="Grace..." />          <td contact="Grace..." />
-</ul>                              </table>
+<!-- Before -->
+<ul>
+  <li contact="Ada..." />
+  <li contact="Grace..." />
+</ul>
+
+<!-- After -->
+<table>
+  <td contact="Ada..." />
+  <td contact="Grace..." />
+</table>
 ```
 
 **Step 2: Wrap each `<td>` in a `<tr>` row.**
@@ -202,11 +208,17 @@ alice.wrapList("speakers/*", "tr");
 ```
 
 ```html
-<!-- Before -->                    <!-- After -->
-<table>                            <table>
-  <td contact="Ada..." />    →      <tr> <td contact="Ada..." /> </tr>
-  <td contact="Grace..." />          <tr> <td contact="Grace..." /> </tr>
-</table>                           </table>
+<!-- Before -->
+<table>
+  <td contact="Ada..." />
+  <td contact="Grace..." />
+</table>
+
+<!-- After -->
+<table>
+  <tr> <td contact="Ada..." /> </tr>
+  <tr> <td contact="Grace..." /> </tr>
+</table>
 ```
 
 **Step 3: Wrap the contact string in a `split-first` formula.** The original value becomes the `source` field of the wrapper node.
@@ -220,12 +232,18 @@ alice.wrapRecord(
 ```
 
 ```html
-<!-- Before -->                         <!-- After -->
-<tr>                                    <tr>
-  <td contact="Ada Lovelace,     →       <td contact=
-        ada@example.com" />               split-first(source="Ada Lovelace,
-</tr>                                            ada@example.com") />
-                                        </tr>
+<!-- Before -->
+<tr>
+  <td contact="Ada Lovelace,
+        ada@example.com" />
+</tr>
+
+<!-- After -->
+<tr>
+  <td contact=
+    split-first(source="Ada Lovelace,
+           ada@example.com") />
+</tr>
 ```
 
 After formula evaluation, the cell displays `"Ada Lovelace"`.
