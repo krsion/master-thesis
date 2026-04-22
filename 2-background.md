@@ -1,20 +1,26 @@
 # Background {#chap:background}
 
+## Document-oriented programming {#sec:doc-prog}
+
+*Document-oriented programming systems* [@petricek2025designchoices] are programming environments built around a document editor. The user interacts with a structured document that contains both code and data; they modify the document, trigger computations, and view results from a unified interface. Spreadsheets are the most widely used example: a spreadsheet is simultaneously a program (formulas), data (cell values), and a user interface (the grid). Other instances include data-science notebooks (Jupyter), educational systems (Boxer), and research systems such as Webstrates [@klokmose2015webstrates].
+
+Petříček et al. [@petricek2025designchoices] identify twelve design choices that characterize such systems, organized along four axes: document structure and representation, how programming is embedded, how the user interface displays and edits documents, and how computations are evaluated. What distinguishes document-oriented programming from conventional programming is that the program *is* the document: there is no separate source file, build step, or hidden execution state. This thesis adds a fifth concern --- *collaborative editing* --- and investigates the design choices it introduces for a specific document-oriented system.
+
 ## Denicek {#sec:denicek}
 
-Denicek [@petricek2025denicek] is a computational substrate for document-oriented end-user programming. It models documents as *tagged trees* --- hierarchical structures where each node carries a structural tag (such as `h1`, `ul`, `tr`) and contains either named fields (records), ordered children (lists), scalar values (primitives), or pointers to other nodes (references). [@Fig:document-tree] shows an example document tree.
+Denicek [@petricek2025denicek] is a document-oriented programming system --- a computational substrate for end-user programming. Its documents are *tagged trees* --- hierarchical structures where each node carries a structural tag (such as `h1`, `ul`, `tr`) and contains either named fields (records), ordered children (lists), scalar values (primitives), or pointers to other nodes (references). [@Fig:document-tree] shows an example document tree; each node type is described in more detail in [@Sec:doc-model].
 
 ![Example Denicek document tree. Blue nodes are records (named fields), orange is a list (ordered children), green nodes are primitives (scalar values). Edge labels show field names and list indices.](img/document-tree.png){#fig:document-tree width=65%}
 
 The Denicek paper demonstrates the substrate through two systems built on top of it. *Webnicek* is a web-based programming system where documents are rendered as interactive web pages and users program by manipulating the document structure. *Datnicek* is a data science notebook that uses the same substrate for tabular data with formulas, supporting datasets of up to thousands of rows. Both systems share the same edit operations, recording/replay mechanism, and collaboration model --- they differ only in how the document tree is rendered and interpreted.
 
-Nodes are addressed by *selector paths* --- slash-separated strings that describe the location of a node in the tree. For example, `/speakers/0/name` refers to the `name` field of the first item in the `speakers` list. Selectors support wildcards: `/speakers/*` addresses all children of the `speakers` list, enabling bulk operations such as "update the tag of every list item."
+Nodes are addressed by *selector paths* --- slash-separated strings that describe the location of a node in the tree (see [@Fig:document-tree]). For example, `/speakers/0/name` refers to the `name` field of the first item in the `speakers` list. Selectors support wildcards: `/speakers/*` addresses all children of the `speakers` list, enabling bulk operations such as "update the tag of every list item."
 
 Denicek provides four key end-user programming experiences:
 
 - **Programming by demonstration.** Users perform edits interactively --- such as adding a list item and copying a value from an input field --- and the system records these edits as a replayable script. When the user clicks a button, the recorded edits are replayed, potentially on different targets.
 - **Schema evolution.** Structural edits allow users to refactor the document's structure without losing data.
-- **Collaborative editing.** Multiple peers can edit the same document concurrently, and the system merges their edits deterministically. Notably, Denicek supports wildcard selectors (`speakers/*`) that target all children of a node. When combined with concurrent insertions, this produces a unique semantics: a wildcard edit affects not only items that existed when the edit was made, but also items inserted concurrently by other peers. This *edit-all-including-concurrent-additions* property is discussed further in [@Sec:wildcard-concurrent] and [@Sec:wildcard-concurrent].
+- **Collaborative editing.** Multiple peers can edit the same document concurrently, and the system merges their edits deterministically. Notably, Denicek supports wildcard selectors (`speakers/*`) that target all children of a node. When combined with concurrent insertions, this produces an unusual semantics: a wildcard edit affects not only items that existed when the edit was made, but also items inserted concurrently by other peers ([@Sec:wildcard-concurrent]).
 - **Formula recomputation.** Nodes can contain formulas that reference other nodes via relative paths. When the referenced data changes, the formula result is recomputed.
 
 ### Edit operations
@@ -28,7 +34,7 @@ Denicek provides two categories of edit operations. *Data edits* modify the cont
 - `remove(target, index)` --- remove the item at a given index from a list
 - `copy(target, source)` --- copy a subtree from one location to another
 
-*Structural edits* change the shape of the document tree:
+*Structural edits* change the *paths* by which nodes are addressed, not just the values they contain:
 
 - `rename(target, oldField, newField)` --- rename a record field
 - `updateTag(target, newTag)` --- change a node's structural tag (e.g., `ul` to `table`)
@@ -36,7 +42,7 @@ Denicek provides two categories of edit operations. *Data edits* modify the cont
 - `wrapList(target, tag)` --- wrap a node in a new parent list
 - `reorder(target, permutation)` --- reorder list items by applying a full permutation
 
-The distinction matters for collaborative editing: structural edits change the *paths* by which other edits address nodes. When a peer renames `speakers` to `talks`, all concurrent edits targeting `/speakers/...` must be retargeted to `/talks/...`. When a peer wraps a node, concurrent edits must gain an additional path segment. This is the core challenge that any collaborative editing approach for Denicek must solve.
+The distinction matters for collaborative editing: while data edits modify a node's content at a fixed path, structural edits change the *paths* by which other edits address nodes. When a peer renames `speakers` to `talks`, all concurrent edits targeting `/speakers/...` must be retargeted to `/talks/...`. When a peer wraps a node, concurrent edits must gain an additional path segment. This is the core challenge that any collaborative editing approach for Denicek must solve.
 
 ### Denicek's collaboration model
 
@@ -48,19 +54,19 @@ The original Denicek defines three core operations on edit histories:
 
 Denicek's histories are *linear sequences* of edits. Merging two linear histories produces a new linear history. Importantly, merge is *not commutative* --- merging history A into B may produce a different result than merging B into A, because the OT transformation order differs. The paper mentions that histories could form a graph rather than a linear sequence, but does not elaborate on this direction.
 
-This thesis takes exactly that step: replacing linear histories with a *causal event graph* (DAG), where merge order does not matter because all peers replay the same deterministic topological order. Under the pure operation-based CRDT framework [@baquero2017pureop], convergence follows directly from the fact that the event set is a G-Set and the *eval* function is deterministic (see [@Sec:crdts]).
+This thesis takes exactly that step: replacing linear histories with a *causal event graph* (DAG), where merge order does not matter because all peers replay the same deterministic topological order. The formal framing of this approach as a pure operation-based CRDT is presented in [@Sec:crdt-framing], after the necessary background on CRDTs is introduced in [@Sec:crdts].
 
 ## Operational Transformation {#sec:ot}
 
 Operational Transformation (OT), introduced by Ellis and Gibbs [@ellis1989concurrency], transforms concurrent operations so that both peers converge to the same state (e.g., two concurrent text insertions at the same position are shifted so both apply correctly).
 
-Correctness in the decentralized setting requires two *transformation properties* [@ressel1996integrating]: **TP1** (applying $a$ then $T(b,a)$ reaches the same state as $b$ then $T(a,b)$) and **TP2** (transforming a third operation through two concurrent ones is order-independent). Several published algorithms were later proven to violate TP2 [@imine2003proving], and the number of pairwise rules grows with each new edit type. mydenicek sidesteps TP1/TP2 entirely by using a single deterministic replay order ([@Sec:event-dag]).
+Correctness in the decentralized setting requires two *transformation properties* [@ressel1996integrating]: **TP1** (applying $a$ then $T(b,a)$ reaches the same state as $b$ then $T(a,b)$) and **TP2** (transforming a third operation through two concurrent ones is order-independent). Several published algorithms were later proven to violate TP2 [@imine2003proving], and the number of pairwise rules grows with each new edit type. The original Denicek's OT probably does not satisfy TP1/TP2 either --- the intention was that they might hold for edit sequences without conflicts, but the conflict mechanism was never reliable enough to guarantee this. mydenicek sidesteps TP1/TP2 entirely by using a single deterministic replay order ([@Sec:event-dag]): since all peers apply edits in the same topological sequence, the symmetric transformation properties are not required.
 
-Sun et al.~[@sun1998achieving] decompose OT correctness into three properties: **convergence**, **causality preservation**, and **intention preservation** (the effect matches the user's intent). TP1/TP2 address convergence; intention preservation depends on the transformation rules and cannot be derived from them. This thesis proves convergence in [@Sec:crdt-framing] and validates intention preservation empirically through the formative examples of [@Sec:formative-examples].
+Sun et al. [@sun1998achieving] decompose OT correctness into three properties: **convergence**, **causality preservation**, and **intention preservation** (the effect matches the user's intent). TP1/TP2 address convergence; intention preservation depends on the transformation rules and cannot be derived from them. This thesis proves convergence in [@Sec:crdt-framing] and validates intention preservation empirically through the formative examples of [@Sec:formative-examples].
 
 ## Causality {#sec:causality}
 
-Lamport's *happens-before* relation [@lamport1978] defines a partial order over events in a distributed system:
+Collaborative editing requires tracking which edits are aware of which others --- the *causal* ordering. Without this, a system cannot distinguish concurrent edits (which need conflict resolution) from sequential ones (which do not). Lamport's *happens-before* relation [@lamport1978] defines a partial order over events in a distributed system:
 
 > **Definition (happens-before).** $a \to b$ if (1) $a$ and $b$ are from the same peer and $a$ preceded $b$, (2) $a$ is the sending and $b$ the receipt of the same message, or (3) transitivity. Two events are *concurrent* ($a \parallel b$) if neither $a \to b$ nor $b \to a$.
 
@@ -93,18 +99,19 @@ A hybrid approach, *delta-state CRDTs*, sends only the part of the state that ch
 
 ### Pure operation-based CRDTs {#sec:pure-op-crdt}
 
-*Pure operation-based CRDTs* [@baquero2017pureop] are the theoretical foundation of mydenicek. Traditional operation-based CRDTs require concurrent operations to commute pairwise --- hard to design and prove for complex data types. Baquero et al. sidestep this by making the **replica state the set of all delivered operations** (a *PO-Log* --- partially ordered log). The observable value is computed on demand by a deterministic function *eval* over that set.
+*Pure operation-based CRDTs* [@baquero2017pureop] are the theoretical foundation of mydenicek. Traditional operation-based CRDTs require concurrent operations to commute pairwise, which is difficult to design and prove for complex data types. Baquero et al. sidestep this by making the **replica state the set of all delivered operations** (a *PO-Log* --- partially ordered log). The observable value is computed on demand by a deterministic function *eval* over that set.
 
-The framework defines three operations: **prepare** reads the current state and produces a tagged operation; **effect** adds the operation to the PO-Log; **eval** computes the observable value from the PO-Log. The PO-Log is a G-Set (grow-only set) whose merge is set union --- associative, commutative, and idempotent. Shapiro et al. [@shapiro2011crdt] proved that state-based CRDTs with a monotonic join-semilattice merge converge; the G-Set satisfies this trivially. Strong eventual consistency follows from two conditions: (1) every operation is eventually delivered to every replica (*eventual delivery*), and (2) *eval* is deterministic. Condition (1) is a transport-layer concern; condition (2) is the only property the data type designer must prove.
+The framework organizes the lifecycle of an operation into three phases: **prepare** takes a user edit and the current document state and creates an operation annotated with causal metadata --- a vector clock that records which operations the creator had already seen (e.g., "insert item X at position 3, with clock {alice: 5, bob: 3}"); **effect** adds the operation to the PO-Log on the local replica and broadcasts it to remote replicas; **eval** computes the observable document by applying all operations in the PO-Log. The PO-Log is a G-Set (grow-only set, see below) whose merge is set union --- associative, commutative, and idempotent. Shapiro et al. [@shapiro2011crdt] proved that state-based CRDTs with a monotonic join-semilattice merge converge; the G-Set satisfies this trivially. Strong eventual consistency follows from two conditions: (1) every operation is eventually delivered to every replica (*eventual delivery*), and (2) *eval* is deterministic. Condition (1) is a transport-layer concern; condition (2) is the only property the data type designer must prove.
 
-The framework assumes *tagged reliable causal broadcast* [@baquero2017pureop, §3]: each operation is tagged with causal metadata (a vector clock), delivery is causal (if $a \to b$, then $a$ is delivered before $b$), and every operation is eventually delivered. The framework also defines a **redundancy relation** for compaction: once an operation is *causally stable* (delivered to all replicas), it can be pruned from the PO-Log if a more recent operation subsumes it.
+The framework assumes *reliable causal broadcast* [@baquero2017pureop, §3]: delivery is causal (if $a \to b$, then $a$ is delivered before $b$), and every operation is eventually delivered. The framework also defines a **redundancy relation** for compaction: once an operation is *causally stable* (delivered to all replicas), it can be removed from the PO-Log if it does not affect the result of *eval* --- for example, in a last-writer-wins register, an older write is redundant once a newer write from the same causal history is stable, because *eval* would ignore it anyway.
 
 mydenicek implements this framework directly. The mapping is:
 
 +--------------------+--------------------------------------------+
 | Baquero            | mydenicek                                  |
 +====================+============================================+
-| PO-Log             | Event DAG (`Map<string, Event>`)           |
+| PO-Log             | Event DAG (each event stores parent IDs,   |
+|                    | forming a DAG within a `Map<EventId, Event>`)|
 +--------------------+--------------------------------------------+
 | prepare            | `Denicek.add()`, `.insert()`, etc.         |
 +--------------------+--------------------------------------------+
@@ -139,7 +146,7 @@ Several existing CRDT libraries were evaluated as potential backends for Denicek
 
 **Other systems.** Yjs [@yjs] shares Automerge's limitations for Denicek: no atomic move, no path-based selectors, no native tree CRDT. Eg-walker [@gentle2025egwalker] stores operations in a causal event graph with topological replay --- mydenicek borrows this architectural idea but applies it to trees with selector rewriting, framed as a pure operation-based CRDT rather than an OT/CRDT hybrid. Diamond Types [@diamondtypes] shares the event-graph approach but targets text. json-joy [@jsonjoy] operates on JSON structures but lacks wildcard selectors and structural edits. Grove [@grove2025] targets code editing with commutative operations on fixed-schema ASTs, incompatible with Denicek's schema-free trees. Mogk et al. [@mogk2025prdts] propose *Protocol RDTs* that treat programs --- not just data --- as the replicated entity; mydenicek's replay mechanism, where recorded edit sequences are retargeted through structural changes on any peer, is a concrete instance of this idea. Webstrates [@klokmose2015webstrates] inspired the naming lineage: Webstrates, myWebstrates, Denicek, mydenicek.
 
-**Pure op-based CRDT frameworks.** Bauwens and Gonzalez Boix at VUB Brussels have developed a comprehensive ecosystem for pure operation-based CRDTs: Flec [@bauwens2023nested] is a TypeScript framework that implements PO-Log-based CRDTs with support for nesting and composition; the same authors address metadata reduction via causal stability [@bauwens2020stability], incremental *eval* for reactive UI updates [@bauwens2021reactivity], and automated verification via VeriFx [@bauwens2022verifx]. Weidner et al. [@weidner2023collabs] provide Collabs, a TypeScript CRDT framework with composable types and a `TestingRuntimes` harness for controlled deterministic network interleaving. mydenicek's current implementation is standalone rather than built on these frameworks; integrating with them --- particularly for testing and verification --- is discussed in [@Sec:future-work].
+**Pure op-based CRDT frameworks.** Bauwens and Gonzalez Boix at VUB Brussels have developed a comprehensive ecosystem for pure operation-based CRDTs: Flec [@bauwens2023nested] is a TypeScript framework that implements PO-Log-based CRDTs with support for nesting and composition; the same authors address metadata reduction via causal stability [@bauwens2020stability], incremental *eval* for reactive UI updates [@bauwens2021reactivity], and automated verification via VeriFx [@deporre2023verifx]. Weidner et al. [@weidner2023collabs] provide Collabs, a TypeScript CRDT framework with composable types and a `TestingRuntimes` harness for controlled deterministic network interleaving. mydenicek does not build on these frameworks because they address the *convergence* layer (PO-Log management, causal stability, metadata reduction) but not the *intention preservation* layer — the selector rewriting rules that keep references valid through structural edits, expand wildcards over concurrent inserts, and retarget recorded edits. This is the hard, domain-specific part of mydenicek's design, and it has no counterpart in Flec's pairwise redundancy relations. However, integrating with these frameworks for testing and verification is discussed in [@Sec:future-work].
 
 Weidner [@weidner2023foreach] identifies the *for-each problem*: operations applied to every element in a range miss concurrently inserted elements. mydenicek's wildcard selectors solve this without a dedicated CRDT for-each operation: wildcards expand at replay time to include all elements that exist at that point, including concurrent insertions ([@Sec:wildcard-concurrent]).
 

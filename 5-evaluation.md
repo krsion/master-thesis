@@ -3,7 +3,7 @@
 ## Formative examples {#sec:formative-examples}
 
 
-## Hello World: custom primitive edits and replay {#sec:hello-world}
+### Hello World: custom primitive edits and replay {#sec:hello-world}
 
 The first example demonstrates two fundamental capabilities: *custom primitive edits* and *wildcard replay*.
 
@@ -27,9 +27,11 @@ replayPeer.replayEditFromEventId(eventId, "messages/*");
 
 This example shows that the CRDT is extensible --- users can register domain-specific transformations that participate in the event DAG and can be replayed like any other edit.
 
-## Counter: formulas and programming by demonstration {#sec:counter}
+### Counter: formulas and programming by demonstration {#sec:counter}
 
-The counter example demonstrates the *formula engine* and *recording/replay* (programming by demonstration).
+The counter example demonstrates the *formula engine* and *recording/replay* (programming by demonstration). [@Fig:formative-counter] shows the counter after one increment.
+
+![Counter example: the value 1 is computed by the `x-formula-plus` formula node wrapping the original 0. The "Increment" button replays three recorded edits.](img/formative-counter.png){#fig:formative-counter width=40%}
 
 The document starts with a simple `counter/value = 0`. We record three edits that implement "increment":
 
@@ -96,9 +98,11 @@ Each time the button is "clicked" (the steps are replayed), a new `x-formula-plu
 
 The formula engine evaluates the nested structure recursively, computing `((0+1)+1) = 2`. This pattern works for any operation --- multiplication, concatenation, or custom formulas.
 
-## Conference List: adding items with recorded edits {#sec:conf-list}
+### Conference List: adding items with recorded edits {#sec:conf-list}
 
-The conference list demonstrates how recorded edits work with an input field and a button to add items to a list.
+The conference list demonstrates how recorded edits work with an input field and a button to add items to a list. [@Fig:formative-conf-list] shows the rendered list.
+
+![Conference list example: an input field, an "Add" button, and a bullet list of speakers. The button replays two recorded edits (insert + copy from input).](img/formative-conf-list.png){#fig:formative-conf-list width=40%}
 
 The document contains a list of speakers (each with a `"Name, email"` string), an input field, and an "Add" button. We record two edits:
 
@@ -132,9 +136,9 @@ The `!0` strict index is crucial: it refers to the item at position 0 *at the ti
 
 When the button is replayed, it creates a new item and fills it with whatever text is currently in the input field. Two peers can concurrently add speakers --- after sync, both items appear in the list.
 
-## Conference Table: structural transformation {#sec:conf-table}
+### Conference Table: structural transformation {#sec:conf-table}
 
-The conference table example is the most complex formative example. It demonstrates *schema evolution* --- refactoring a flat list into a structured table using only the edit operations available in the CRDT. The document tree before and after the transformation:
+The conference table example is the most complex formative example. It demonstrates *schema evolution* --- refactoring a flat list into a structured table using only the edit operations available in the CRDT. [@Fig:formative-conf-table] shows the final table after the transformation. The document tree before and after the transformation:
 
 **Before** --- a flat conference list:
 
@@ -171,6 +175,8 @@ The conference table example is the most complex formative example. It demonstra
   </tr>
 </table>
 ```
+
+![Conference table after structural transformation: names and emails are split into separate columns using `split-first` and `split-rest` formula nodes. The "Add Speaker" button adds complete table rows.](img/formative-conf-table.png){#fig:formative-conf-table width=40%}
 
 Starting from the conference list (a `<ul>` with `<li>` items containing `"Name, email"` strings), Alice performs the following structural transformation. Each step shows the intermediate document state, demonstrating how the tree evolves:
 
@@ -256,7 +262,7 @@ alice.insert(
 
 The wildcard `*` in all four steps ensures that the transformation is applied to every row simultaneously. All edits are recorded as events in the DAG. Importantly, the "Add Speaker" button recorded in the list phase continues to work after the refactoring --- see [@Sec:replay-after-refactor].
 
-## Conference Table: concurrent editing {#sec:conf-concurrent}
+### Conference Table: concurrent editing {#sec:conf-concurrent}
 
 Two peers start from the same conference list, disconnect, and make concurrent edits: **Alice** refactors the list into a table (as above), while **Bob** adds two new speakers via `insert`. When they reconnect and sync, Alice's wildcard edits automatically expand to include Bob's concurrently inserted items: `updateTag` changes their tags, `wrapList` wraps them in `<tr>` lists, and `insert` adds the split formula cells. The result is a table with all four speakers --- each with correctly split name and email columns --- even though Bob inserted plain `<li>` items into a `<ul>` list. This *wildcard-affects-concurrent-insertions* property ([@Sec:wildcard-concurrent]) is a direct consequence of the replay-based OT approach.
 
@@ -270,7 +276,7 @@ Two peers start from the same conference list, disconnect, and make concurrent e
 
 ![After merge: all four speakers appear in the table. The event graph shows the concurrent fork merging at a single commit.](img/concurrent-merged.png){#fig:concurrent-merged width=95%}
 
-## Button replay after schema evolution {#sec:replay-after-refactor}
+### Button replay after schema evolution {#sec:replay-after-refactor}
 
 Recorded edit sequences survive structural refactoring. The "Add Speaker" button was recorded against a flat `<ul>` list --- its steps insert a `<li>` item and copy the input value. After Alice refactors the list into a `<table>` with formula columns, clicking the button still works: each recorded step is retargeted through all structural edits that happened after recording. The replayed insert produces a complete table row with split-first and split-rest cells, as if recorded against the table.
 
@@ -297,7 +303,7 @@ This uses the same OT transformations as concurrent editing. The only difference
 
 Automerge and Loro excel at general-purpose collaborative JSON editing but lack the path-based features Denicek requires. The custom approach sacrifices character-level text editing (a limitation) but gains native support for all of Denicek's programming-by-demonstration features.
 
-**Comparison with the original Denicek.** The original Denicek uses a Git-like model: peers work on local branches and merge manually. mydenicek replaces this with automatic merge — the CRDT's deterministic replay resolves concurrent edits without user intervention. The trade-off: automatic resolution follows fixed rules (topological order determines winners), whereas manual merge lets the user choose.
+**Comparison with the original Denicek.** The original Denicek uses a Git-like model: peers work on local branches and merge manually. mydenicek replaces this with automatic merge — the CRDT's deterministic replay resolves concurrent edits without user intervention. The trade-off is that automatic resolution follows fixed rules (topological order determines winners), whereas manual merge lets the user choose.
 
 [@Tbl:approach-comparison] is evaluated against Denicek's requirements. For other use cases, Automerge and Loro offer advantages: character-level text editing, compact binary encoding for millions of operations, mature ecosystems, and peer-to-peer transport. mydenicek sacrifices these for native path-based selectors, wildcards, and structural edit rewriting.
 
@@ -331,7 +337,7 @@ The invariants checked are:
 - **Intent preservation.** Non-conflicting concurrent additions all appear in the merged document.
 - **Out-of-order delivery tolerance.** Shuffled event delivery with the causal buffer produces the same state as causal delivery.
 
-The property suite caught several bugs during development: wildcard-over-concurrent-insert failures and copy-then-rename retargeting errors were both discovered by shrunk counterexamples. The existing TLA+ model ([@Sec:limitations]) could further strengthen testing by serving as a *coverage guide* for the fuzzer --- Ozkan et al. [@ozkan2025modelfuzz] show that using a TLA+ model to direct test generation toward under-explored states finds bugs that random fuzzing misses.
+The property suite caught several bugs during development: wildcard-over-concurrent-insert failures and copy-then-rename retargeting errors were both discovered by shrunk counterexamples.
 
 ## Performance {#sec:performance}
 
@@ -353,18 +359,18 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 *local-append* is a single peer issuing $N$ sequential insert edits. *sync-linear* builds $N$ events on peer $A$ and delivers them to peer $B$ in causal order. *merge-fan* has peer $A$ and peer $B$ edit disjoint subtrees concurrently and then sync.
 
-For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms. At $N = 100$, a full fan-merge of two 50-event concurrent branches costs 14 ms total --- well within the interactive threshold. The linear workloads stay below a millisecond per event up to $N = 2000$. This is due to an **incremental materialization cache** (`EventGraph.cachedDoc`) which is extended in place whenever a new event's parents exactly equal the current frontier --- a *linear extension* of the graph. In that common case, inserting an event costs an `edit.validate` against the cached document plus an in-place `edit.apply`, avoiding a full replay.
+For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms. At $N = 100$, merging two 50-event concurrent branches costs 14 ms total --- well within the interactive threshold. The linear workloads stay below a millisecond per event up to $N = 2000$. This is due to an **incremental materialization cache** (`EventGraph.cachedDoc`) which is extended in place whenever a new event's parents exactly equal the current frontier --- a *linear extension* of the graph. In that common case, inserting an event costs an `edit.validate` against the cached document plus an in-place `edit.apply`, avoiding a full replay.
 
 The merge-fan workload exposes the **asymptotic cost of true concurrency**: every incoming event from peer $B$ invalidates the linear cache on peer $A$ (because its parents no longer match $A$'s frontier). However, the checkpoint cache mitigates this: before invalidation, the current state is saved as a checkpoint keyed by the pre-merge frontier. On the next materialization, replay resumes from that fork point rather than from the initial document. The remaining cost is proportional to the events *after* the fork point, not the total event count. At $N=2000$ the merge-fan workload costs 21.6 seconds --- still too slow for a large offline divergence, because the $O(N)$ `resolveAgainst` scan runs for every event in both branches, yielding $O(N^2)$ overall. For a local-first system where offline editing is an explicit goal, further optimization of the per-event resolution step would be needed.
 
-Two points soften this conclusion for present use without dissolving it:
+Two observations mitigate this cost in practice:
 
 - The ceiling is bounded by the number of *branch points*, not by the total event count. A long run of local edits followed by a single sync merge with a small remote branch costs $O(N \cdot B)$ where $B$ is the size of the remote branch, not $O(N^2)$.
 - For the Denicek applications studied in [@Sec:formative-examples], the total event count per session is typically $\le 100$, and merges happen after short offline intervals. Within that envelope the implementation is fast enough to feel interactive.
 
 Further reducing the per-event cost of `resolveAgainst` --- for instance, by skipping priors whose structural effect provably cannot overlap the current edit's selector --- is left as future work.
 
-**Memory footprint.** Events are held in memory as a `Map<string, Event>`. Each `Event` carries an `EventId`, a `parents` array, an `Edit` subclass instance with its own fields, and a `VectorClock`. On the sync-linear N=2000 workload the serialized on-disk JSON is approximately 0.4 MB (roughly 200 bytes per event, dominated by the vector-clock and edit payloads); in-memory the `Map` overhead adds a constant factor. This linear growth in event count is the main scalability constraint, mitigated by the server-side compaction mechanism described in [@Sec:sync], which materializes the document and discards old events once all active peers have acknowledged a common frontier.
+**Memory footprint.** Events are held in memory as a `Map<EventId, Event>`. Each `Event` carries an `EventId`, a `parents` array, an `Edit` subclass instance with its own fields, and a `VectorClock`. On the sync-linear N=2000 workload the serialized on-disk JSON is approximately 0.4 MB (roughly 200 bytes per event, dominated by the vector-clock and edit payloads); in-memory the `Map` overhead adds a constant factor. This linear growth in event count is the main scalability constraint, mitigated by the server-side compaction mechanism described in [@Sec:sync], which materializes the document and discards old events once all active peers have acknowledged a common frontier.
 
 ## Determinism audit {#sec:determinism-audit}
 
@@ -380,8 +386,6 @@ The audit is informal. A mechanical check (e.g., a lint rule banning `Object.key
 ## Limitations {#sec:limitations}
 
 The current implementation has several known limitations:
-
-**Convergence is verified by TLA+ model checking but only for a bounded model.** The TLA+ specification (`spec/MydenicekCRDT.tla`) models five edit types (Add, Rename, Insert, Delete, WrapRecord) on a flat record with two peers, two events per peer, and two fields. TLC exhaustively verifies TypeOK, CausalClosure, and Convergence (strong eventual consistency) on all reachable states of this bounded model. However, the specification does not cover the full 11 edit types, nested trees, wildcards, or list-based operations --- these are validated by the property-based tests instead. Extending the TLA+ model to nested trees and additional edit types is feasible but would require further reducing other dimensions to keep the state space tractable; adding a single edit type to the current configuration roughly triples the state space. The proof sketch in [@Sec:crdt-framing] establishes the logical structure of the convergence argument for the general (unbounded) case, and the determinism audit in [@Sec:determinism-audit] verifies the implementation-level assumptions informally.
 
 **Materialization cost is quadratic for concurrent branches.** Linear extensions (the common case during local editing and live sync) extend a cached document in place at O(1) amortized cost. Merges resume from a checkpoint at the fork point rather than replaying from the initial document, but the `resolveAgainst` step still scans all prior events for each event being replayed, giving $O(N^2)$ in the worst case for a workload dominated by concurrent branching.
 
