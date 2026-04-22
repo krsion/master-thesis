@@ -4,7 +4,7 @@ This thesis investigated collaborative editing for Denicek. We evaluated Automer
 
 The implementation stores edits as immutable events in a grow-only DAG and materializes documents by deterministic topological replay with selector rewriting. Convergence follows from the pure operation-based CRDT framework [@baquero2017pureop]: the event set is a G-Set, the *eval* function (`materialize`) is deterministic. The main contribution is **intention preservation** --- selector rewriting rules that keep references valid through structural edits, expand wildcards over concurrent inserts, and retarget recorded edits through schema evolution.
 
-The system was validated on five formative examples, 310 tests (including property-based convergence testing with `fast-check`), and a determinism audit. All examples are available as interactive demos at <https://krsion.github.io/mydenicek>.
+The system was validated on five formative examples, 331 tests (including a concurrent pair matrix, property-based convergence testing with `fast-check`, and intention preservation invariants), and a determinism audit. All examples are available as interactive demos at <https://krsion.github.io/mydenicek>.
 
 ## Future work {#sec:future-work}
 
