@@ -107,22 +107,14 @@ The framework assumes *reliable causal broadcast* [@baquero2017pureop, §3]: del
 
 mydenicek implements this framework directly. The mapping is:
 
-+--------------------+--------------------------------------------+
-| Baquero            | mydenicek                                  |
-+====================+============================================+
-| PO-Log             | Event DAG (each event stores parent IDs,   |
-|                    | forming a DAG within a `Map<EventId, Event>`)|
-+--------------------+--------------------------------------------+
-| prepare            | `Denicek.add()`, `.insert()`, etc.         |
-+--------------------+--------------------------------------------+
-| effect             | `EventGraph.insertEvent()`               |
-+--------------------+--------------------------------------------+
-| eval               | `EventGraph.materialize()`                |
-+--------------------+--------------------------------------------+
-| Causal broadcast   | WebSocket relay + causal delivery buffer   |
-+--------------------+--------------------------------------------+
-| PO-Log pruning     | Not feasible on relay server (see below)   |
-+--------------------+--------------------------------------------+
+| Baquero | mydenicek |
+|---------|-----------|
+| PO-Log | Event DAG (`Map<EventId, Event>`, each event stores parent IDs forming a DAG) |
+| prepare | `Denicek.add()`, `.insert()`, etc. |
+| effect | `EventGraph.insertEvent()` |
+| eval | `EventGraph.materialize()` |
+| Causal broadcast | WebSocket relay + causal delivery buffer |
+| PO-Log pruning | Not feasible on relay server (see below) |
 
 The event DAG is strictly richer than a PO-Log: it stores explicit parent pointers, enabling checkpoint-based incremental materialization. PO-Log pruning is discussed in [@Sec:sync].
 
