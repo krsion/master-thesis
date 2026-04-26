@@ -68,7 +68,7 @@ Sun et al. [@sun1998achieving] decompose OT correctness into three properties: *
 
 Collaborative editing requires tracking which edits are aware of which others --- the *causal* ordering. Without this, a system cannot distinguish concurrent edits (which need conflict resolution) from sequential ones (which do not). Lamport's *happens-before* relation [@lamport1978] defines a partial order over events in a distributed system:
 
-> **Definition (happens-before).** $a \to b$ if (1) $a$ and $b$ are from the same peer and $a$ preceded $b$, (2) $a$ is the sending and $b$ the receipt of the same message, or (3) transitivity. Two events are *concurrent* ($a \parallel b$) if neither $a \to b$ nor $b \to a$.
+> **Definition (happens-before).** For events $a$ and $b$, $a \to b$ if (1) $a$ and $b$ are events on the same peer and $a$ preceded $b$, (2) $a$ is the sending event of some message $m$ and $b$ is the receiving event of $m$, or (3) there exists an event $c$ such that $a \to c$ and $c \to b$ (transitivity). Two events are *concurrent* ($a \parallel b$) if neither $a \to b$ nor $b \to a$.
 
 *Vector clocks* [@mattern1989virtual; @fidge1988timestamps] implement happens-before detection. A vector clock $V$ maps each peer ID to its highest known sequence number. $a \to b$ iff $V_a[p] \leq V_b[p]$ for all $p$ with strict inequality for at least one. This allows concurrency detection in O(P) time.
 
