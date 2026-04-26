@@ -107,7 +107,7 @@ A coarser but simpler bound: let $S$ denote the total number of events since the
 |---|---|---|
 | Local editing (linear extension cache) | $O(D)$ | $O(ND)$ |
 | Full replay, chain | $O(C_i) = O(0)$ | $O(N)$ |
-| Full replay, two equal concurrent branches | $O(C_i) \leq O(N)$ | $O(N^2)$ |
+| Full replay, two equal-length concurrent branches | $O(C_i) \leq O(N)$ | $O(N^2)$ |
 | Sync ($S$ diverged events) | --- | $O(S^2)$ |
 | Sync (two branches $a$, $B$) | --- | $O(a \cdot B)$ |
 
