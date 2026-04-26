@@ -380,23 +380,23 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms. At $N = 100$, merging two 50-event concurrent branches costs 14 ms total --- well within the interactive threshold. The linear workloads stay below a millisecond per event up to $N = 2000$, confirming the $O(D)$ amortized cost of linear extensions ([@Sec:complexity]).
 
-The merge-fan workload exposes the asymptotic cost of true concurrency. At $N=2000$ (two concurrent branches of 1000 events each) the workload costs 21.6 seconds, consistent with the $O(N^2 P)$ worst case from [@Sec:complexity]. The geometric checkpoint cache mitigates this in the common case where a long local history receives a small concurrent branch: the checkpoint covers the shared causal prefix, reducing replay to $O(B \cdot N \cdot P)$ where $B$ is the number of concurrent events. For a local-first system where offline editing is an explicit goal and $B$ may grow large, further optimization of the per-event resolution step would be needed.
+The merge-fan workload exposes the asymptotic cost of true concurrency. At $N=2000$ (two concurrent branches of 1000 events each) the workload costs 21.6 seconds. The per-peer index ([@Sec:complexity]) reduces the per-event scan from $O(N P)$ to $O(P \log N + C \log C)$ where $C$ is the number of concurrent priors, and the geometric checkpoint covers the shared causal prefix, reducing replay to $O(B N \log N)$ where $B$ is the concurrent branch size. For a local-first system where offline editing is an explicit goal and $B$ may grow large, further optimization would be needed.
 
 Two observations mitigate this cost in practice:
 
-- A long run of local edits followed by a single sync with a small remote branch costs $O(B \cdot N \cdot P)$ rather than $O(N^2 P)$, because the geometric checkpoint covers the shared causal prefix and only $B$ events are replayed.
+- A long run of local edits followed by a single sync with a small remote branch costs $O(B N \log N)$ rather than $O(N^2 \log N)$, because the geometric checkpoint covers the shared causal prefix and only $B$ events are replayed.
 - For the Denicek applications studied in [@Sec:formative-examples], the total event count per session is typically $\le 100$, and syncs happen after short offline intervals. Within that envelope the implementation is fast enough to feel interactive.
 
-Further reducing the per-event cost of `resolveAgainst` --- for instance, by skipping priors whose structural effect provably cannot overlap the current edit's selector --- is left as future work.
+Further reducing the cost for large concurrent branches --- for instance, by replacing pairwise transformation with a batch-aware merge strategy --- is left as future work.
 
-**Memory footprint.** Events are held in memory as a `Map<EventId, Event>`. Each `Event` carries an `EventId`, a `parents` array, an `Edit` subclass instance with its own fields, and a `VectorClock`. On the sync-linear N=2000 workload the serialized on-disk JSON is approximately 0.4 MB (roughly 200 bytes per event, dominated by the vector-clock and edit payloads); in-memory the `Map` overhead adds a constant factor. This linear growth in event count is the main scalability constraint, mitigated by the server-side compaction mechanism described in [@Sec:sync], which materializes the document and discards old events once all active peers have acknowledged a common frontier.
+**Memory footprint.** Events are held in memory as a `Map<EventId, Event>`. Each `Event` carries an `EventId`, a `parents` array, an `Edit` subclass instance with its own fields, and a `VectorClock`. The per-peer index adds $O(N)$ auxiliary storage during replay. On the sync-linear N=2000 workload the serialized on-disk JSON is approximately 0.4 MB (roughly 200 bytes per event, dominated by the vector-clock and edit payloads); in-memory the `Map` overhead adds a constant factor. This linear growth in event count is the main scalability constraint, mitigated by the server-side compaction mechanism described in [@Sec:sync], which materializes the document and discards old events once all active peers have acknowledged a common frontier.
 
 ## Determinism audit {#sec:determinism-audit}
 
 The convergence proof requires that `topologicalOrder`, `resolveAgainst`, and `apply` are deterministic. We audited the implementation for JavaScript-level non-determinism:
 
 - **Topological order** uses a `BinaryHeap` keyed on `EventId` lexicographic order. The event `Map` is accessed only via `Map.get`, never iterated.
-- **`resolveAgainst`** iterates the `applied` list (produced by the topological order) sequentially. `transformLaterConcurrentEdit` dispatches on the edit's class.
+- **`resolveAgainst`** uses a per-peer index that groups applied events by peer. For each peer, concurrent events are found via binary search on sequence number, then sorted by topological position. `transformLaterConcurrentEdit` dispatches deterministically on the edit's class.
 - **`apply`** methods are local mutations. `Object.keys` appears only in serialization paths (`toPlain`) and vector clock comparisons (order-independent). The formula engine keys results by absolute path strings.
 - **No hidden non-determinism**: no `Math.random`, `Date.now`, or hash-map iteration dependence in the materialization path.
 
@@ -406,7 +406,7 @@ The audit is informal. A mechanical check (e.g., a lint rule banning `Object.key
 
 The current implementation has several known limitations:
 
-**Materialization cost is quadratic for concurrent branches.** Linear extensions (the common case during local editing) extend a cached document in place at amortized $O(D)$ cost per event ([@Sec:complexity]). Geometric checkpoints allow rematerialization to resume from the longest matching prefix of the topological order, reducing sync cost to $O(B \cdot N \cdot P)$ in the common case. However, the `resolveAgainst` step still scans all prior events for each replayed event, giving $O(N^2 P)$ in the worst case for a workload dominated by concurrent branching with no shared causal prefix.
+**Materialization cost is quadratic for concurrent branches.** Linear extensions (the common case during local editing) extend a cached document in place at amortized $O(D)$ cost per event ([@Sec:complexity]). The per-peer index reduces per-event resolution from $O(N P)$ to $O(P \log N + C \log C)$, and geometric checkpoints resume from the shared causal prefix. The worst case is $O(N^2 \log N)$ for a workload dominated by concurrent branching with no shared causal prefix.
 
 **No character-level text editing.** Primitive values (strings, numbers, booleans) are replaced atomically. There is no character-level collaborative text editing --- concurrent edits to the same string field are resolved by last-writer-wins based on topological order. Supporting character-level editing would require integrating a text CRDT (such as Fugue) for primitive string values.
 
