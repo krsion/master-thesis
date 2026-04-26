@@ -1,0 +1,35 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - button "ec334e39" [ref=e10] [cursor=pointer]
+    - button "+ Formative Examples" [ref=e6] [cursor=pointer]
+    - button "+ Empty" [ref=e7] [cursor=pointer]
+  - generic [ref=e11]:
+    - generic [ref=e12]:
+      - generic [ref=e13]: mydenicek
+      - generic [ref=e14]:
+        - button "Document" [ref=e15] [cursor=pointer]
+        - button "Raw JSON" [ref=e16] [cursor=pointer]
+        - button "Event Graph" [ref=e17] [cursor=pointer]
+      - generic [ref=e18]:
+        - text: "● connecting — peer: 0984c31 — room: ec334e39"
+        - button "Disconnect" [ref=e19] [cursor=pointer]
+    - generic [ref=e20]:
+      - generic [ref=e40]: world
+      - generic [ref=e23]: "{ \"$tag\": \"root\", \"name\": \"world\" }"
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - generic [ref=e27]: "Events: 2"
+          - generic [ref=e28]: "Peers: 1"
+          - generic [ref=e29]: "Frontier: 1"
+        - img [ref=e32]:
+          - generic [ref=e41]: 0984c3
+          - generic "0984c31:0 — Add 'name' = \"hello\" to /" [ref=e42] [cursor=pointer]:
+            - generic [ref=e44]: "0"
+          - generic "0984c31:1 — set(\"world\") at name" [ref=e46] [cursor=pointer]:
+            - generic [ref=e48]: "1"
+    - generic [ref=e33]:
+      - generic [ref=e45]: Set /name = "world"
+      - generic [ref=e34]:
+        - generic [ref=e35]: ">"
+        - textbox "/path command args... (tab to complete)" [active] [ref=e37]
+        - button "?" [ref=e38] [cursor=pointer]
