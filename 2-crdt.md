@@ -77,8 +77,6 @@ Because the sort order is deterministic and the selector-rewriting transformatio
 
 The event DAG under the happens-before relation is a **partially ordered set** (poset). Events from the same peer are totally ordered by sequence number, forming a **chain**. Two events are **comparable** (one is an ancestor of the other) or **incomparable** (concurrent). We treat the number of peers $P$ as a constant and let $N$ be the total number of events and $D$ the number of document-tree nodes.
 
-#### Per-peer index
-
 The materializer groups applied events by peer in a **per-peer index**. Since sequence numbers are contiguous, the first incomparable event from peer Y is at index $V_E[Y] + 1$ --- skipping all comparable predecessors in $O(1)$:
 
 ```
