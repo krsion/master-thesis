@@ -1,0 +1,20 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - button "08de8734" [ref=e10] [cursor=pointer]
+    - button "e8eb185a" [ref=e142] [cursor=pointer]
+    - button "+ Formative Examples" [ref=e6] [cursor=pointer]
+    - button "+ Empty" [ref=e7] [cursor=pointer]
+  - generic [ref=e143]:
+    - generic [ref=e144]:
+      - generic [ref=e145]: mydenicek
+      - generic [ref=e146]:
+        - button "Document" [ref=e147] [cursor=pointer]
+        - button "Raw JSON" [ref=e148] [cursor=pointer]
+        - button "Event Graph" [ref=e149] [cursor=pointer]
+      - generic [ref=e150]:
+        - text: "● connected — peer: 231943b — room: e8eb185a"
+        - button "Disconnect" [ref=e151] [cursor=pointer]
+    - generic [ref=e155]:
+      - generic [ref=e156]: ">"
+      - textbox "/path command args... (tab to complete)" [active] [ref=e158]
+      - button "?" [ref=e159] [cursor=pointer]

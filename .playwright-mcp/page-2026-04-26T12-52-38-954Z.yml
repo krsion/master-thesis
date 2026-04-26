@@ -1,0 +1,51 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - button "08de8734" [ref=e10] [cursor=pointer]
+    - button "+ Formative Examples" [ref=e6] [cursor=pointer]
+    - button "+ Empty" [ref=e7] [cursor=pointer]
+  - generic [ref=e11]:
+    - generic [ref=e12]:
+      - generic [ref=e13]: mydenicek
+      - generic [ref=e14]:
+        - button "Document" [ref=e15] [cursor=pointer]
+        - button "Raw JSON" [ref=e16] [cursor=pointer]
+        - button "Event Graph" [ref=e17] [cursor=pointer]
+      - generic [ref=e18]:
+        - text: "● connected — peer: 231943b — room: 08de8734"
+        - button "Disconnect" [ref=e19] [cursor=pointer]
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - heading "mydenicek" [level=1] [ref=e25]
+        - paragraph [ref=e26]: A local-first collaborative document editor — formative examples
+      - article [ref=e27]:
+        - heading "Counter" [level=2] [ref=e28]
+        - text: "2"
+        - button "Increment" [ref=e29] [cursor=pointer]
+      - article [ref=e30]:
+        - heading "Conference List" [level=2] [ref=e31]
+        - generic [ref=e32]:
+          - textbox [ref=e33]: New Speaker, speaker@example.com
+          - button "Add" [ref=e34] [cursor=pointer]
+        - list [ref=e35]:
+          - listitem [ref=e36]: New Speaker, speaker@example.com
+          - listitem [ref=e37]: Tomáš Petříček, tomas@tomasp.net
+          - listitem [ref=e38]: Ada Lovelace, ada@example.com
+      - article [ref=e39]:
+        - heading "Conferences" [level=2] [ref=e40]
+        - generic [ref=e41]:
+          - textbox [ref=e42]: Jan Novák, jan@novak.cz
+          - button "Add Speaker" [ref=e43] [cursor=pointer]
+        - table [ref=e44]:
+          - row "Jan Novák jan@novak.cz" [ref=e45]:
+            - cell "Jan Novák" [ref=e46]
+            - cell "jan@novak.cz" [ref=e47]
+          - row "Tomáš Petříček tomas@tomasp.net" [ref=e48]:
+            - cell "Tomáš Petříček" [ref=e49]
+            - cell "tomas@tomasp.net" [ref=e50]
+          - row "Ada Lovelace ada@example.com" [ref=e51]:
+            - cell "Ada Lovelace" [ref=e52]
+            - cell "ada@example.com" [ref=e53]
+    - generic [ref=e127]:
+      - generic [ref=e128]: ">"
+      - textbox "/path command args... (tab to complete)" [active] [ref=e130]
+      - button "?" [ref=e131] [cursor=pointer]

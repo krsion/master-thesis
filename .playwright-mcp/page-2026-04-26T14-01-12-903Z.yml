@@ -1,0 +1,54 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - button "08de8734" [ref=e10] [cursor=pointer]
+    - button "e8eb185a" [ref=e142] [cursor=pointer]
+    - button "+ Formative Examples" [ref=e6] [cursor=pointer]
+    - button "+ Empty" [ref=e7] [cursor=pointer]
+  - generic [ref=e165]:
+    - generic [ref=e166]:
+      - generic [ref=e167]: mydenicek
+      - generic [ref=e168]:
+        - button "Document" [ref=e169] [cursor=pointer]
+        - button "Raw JSON" [ref=e170] [cursor=pointer]
+        - button "Event Graph" [ref=e171] [cursor=pointer]
+      - generic [ref=e172]:
+        - text: "● connected — peer: 231943b — room: 08de8734"
+        - button "Disconnect" [ref=e173] [cursor=pointer]
+    - generic [ref=e174]:
+      - generic [ref=e177]:
+        - generic [ref=e178]:
+          - heading "mydenicek" [level=1] [ref=e179]
+          - paragraph [ref=e180]: A local-first collaborative document editor — formative examples
+        - article [ref=e181]:
+          - heading "Counter" [level=2] [ref=e182]
+          - text: "2"
+          - button "Increment" [ref=e183] [cursor=pointer]
+        - article [ref=e184]:
+          - heading "Conference List" [level=2] [ref=e185]
+          - generic [ref=e186]:
+            - textbox [ref=e187]: New Speaker, speaker@example.com
+            - button "Add" [ref=e188] [cursor=pointer]
+          - list [ref=e189]:
+            - listitem [ref=e190]: New Speaker, speaker@example.com
+            - listitem [ref=e191]: Tomáš Petříček, tomas@tomasp.net
+            - listitem [ref=e192]: Ada Lovelace, ada@example.com
+        - article [ref=e193]:
+          - heading "Conferences" [level=2] [ref=e194]
+          - generic [ref=e195]:
+            - textbox [ref=e196]: Jan Novák, jan@novak.cz
+            - button "Add Speaker" [ref=e197] [cursor=pointer]
+          - table [ref=e198]:
+            - row "Jan Novák jan@novak.cz" [ref=e199]:
+              - cell "Jan Novák" [ref=e200]
+              - cell "jan@novak.cz" [ref=e201]
+            - row "Tomáš Petříček tomas@tomasp.net" [ref=e202]:
+              - cell "Tomáš Petříček" [ref=e203]
+              - cell "tomas@tomasp.net" [ref=e204]
+            - row "Ada Lovelace ada@example.com" [ref=e205]:
+              - cell "Ada Lovelace" [ref=e206]
+              - cell "ada@example.com" [ref=e207]
+      - generic [ref=e209]: "{ \"$tag\": \"section\", \"header\": { \"$tag\": \"header\", \"title\": { \"$tag\": \"h1\", \"text\": \"mydenicek\" }, \"subtitle\": { \"$tag\": \"p\", \"text\": \"A local-first collaborative document editor — formative examples\" } }, \"counter\": { \"$tag\": \"article\", \"heading\": { \"$tag\": \"h2\", \"text\": \"Counter\" }, \"value\": { \"$tag\": \"x-formula-plus\", \"left\": { \"$tag\": \"x-formula-plus\", \"left\": 0, \"right\": 1 }, \"right\": 1 }, \"btn\": { \"$tag\": \"button\", \"label\": \"Increment\", \"steps\": { \"$tag\": \"event-steps\", \"$items\": [ { \"$tag\": \"step\", \"eventId\": \"231943b:0\" }, { \"$tag\": \"step\", \"eventId\": \"231943b:1\" }, { \"$tag\": \"step\", \"eventId\": \"231943b:2\" } ] } } }, \"conferenceList\": { \"$tag\": \"article\", \"heading\": { \"$tag\": \"h2\", \"text\": \"Conference List\" }, \"composer\": { \"$tag\": \"composer\", \"input\": { \"$tag\": \"input\", \"value\": \"New Speaker, speaker@example.com\" }, \"addAction\": { \"$tag\": \"button\", \"label\": \"Add\", \"steps\": { \"$tag\": \"event-steps\", \"$items\": [ { \"$tag\": \"step\", \"eventId\": \"231943b:6\" }, { \"$tag\": \"step\", \"eventId\": \"231943b:7\" } ] } } }, \"items\": { \"$tag\": \"ul\", \"$items\": [ { \"$tag\": \"li\", \"text\": \"New Speaker, speaker@example.com\" }, { \"$tag\": \"li\", \"text\": \"Tomáš Petříček, tomas@tomasp.net\" }, { \"$tag\": \"li\", \"text\": \"Ada Lovelace, ada@example.com\" } ] } }, \"conferences\": { \"$tag\": \"article\", \"heading\": { \"$tag\": \"h2\", \"text\": \"Conferences\" }, \"composer\": { \"$tag\": \"composer\", \"input\": { \"$tag\": \"input\", \"value\": \"Jan Novák, jan@novak.cz\" }, \"addAction\": { \"$tag\": \"button\", \"label\": \"Add Speaker\", \"steps\": { \"$tag\": \"event-steps\", \"$items\": [ { \"$tag\": \"step\", \"eventId\": \"231943b:10\" }, { \"$tag\": \"step\", \"eventId\": \"231943b:11\" }, { \"$tag\": \"step\", \"eventId\": \"231943b:12\" }, { \"$tag\": \"step\", \"eventId\": \"231943b:13\" }, { \"$tag\": \"step\", \"eventId\": \"231943b:14\" } ] } } }, \"speakers\": { \"$tag\": \"table\", \"$items\": [ { \"$tag\": \"tr\", \"name\": { \"$tag\": \"td\", \"text\": \"Jan Novák\" }, \"email\": { \"$tag\": \"td\", \"text\": \"jan@novak.cz\" } }, { \"$tag\": \"tr\", \"name\": { \"$tag\": \"td\", \"text\": \"Tomáš Petříček\" }, \"email\": { \"$tag\": \"td\", \"text\": \"tomas@tomasp.net\" } }, { \"$tag\": \"tr\", \"name\": { \"$tag\": \"td\", \"text\": \"Ada Lovelace\" }, \"email\": { \"$tag\": \"td\", \"text\": \"ada@example.com\" } } ] } } }"
+    - generic [ref=e211]:
+      - generic [ref=e212]: ">"
+      - textbox "/path command args... (tab to complete)" [active] [ref=e214]
+      - button "?" [ref=e215] [cursor=pointer]
