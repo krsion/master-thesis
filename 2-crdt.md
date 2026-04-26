@@ -97,6 +97,8 @@ The total cost $O(NW + C_\text{total})$ is **output-sensitive**: it depends on t
 
 For the typical sync scenario --- a common prefix followed by a local branch of length $a$ and a remote branch of length $B$ --- the total OT work is $O(a \cdot B)$, the product of the branch lengths. For the merge-fan benchmark ($a = b = N/2$): $C_\text{total} = N^2/4$.
 
+**Upper bound.** By Kleitman's theorem, for a poset of width $W$ with $N$ elements, $C_\text{total}$ is maximized when the $W$ chains have equal length $N/W$, giving $C_\text{total} \leq N^2(W-1) / 2W$. More peers (larger $W$) means more incomparable pairs, not fewer: the bound converges to $N^2/2$ as $W$ grows. The cost is determined by the branch *lengths*, not the number of branches.
+
 #### Three workload patterns
 
 **Local editing.** Each event extends the frontier (all predecessors are comparable). The linear extension cache applies the edit directly --- no topological sort, no concurrency scan. Cost: amortized $O(D)$ per event.
