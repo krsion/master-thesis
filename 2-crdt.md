@@ -71,7 +71,16 @@ Because the sort order is deterministic and the selector-rewriting transformatio
 
 ### Complexity {#sec:complexity}
 
-Let $N$ be the total number of events in the graph, $P$ the number of peers, and $D$ the size of the document tree (number of nodes). Each event has a bounded number of parents (at most $P$, typically 1--2). We analyze the cost of `materialize` under three workload patterns.
+We analyze the cost of `materialize` under three workload patterns. The following variables are used throughout:
+
+- $N$ --- total number of events in the graph.
+- $P$ --- number of peers.
+- $D$ --- size of the document tree (number of nodes).
+- $B$ --- number of concurrent events received from another peer during sync.
+- $K$ --- number of events covered by the best geometric checkpoint (the shared causal prefix).
+- $R = N + B - K$ --- number of events that must be replayed after resuming from a checkpoint.
+
+Each event has a bounded number of parents (at most $P$, typically 1--2).
 
 **Full replay (no cache).** Topological sort runs Kahn's algorithm with a binary-heap tie-breaker in $O(N \log N)$ time (edges are $O(N P)$ but $P$ is bounded). For the $i$-th event, `resolveAgainst` iterates all $i$ previously applied events. Each vector-clock comparison costs $O(P)$; each `transformLaterConcurrentEdit` call is $O(1)$ (fixed dispatch on edit type). The total `resolveAgainst` cost is $\sum_{i=1}^{N} O(i \cdot P) = O(N^2 P)$. Each `apply` navigates a selector path and mutates the document; the cost depends on the path length and affected region, bounded by $O(D)$ in the worst case. The overall cost is therefore $O(N^2 P + N D)$, dominated by the quadratic term when $P \ll N$. Space is $O(N P)$ for the event map (each event carries a vector clock of size $P$) plus $O(D)$ for the materialized document.
 
