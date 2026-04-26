@@ -52,7 +52,7 @@ The event directed acyclic graph (DAG) is the core data structure of mydenicek. 
 Parents and vector clocksserve complementary roles. Parents define the direct edges of the DAG --- they are needed for topological sorting and for the sync protocol's `eventsSince(frontiers)` computation. Vector clocks are an optimization: they enable O(P) concurrency detection (where P is the number of peers) during `resolveAgainst`, which must classify every prior event as either a causal ancestor (skip) or concurrent (transform). Without them, the same information could be computed by traversing the DAG to test reachability, but at greater cost. For example, Alice's event with clock `{alice: 5, bob: 3}` and Bob's event with clock `{alice: 2, bob: 4}` are concurrent because neither clock dominates the other (`alice: 5 > 2` but `bob: 3 < 4`).
 
 
-### Materialization
+## Materialization {#sec:materialization}
 
 To reconstruct the document from the event DAG, we perform *deterministic topological replay*:
 
@@ -60,10 +60,14 @@ To reconstruct the document from the event DAG, we perform *deterministic topolo
 2. Starting from the initial document, apply each event's edit in order. Before applying, call `resolveAgainst` --- the OT step that transforms the edit's selector through all previously applied concurrent edits.
 3. If a transformed edit becomes invalid (e.g., it targets a node that was deleted by a concurrent edit), it becomes a *no-op conflict* that is recorded but does not modify the document. The original event remains in the DAG (events are immutable and never removed), and the conflict is recorded in a separate conflict list returned by `materialize()`. Application code can inspect these conflicts to inform the user, but no automatic recovery is attempted --- the event simply has no effect on the materialized document.
 
+### Caching
+
 Two optimizations avoid replaying from scratch on every call:
 
-- **Linear extension cache.** When a new event's parents exactly match the current frontier (the common case during local editing), the event is a *linear extension* of the graph. In that case, `resolveAgainst` is a no-op (every prior is a causal ancestor), so the edit is applied directly to the cached document in O(1) amortized time.
+- **Linear extension cache.**When a new event's parents exactly match the current frontier (the common case during local editing), the event is a *linear extension* of the graph. In that case, `resolveAgainst` is a no-op (every prior is a causal ancestor), so the edit is applied directly to the cached document in O(1) amortized time.
 - **Geometric checkpoint resumption.** When another peer's incoming event invalidates the linear cache, the materializer must rematerialize from scratch. During replay, it saves intermediate checkpoints at geometrically-spaced positions (after 1, 2, 4, 8, 16, ... events). On the next rematerialization, `findBestCheckpoint` looks for a checkpoint whose saved topological order is an exact *prefix* of the new topological order. A checkpoint is valid if and only if its prefix matches --- this is because `resolveAgainst` transforms each event through all prior concurrent events, so any event inserted in the middle of a checkpoint's order would invalidate the resolved edits after it. Geometric spacing ensures that short prefixes --- the common causal ancestors of the local and remote branches, whose relative order is stable across concurrent insertions --- are always captured. For a typical sync scenario where a long local history ($N$ events) receives a small concurrent branch ($B$ events), the checkpoint covers the shared causal prefix and only $B$ events need to be replayed, reducing the cost from $O((N+B)^2)$ to $O(B \cdot (N+B))$ (derived in [@Sec:complexity]).
+
+### Per-peer index
 
 The `resolveAgainst` step is the heart of convergence. When the materializer is about to apply event E, it must find all previously applied events that are *concurrent* with E and transform E's selector through each of them. A naive scan iterates all prior events with an $O(P)$ vector-clock dominance check per prior, yielding $O(N P)$ per event. mydenicek avoids this with a **per-peer index**: applied events are maintained in a map from peer ID to a list of that peer's events in sequence order, each tagged with its topological position. For event E with vector clock $V_E$, events from peer Y with $\text{seq} \leq V_E[Y]$ are guaranteed causal ancestors (E has transitively seen them). Because sequence numbers are contiguous per peer (0, 1, 2, ...), the first concurrent event from peer Y is at index $V_E[Y] + 1$ in Y's list --- an $O(1)$ direct lookup. The concurrent events from all $P$ peers are then merged by topological position using a $P$-way merge (advancing the slice with the smallest topological position at each step), ensuring transformations compose in the correct order. After all transformations, the materializer checks whether the final edit can still be applied to the current document state (via `canApply`). If not --- for example, because a concurrent delete removed the target node --- the edit is downgraded to a no-op conflict.
 
@@ -77,7 +81,7 @@ We analyze the cost of `materialize`. Let $N$ be the total number of events, $P$
 
 Materialization replays events in topological order. For each event, `resolveAgainst` must find and transform through all *concurrent* priors --- events that appear earlier in the replay but are not causal ancestors. A naive implementation scans all previously applied events and checks concurrency via vector-clock dominance ($O(P)$ per check). For the $i$-th event this costs $O(i P)$; summing over $N$ events gives $O(N^2 P)$.
 
-#### Per-peer index
+#### Per-peer index optimization
 
 The key observation is that an event from peer Y at sequence number $s$ is a causal ancestor of event E if and only if $V_E[Y] \geq s$ --- a single integer comparison. Since sequence numbers are contiguous (0, 1, 2, ...), the first concurrent event from Y is at position $V_E[Y] + 1$ in Y's list, found in $O(1)$.
 
