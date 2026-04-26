@@ -69,13 +69,13 @@ Two optimizations avoid replaying from scratch on every call:
 
 ### Per-peer index
 
-The `resolveAgainst` step is the heart of convergence. When the materializer is about to apply event E, it must find all previously applied events that are *concurrent* with E and transform E's selector through each of them. A naive scan iterates all prior events with an $O(P)$ vector-clock dominance check per prior, yielding $O(N P)$ per event. mydenicek avoids this with a **per-peer index**: applied events are maintained in a map from peer ID to a list of that peer's events in sequence order, each tagged with its topological position. For event E with vector clock $V_E$, events from peer Y with $\text{seq} \leq V_E[Y]$ are guaranteed causal ancestors (E has transitively seen them). Because sequence numbers are contiguous per peer (0, 1, 2, ...), the first concurrent event from peer Y is at index $V_E[Y] + 1$ in Y's list --- an $O(1)$ direct lookup. The concurrent events from all $P$ peers are then merged by topological position using a $P$-way merge (advancing the slice with the smallest topological position at each step), ensuring transformations compose in the correct order. After all transformations, the materializer checks whether the final edit can still be applied to the current document state (via `canApply`). If not --- for example, because a concurrent delete removed the target node --- the edit is downgraded to a no-op conflict.
+The `resolveAgainst` step is the heart of convergence. When the materializer is about to apply event E, it must find all previously applied events that are *concurrent* with E and transform E's selector through each of them. A naive scan iterates all prior events with an $O(P)$ vector-clock dominance check per prior, yielding $O(N P)$ per event. mydenicek avoids this with a **per-peer index**: applied events are maintained in a map from peer ID to a list of that peer's events in sequence order, each tagged with its topological position. For event E with vector clock $V_E$, events from peer Y with $\text{seq} \leq V_E[Y]$ are guaranteed causal ancestors (E has transitively seen them). Because sequence numbers are contiguous per peer (0, 1, 2, ...), the first concurrent event from peer Y is at index $V_E[Y] + 1$ in Y's list --- an $O(1)$ direct lookup. The materializer then iterates through the concurrent events from all peers in topological order (using their stored topological positions and $P$ advancing pointers), transforming E's edit through each one. After all transformations, the materializer checks whether the final edit can still be applied to the current document state (via `canApply`). If not --- for example, because a concurrent delete removed the target node --- the edit is downgraded to a no-op conflict.
 
 Because the sort order is deterministic and the selector-rewriting transformations are deterministic, any two peers that have received the same set of events produce the same document. This is the strong eventual consistency guarantee, stated precisely in the next section.
 
 ### Complexity {#sec:complexity}
 
-We analyze the cost of `materialize`. Let $N$ be the total number of events, $P$ the number of peers, $D$ the number of document-tree nodes, and $B$ the number of concurrent events received during sync.
+We analyze the cost of `materialize`. Let $N$ be the total number of events, $P$ the number of peers, $D$ the number of document-tree nodes, $B$ the number of concurrent events received during sync, and $C_i$ the number of concurrent priors for the $i$-th event.
 
 #### Naive cost
 
@@ -83,17 +83,15 @@ Materialization replays events in topological order. For each event, `resolveAga
 
 #### Per-peer index optimization
 
-The key observation is that an event from peer Y at sequence number $s$ is a causal ancestor of event E if and only if $V_E[Y] \geq s$ --- a single integer comparison. Since sequence numbers are contiguous (0, 1, 2, ...), the first concurrent event from Y is at position $V_E[Y] + 1$ in Y's list, found in $O(1)$.
-
-The per-peer index groups applied events by peer. For event E, the materializer checks each of the $P$ peers in $O(1)$ to find the concurrent boundary, then merges the concurrent events from all peers by topological position using a $P$-way merge ($O(C_i \log P)$ for $C_i$ concurrent events). The per-event cost drops from $O(i P)$ to $O(P + C_i \log P)$.
+The key observation is that an event from peer Y at sequence number $s$ is a causal ancestor of event E if and only if $V_E[Y] \geq s$ --- a single integer comparison. Since sequence numbers are contiguous (0, 1, 2, ...), the first concurrent event from Y is at position $V_E[Y] + 1$ in Y's list, found in $O(1)$. Finding the concurrent boundary across all $P$ peers costs $O(P)$. Iterating through the $C_i$ concurrent events costs $O(C_i)$ (each transformation is $O(1)$). The per-event cost drops from $O(i P)$ to $O(P + C_i)$.
 
 #### Three workload patterns
 
 **Local editing.** Each event is a linear extension of the frontier (all priors are causal ancestors). The linear extension cache applies the edit directly --- no topological sort, no concurrency scan. Cost: amortized $O(D)$ per event.
 
-**Full replay.** If no cache is available, topological sort costs $O(N \log N)$. The total `resolveAgainst` cost is $O(NP + C_\text{total} \log P)$, where $C_\text{total} = \sum C_i$ is the total number of concurrent pairs across all events. In a fully sequential graph ($C_\text{total} = 0$), this is $O(NP)$. In a fully concurrent merge-fan ($C_\text{total} = O(N^2)$), this is $O(N^2 \log P)$.
+**Full replay.** If no cache is available, topological sort costs $O(N \log N)$. The total `resolveAgainst` cost is $O(NP + C_\text{total})$, where $C_\text{total} = \sum C_i$ is the total number of concurrent pairs across all events. In a fully sequential graph ($C_\text{total} = 0$), this is $O(NP)$. In a fully concurrent merge-fan ($C_\text{total} = O(N^2)$), this is $O(N^2)$.
 
-**Sync with checkpoints.** A peer with $N$ local events receives $B$ concurrent events. The geometric checkpoint covers the shared causal prefix ($K$ events), so only $R = N + B - K$ events are replayed. In the typical case $K \approx N$ and $R \approx B$: each of the $B$ replayed events is concurrent with up to $N$ local events. Total replay cost: $O(BN \log P)$.
+**Sync with checkpoints.** A peer with $N$ local events receives $B$ concurrent events. The geometric checkpoint covers the shared causal prefix ($K$ events), so only $R = N + B - K$ events are replayed. In the typical case $K \approx N$ and $R \approx B$: each of the $B$ replayed events is concurrent with up to $N$ local events. Total replay cost: $O(BN)$.
 
 [@Tbl:complexity-comparison] compares the naive and optimized approaches.
 
@@ -102,7 +100,7 @@ The per-peer index groups applied events by peer. For event E, the materializer 
 | Approach | Per event | Sequential total | Merge-fan total |
 |---|---|---|---|
 | Naive flat scan | $O(i P)$ | $O(N^2 P)$ | $O(N^2 P)$ |
-| Per-peer index | $O(P + C_i \log P)$ | $O(N P)$ | $O(N^2 \log P)$ |
+| Per-peer index | $O(P + C_i)$ | $O(N P)$ | $O(N^2)$ |
 
 **Lower bound.** The quadratic cost for concurrent branches is inherent to pairwise selector rewriting, not an implementation artifact. When event E carries a path-based selector such as `/speakers/0/name`, any concurrent structural edit that targets an overlapping path may shift, invalidate, or remap that selector. The materializer must examine each concurrent edit to determine its effect: the structural impact depends on the edit type and arguments, not only on the selector prefix. In the worst case --- $N$ concurrent edits all targeting the same list --- every pair requires a transformation, giving $\Omega(N^2)$ pairwise interactions. Systems that avoid this cost (such as Automerge and Loro) do so by replacing path-based selectors with unique opaque node IDs, so that concurrent edits never need rewriting. mydenicek deliberately retains path-based selectors because they are essential to Denicek's programming model: wildcards, relative references, and programming by demonstration all rely on structural paths rather than opaque identifiers.
 
