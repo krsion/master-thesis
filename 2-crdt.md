@@ -99,6 +99,8 @@ For the typical sync scenario --- a common prefix followed by a local branch of 
 
 **Upper bound.** By Kleitman's theorem, for a poset of width $W$ with $N$ elements, $C_\text{total}$ is maximized when the $W$ chains have equal length $N/W$, giving $C_\text{total} \leq N^2(W-1) / 2W$. More peers (larger $W$) means more incomparable pairs, not fewer: the bound converges to $N^2/2$ as $W$ grows. The cost is determined by the branch *lengths*, not the number of branches.
 
+**Extremal shapes.** The worst case is a complete antichain ($W = N$, every event concurrent with every other): $C_\text{total} = \binom{N}{2}$. In practice this means $N$ peers each producing one event without seeing anyone else. For a fixed number of peers $P$, the worst case is $P$ equal-length chains with no cross-chain causality ($P$ peers each editing offline): $C_\text{total} = N^2(P-1)/2P$. The best case is a single chain ($W = 1$, fully sequential): $C_\text{total} = 0$.
+
 #### Three workload patterns
 
 **Local editing.** Each event extends the frontier (all predecessors are comparable). The linear extension cache applies the edit directly --- no topological sort, no concurrency scan. Cost: amortized $O(D)$ per event.
