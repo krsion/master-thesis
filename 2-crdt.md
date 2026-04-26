@@ -77,15 +77,53 @@ Because the sort order is deterministic and the selector-rewriting transformatio
 
 The event DAG under the happens-before relation is a **partially ordered set** (poset). Events from the same peer are totally ordered by sequence number, forming a **chain**. Two events are **comparable** (one is an ancestor of the other) or **incomparable** (concurrent). We treat the number of peers $P$ as a constant and let $N$ be the total number of events and $D$ the number of document-tree nodes.
 
-#### Naive cost
+#### Naive approach
 
-Materialization replays events in a total order consistent with the partial order. For each event, `resolveAgainst` must find and transform through all incomparable predecessors. A naive implementation scans all $i$ previously applied events with an $O(P) = O(1)$ vector-clock check each. Summing over $N$ events gives $O(N^2)$.
+The naive `resolveAgainst` scans all previously applied events:
+
+```
+function materialize(events):
+  order ← topologicalSort(events)          -- O(N log N)
+  doc ← initialDocument
+  applied ← []
+  for E in order:                           -- N iterations
+    edit ← E.edit
+    for P in applied:                       -- up to i iterations
+      if E.clock.dominates(P.clock):        -- O(P) = O(1)
+        skip
+      else:
+        edit ← transform(P.edit, edit)      -- O(1)
+    apply(edit, doc)
+    applied.append(E, edit)
+  return doc
+```
+
+The inner loop scans all $i$ priors for the $i$-th event. Summing over $N$ events gives $O(N^2)$.
 
 #### Per-peer index
 
-The per-peer index exploits the chain partition. For event $E$ with vector clock $V_E$, all events in peer Y's chain with $\text{seq} \leq V_E[Y]$ are comparable (causal ancestors). Because sequence numbers are contiguous, the first incomparable event from Y is at index $V_E[Y] + 1$ --- an $O(1)$ lookup. One lookup per chain ($O(1)$ since $P$ is constant) finds all incomparable predecessors; then only the $C_i$ incomparable events are iterated. The per-event cost drops from $O(i)$ to $O(C_i)$.
+The optimized version groups applied events by peer. Since sequence numbers are contiguous, the first incomparable event from peer Y is at index $V_E[Y] + 1$ --- skipping all comparable predecessors in $O(1)$:
 
-The total cost is $O(N + C_\text{total})$, where $C_i$ is the number of incomparable predecessors of event $i$ and $C_\text{total} = \sum C_i$ is the total number of incomparable pairs in the poset. The cost is **output-sensitive**: it depends on the actual concurrency in the DAG.
+```
+function materialize(events):
+  order ← topologicalSort(events)          -- O(N log N)
+  doc ← initialDocument
+  peerIndex ← {} (peer → [(event, edit, topoPos)])
+  for i, E in order:                        -- N iterations
+    concurrent ← []
+    for each peer Y in peerIndex:            -- O(P) = O(1)
+      start ← E.clock[Y] + 1                -- O(1) direct index
+      concurrent.addAll(peerIndex[Y][start:])
+    merge concurrent by topoPos              -- O(Ci) with P pointers
+    edit ← E.edit
+    for P in concurrent:                     -- Ci iterations
+      edit ← transform(P.edit, edit)         -- O(1)
+    apply(edit, doc)
+    peerIndex[E.peer].append(E, edit, i)
+  return doc
+```
+
+The per-event cost drops from $O(i)$ to $O(C_i)$, where $C_i$ is the number of incomparable predecessors. The total cost is $O(N + C_\text{total})$, where $C_\text{total} = \sum C_i$ is the total number of incomparable pairs in the poset. The cost is **output-sensitive**: it depends on the actual concurrency in the DAG.
 
 #### Concurrency structure
 
