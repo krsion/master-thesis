@@ -77,32 +77,9 @@ Because the sort order is deterministic and the selector-rewriting transformatio
 
 The event DAG under the happens-before relation is a **partially ordered set** (poset). Events from the same peer are totally ordered by sequence number, forming a **chain**. Two events are **comparable** (one is an ancestor of the other) or **incomparable** (concurrent). We treat the number of peers $P$ as a constant and let $N$ be the total number of events and $D$ the number of document-tree nodes.
 
-#### Naive approach
-
-The naive `resolveAgainst` scans all previously applied events:
-
-```
-function materialize(events):
-  order <- topologicalSort(events)          -- O(N log N)
-  doc <- initialDocument
-  applied <- []
-  for E in order:                           -- N iterations
-    edit <- E.edit
-    for P in applied:                       -- up to i iterations
-      if E.clock.dominates(P.clock):        -- O(P) = O(1)
-        skip
-      else:
-        edit <- transform(P.edit, edit)      -- O(1)
-    apply(edit, doc)
-    applied.append(E, edit)
-  return doc
-```
-
-The inner loop scans all $i$ priors for the $i$-th event. Summing over $N$ events gives $O(N^2)$.
-
 #### Per-peer index
 
-The optimized version groups applied events by peer. Since sequence numbers are contiguous, the first incomparable event from peer Y is at index $V_E[Y] + 1$ --- skipping all comparable predecessors in $O(1)$:
+The materializer groups applied events by peer in a **per-peer index**. Since sequence numbers are contiguous, the first incomparable event from peer Y is at index $V_E[Y] + 1$ --- skipping all comparable predecessors in $O(1)$:
 
 ```
 function materialize(events):
@@ -123,7 +100,7 @@ function materialize(events):
   return doc
 ```
 
-The per-event cost drops from $O(i)$ to $O(C_i)$, where $C_i$ is the number of incomparable predecessors. The total cost is $O(N + C_\text{total})$, where $C_\text{total} = \sum C_i$ is the total number of incomparable pairs in the poset. The cost is **output-sensitive**: it depends on the actual concurrency in the DAG.
+The per-event cost is $O(C_i)$, where $C_i$ is the number of incomparable predecessors. The total cost is $O(N + C_\text{total})$, where $C_\text{total} = \sum C_i$ is the total number of incomparable pairs in the poset. The cost is **output-sensitive**: it depends on the actual concurrency in the DAG.
 
 #### Concurrency structure
 
