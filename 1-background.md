@@ -70,7 +70,7 @@ Collaborative editing requires tracking which edits are aware of which others --
 
 > **Definition (happens-before).** For events $a$ and $b$, $a \to b$ if (1) $a$ and $b$ are events on the same peer and $a$ preceded $b$, (2) $a$ is the sending event of some message $m$ and $b$ is the receiving event of $m$, or (3) there exists an event $c$ such that $a \to c$ and $c \to b$ (transitivity). Two events are *concurrent* ($a \parallel b$) if neither $a \to b$ nor $b \to a$.
 
-*Vector clocks* [@mattern1989virtual; @fidge1988timestamps] implement happens-before detection. A vector clock $V$ maps each peer ID to its highest known sequence number. $a \to b$ iff $V_a[p] \leq V_b[p]$ for all $p$ with strict inequality for at least one. This allows concurrency detection in O(P) time.
+*Vector clocks* [@mattern1989virtual; @fidge1988timestamps] implement happens-before detection. A vector clock $V$ maps each peer ID to its highest known sequence number. For a set of peers $P$, $a \to b$ iff $V_a[p] \leq V_b[p]$ for all $p \in P$ with strict inequality for at least one. This allows concurrency detection in $O(|P|)$ time.
 
 ### Event DAG
 
