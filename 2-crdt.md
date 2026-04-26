@@ -108,23 +108,7 @@ $C_\text{total}$ has a closed form for common DAG shapes:
 - **Fork-and-merge** (common prefix, then two branches of lengths $a$ and $b$): every event in one branch is incomparable with every event in the other, so $C_\text{total} = a \cdot b$.
 - **$m$-way fork** (branches $a_1, \ldots, a_m$): $C_\text{total} = \sum_{i < j} a_i \cdot a_j$.
 
-A coarser but simpler bound: let $S$ denote the total number of events since the last common sync point (the sum of all branch lengths). Then $C_\text{total} \leq S^2 / 2$. The practical message is: **keep $S$ small by syncing often.**
-
-#### Workload patterns
-
-[@Tbl:complexity-comparison] summarizes the cost under three workload patterns.
-
-: Materialization cost ($P$ constant). $C_i$ = incomparable predecessors of event $i$; $S$ = diverged events since last sync. {#tbl:complexity-comparison}
-
-| Workload | Per event | Total |
-|---|---|---|
-| Local editing (linear extension cache) | $O(D)$ | $O(ND)$ |
-| Full replay, chain | $O(C_i) = O(0)$ | $O(N)$ |
-| Full replay, two equal-length concurrent branches | $O(C_i) \leq O(N)$ | $O(N^2)$ |
-| Sync ($S$ diverged events) | --- | $O(S^2)$ |
-| Sync (two branches $a$, $B$) | --- | $O(a \cdot B)$ |
-
-**Lower bound.** The quadratic cost for concurrent branches is inherent to pairwise selector rewriting, not an implementation artifact. When event E carries a path-based selector such as `/speakers/0/name`, any concurrent structural edit that targets an overlapping path may shift, invalidate, or remap that selector. The materializer must examine each incomparable predecessor to determine its effect: the structural impact depends on the edit type and arguments, not only on the selector prefix. In the worst case --- $S$ concurrent edits all targeting the same list --- every pair requires a transformation, giving $\Omega(S^2)$ pairwise interactions. Systems that avoid this cost (such as Automerge and Loro) do so by replacing path-based selectors with unique opaque node IDs, so that concurrent edits never need rewriting. mydenicek deliberately retains path-based selectors because they are essential to Denicek's programming model: wildcards, relative references, and programming by demonstration all rely on structural paths rather than opaque identifiers.
+**Lower bound.** The quadratic cost for concurrent branches is inherent to pairwise selector rewriting, not an implementation artifact. Each incomparable predecessor must be examined because the structural impact of a concurrent edit depends on its type and arguments, not only on the selector prefix. In the worst case --- all events targeting the same list --- every incomparable pair requires a transformation, giving $\Omega(C_\text{total})$. Systems that avoid this cost (such as Automerge and Loro) replace path-based selectors with unique opaque node IDs, so concurrent edits never need rewriting. mydenicek retains path-based selectors because they are essential to Denicek's programming model: wildcards, relative references, and programming by demonstration all rely on structural paths.
 
 ### mydenicek as a pure op-based CRDT {#sec:crdt-framing}
 
