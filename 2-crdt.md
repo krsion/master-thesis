@@ -56,9 +56,9 @@ Parents and vector clocksserve complementary roles. Parents define the direct ed
 
 To reconstruct the document from the event DAG, we perform *deterministic topological replay*:
 
-1. Sort all events in topological order using Kahn's algorithm. When multiple events have no unprocessed dependencies (i.e., they are concurrent), break ties deterministically by comparing their `EventId` values lexicographically. Note that the result is a flat sequence, not a grouping of concurrent events: Kahn's algorithm produces a total order consistent with the partial order, but it interleaves concurrent events with causally ordered ones. Two events that are concurrent may end up far apart in the sequence (separated by unrelated causal chains), and two adjacent events in the sequence may or may not be concurrent. Concurrency must therefore be determined separately, via vector clock comparison, during the `resolveAgainst` step.
-2. Starting from the initial document, apply each event's edit in order. Before applying, call `resolveAgainst` --- the OT step that transforms the edit's selector through all previously applied concurrent edits.
-3. If a transformed edit becomes invalid (e.g., it targets a node that was deleted by a concurrent edit), it becomes a *no-op conflict* that is recorded but does not modify the document. The original event remains in the DAG (events are immutable and never removed), and the conflict is recorded in a separate conflict list returned by `materialize()`. Application code can inspect these conflicts to inform the user, but no automatic recovery is attempted --- the event simply has no effect on the materialized document.
+1. **Order.** Compute a total order consistent with the causal partial order, using `EventId` lexicographic comparison as tie-breaker for concurrent events. Concurrency between two events is determined separately via vector clock comparison during the next step.
+2. **Resolve and apply.** Starting from the initial document, apply each event's edit in order. Before applying, call `resolveAgainst` --- the OT step that transforms the edit's selector through all previously applied concurrent edits.
+3. **Conflicts.** If a transformed edit becomes invalid (e.g., it targets a node deleted by a concurrent edit), it becomes a *no-op conflict* --- recorded but not applied. The original event remains in the DAG (events are immutable).
 
 ### Caching
 
