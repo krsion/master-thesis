@@ -1,6 +1,6 @@
 # Conclusion {#chap:conclusion}
 
-This thesis investigated collaborative editing for Denicek. We evaluated Automerge (lacks atomic move → concurrent wrap problem) and Loro (opaque IDs → retargeting problem), then built a custom pure operation-based CRDT.
+This thesis investigated collaborative editing for Denicek. We evaluated Automerge (lacks atomic move -> concurrent wrap problem) and Loro (opaque IDs -> retargeting problem), then built a custom pure operation-based CRDT.
 
 The implementation stores edits as immutable events in a grow-only DAG and materializes documents by deterministic topological replay with selector rewriting. Convergence follows from the pure operation-based CRDT framework [@baquero2017pureop]: the event set is a G-Set, the *eval* function (`materialize`) is deterministic. The main contribution is **intention preservation** --- selector rewriting rules that keep references valid through structural edits, expand wildcards over concurrent inserts, and retarget recorded edits through schema evolution.
 

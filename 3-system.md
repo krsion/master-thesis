@@ -28,7 +28,7 @@ The engine operates on the internal `Node` tree, not the serialized `PlainNode` 
 
 ## Undo and redo {#sec:undo}
 
-Each `Edit` implements `computeInverse(preDoc)` returning the inverse edit (e.g., `RecordAddEdit` → `RecordDeleteEdit`). Undo creates a new event containing the inverse, computed against the document state at the original event's parent frontier. This event syncs to all peers like any other edit. Redo re-applies the original edit. `CopyEdit` snapshots every target subtree before the copy, producing a `RestoreSnapshotEdit` that restores each overwritten subtree on undo.
+Each `Edit` implements `computeInverse(preDoc)` returning the inverse edit (e.g., `RecordAddEdit` -> `RecordDeleteEdit`). Undo creates a new event containing the inverse, computed against the document state at the original event's parent frontier. This event syncs to all peers like any other edit. Redo re-applies the original edit. `CopyEdit` snapshots every target subtree before the copy, producing a `RestoreSnapshotEdit` that restores each overwritten subtree on undo.
 
 ## Recording and replay {#sec:replay}
 

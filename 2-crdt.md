@@ -83,16 +83,16 @@ The naive `resolveAgainst` scans all previously applied events:
 
 ```
 function materialize(events):
-  order ← topologicalSort(events)          -- O(N log N)
-  doc ← initialDocument
-  applied ← []
+  order <- topologicalSort(events)          -- O(N log N)
+  doc <- initialDocument
+  applied <- []
   for E in order:                           -- N iterations
-    edit ← E.edit
+    edit <- E.edit
     for P in applied:                       -- up to i iterations
       if E.clock.dominates(P.clock):        -- O(P) = O(1)
         skip
       else:
-        edit ← transform(P.edit, edit)      -- O(1)
+        edit <- transform(P.edit, edit)      -- O(1)
     apply(edit, doc)
     applied.append(E, edit)
   return doc
@@ -106,18 +106,18 @@ The optimized version groups applied events by peer. Since sequence numbers are 
 
 ```
 function materialize(events):
-  order ← topologicalSort(events)          -- O(N log N)
-  doc ← initialDocument
-  peerIndex ← {} (peer → [(event, edit, topoPos)])
+  order <- topologicalSort(events)          -- O(N log N)
+  doc <- initialDocument
+  peerIndex <- {} (peer -> [(event, edit, topoPos)])
   for i, E in order:                        -- N iterations
-    concurrent ← []
+    concurrent <- []
     for each peer Y in peerIndex:            -- O(P) = O(1)
-      start ← E.clock[Y] + 1                -- O(1) direct index
+      start <- E.clock[Y] + 1                -- O(1) direct index
       concurrent.addAll(peerIndex[Y][start:])
     merge concurrent by topoPos              -- O(Ci) with P pointers
-    edit ← E.edit
+    edit <- E.edit
     for P in concurrent:                     -- Ci iterations
-      edit ← transform(P.edit, edit)         -- O(1)
+      edit <- transform(P.edit, edit)         -- O(1)
     apply(edit, doc)
     peerIndex[E.peer].append(E, edit, i)
   return doc
@@ -167,7 +167,7 @@ As described in [@Sec:pure-op-crdt], mydenicek is a *pure operation-based CRDT* 
 
 **Concurrent structural conflicts.** Several concurrent scenarios illustrate the resolution semantics.
 
-*Concurrent renames of the same field.* Alice renames `name` → `fullName`, Bob renames `name` → `title`. The first rename in replay order succeeds. The second's source selector is transformed through the first (`name` becomes `fullName`), so it renames `fullName` → `title`. The field ends up as `title` on both peers.
+*Concurrent renames of the same field.* Alice renames `name` -> `fullName`, Bob renames `name` -> `title`. The first rename in replay order succeeds. The second's source selector is transformed through the first (`name` becomes `fullName`), so it renames `fullName` -> `title`. The field ends up as `title` on both peers.
 
 *Concurrent wraps of the same target.* Alice wraps `value` into a `formula` record, Bob wraps `value` into a `container` record. Both wraps succeed in sequence: the second wrap's selector is transformed through the first, producing a doubly-wrapped structure. Neither peer intended double nesting; this is a known compromise that preserves both edits.
 
@@ -209,7 +209,7 @@ Each structural edit implements a `transformSelector` method that rewrites a con
 
 Negative indices are resolved to absolute positions using a stored `listLength` before shifting. Strict indices (`strict=true`) shift concurrent selectors but are not themselves shifted by concurrent edits.
 
-**Composition.** Transformations compose sequentially. If Alice renames `speakers` → `talks`, Bob wraps each item in a `<tr>` record, and Carol edits `speakers/0/name`, then Carol's selector is first transformed through Alice's rename (`talks/0/name`), then through Bob's wrap (`talks/0/value/name`). Each transformation is local --- it examines only whether the prior edit's target overlaps with the selector being transformed.
+**Composition.** Transformations compose sequentially. If Alice renames `speakers` -> `talks`, Bob wraps each item in a `<tr>` record, and Carol edits `speakers/0/name`, then Carol's selector is first transformed through Alice's rename (`talks/0/name`), then through Bob's wrap (`talks/0/value/name`). Each transformation is local --- it examines only whether the prior edit's target overlaps with the selector being transformed.
 
 ### Two-level polymorphic design {#sec:ot-architecture}
 
