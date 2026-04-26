@@ -406,7 +406,7 @@ The audit is informal. A mechanical check (e.g., a lint rule banning `Object.key
 
 The current implementation has several known limitations:
 
-**Materialization cost is quadratic for concurrent branches.** Linear extensions (the common case during local editing and live sync) extend a cached document in place at O(1) amortized cost. Merges resume from a checkpoint at the fork point rather than replaying from the initial document, but the `resolveAgainst` step still scans all prior events for each event being replayed, giving $O(N^2)$ in the worst case for a workload dominated by concurrent branching.
+**Materialization cost is quadratic for concurrent branches.** Linear extensions (the common case during local editing) extend a cached document in place at O(1) amortized cost. Merges resume from a checkpoint at the fork point rather than replaying from the initial document, but the `resolveAgainst` step still scans all prior events for each event being replayed, giving $O(N^2)$ in the worst case for a workload dominated by concurrent branching.
 
 **No character-level text editing.** Primitive values (strings, numbers, booleans) are replaced atomically. There is no character-level collaborative text editing --- concurrent edits to the same string field are resolved by last-writer-wins based on topological order. Supporting character-level editing would require integrating a text CRDT (such as Fugue) for primitive string values.
 
