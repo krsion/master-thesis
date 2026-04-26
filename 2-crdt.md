@@ -75,44 +75,46 @@ Because the sort order is deterministic and the selector-rewriting transformatio
 
 ### Complexity {#sec:complexity}
 
-We analyze the cost of `materialize`. Let $N$ be the total number of events, $P$ the number of peers, $D$ the number of document-tree nodes, $B$ the number of concurrent events received during sync, and $C_i$ the number of concurrent priors for the $i$-th event.
+The event DAG under the causal happens-before relation is a **partially ordered set** (poset). We analyze the cost of `materialize` using standard poset terminology. Let $N$ be the total number of events, $P$ the number of peers, and $D$ the number of document-tree nodes.
+
+Events from the same peer are totally ordered by sequence number, forming a **chain**. By Dilworth's theorem, the poset can be partitioned into at most $W$ chains, where $W$ is the **width** (size of the largest antichain --- the maximum number of mutually concurrent events). Since each peer contributes one chain, $W \leq P$. Two events are **comparable** (one is an ancestor of the other) or **incomparable** (concurrent). Let $C_\text{total}$ denote the number of incomparable pairs in the poset --- the total concurrency in the DAG.
 
 #### Naive cost
 
-Materialization replays events in topological order. For each event, `resolveAgainst` must find and transform through all *concurrent* priors --- events that appear earlier in the replay but are not causal ancestors. A naive implementation scans all previously applied events and checks concurrency via vector-clock dominance ($O(P)$ per check). For the $i$-th event this costs $O(i P)$; summing over $N$ events gives $O(N^2 P)$.
+Materialization replays events in a total order consistent with the partial order. For each event, `resolveAgainst` must find and transform through all incomparable (concurrent) predecessors. A naive implementation scans all previously applied events and checks comparability via vector-clock dominance ($O(P)$ per check). For the $i$-th event this costs $O(i P)$; summing over $N$ events gives $O(N^2 P)$.
 
 #### Per-peer index optimization
 
-The key observation is that an event from peer Y at sequence number $s$ is a causal ancestor of event E if and only if $V_E[Y] \geq s$ --- a single integer comparison. Since sequence numbers are contiguous (0, 1, 2, ...), the first concurrent event from Y is at position $V_E[Y] + 1$ in Y's list, found in $O(1)$. Finding the concurrent boundary across all $P$ peers costs $O(P)$. Iterating through the $C_i$ concurrent events costs $O(C_i)$ (each transformation is $O(1)$). The per-event cost drops from $O(i P)$ to $O(P + C_i)$.
+The per-peer index exploits the chain partition directly. For event $E$ with vector clock $V_E$, all events in peer Y's chain with $\text{seq} \leq V_E[Y]$ are comparable (causal ancestors). Because sequence numbers are contiguous, the first incomparable event from Y is at index $V_E[Y] + 1$ --- an $O(1)$ lookup. One such lookup per chain finds all incomparable predecessors in $O(W)$, after which only the $C_i$ concurrent events are iterated. The per-event cost drops from $O(i P)$ to $O(W + C_i)$.
 
-#### Concurrency cost as a DAG property
+#### Concurrency structure
 
-The total OT cost $O(NP + C_\text{total})$ is **output-sensitive**: it depends on the actual concurrency structure of the DAG, not on $N^2$ pessimistically. $C_\text{total} = \sum C_i$ counts the total number of concurrent event pairs --- events that are incomparable in the causal partial order. This quantity has a closed form for common DAG shapes:
+The total cost $O(NW + C_\text{total})$ is **output-sensitive**: it depends on the actual incomparability structure of the poset, not on $N^2$ pessimistically. $C_\text{total}$ has a closed form for common DAG shapes:
 
-- **Chain** (fully sequential): $C_\text{total} = 0$.
-- **Fork-and-merge** (common prefix, then two branches of lengths $a$ and $b$): every event in one branch is concurrent with every event in the other, so $C_\text{total} = a \cdot b$.
-- **Multiple branches** ($m$ branches of lengths $a_1, \ldots, a_m$ diverging from a common prefix): $C_\text{total} = \sum_{i < j} a_i \cdot a_j$.
+- **Chain** (fully sequential, $W = 1$): $C_\text{total} = 0$.
+- **Fork-and-merge** (common prefix, then two branches of lengths $a$ and $b$, $W = 2$): every event in one branch is incomparable with every event in the other, so $C_\text{total} = a \cdot b$.
+- **$m$-way fork** (branches of lengths $a_1, \ldots, a_m$, $W = m$): $C_\text{total} = \sum_{i < j} a_i \cdot a_j$.
 
 For the typical sync scenario --- a common prefix followed by a local branch of length $a$ and a remote branch of length $B$ --- the total OT work is $O(a \cdot B)$, the product of the branch lengths. For the merge-fan benchmark ($a = b = N/2$): $C_\text{total} = N^2/4$.
 
 #### Three workload patterns
 
-**Local editing.** Each event is a linear extension of the frontier (all priors are causal ancestors). The linear extension cache applies the edit directly --- no topological sort, no concurrency scan. Cost: amortized $O(D)$ per event.
+**Local editing.** Each event extends the frontier (all predecessors are comparable). The linear extension cache applies the edit directly --- no topological sort, no concurrency scan. Cost: amortized $O(D)$ per event.
 
-**Full replay.** If no cache is available, topological sort costs $O(N \log N)$. The total `resolveAgainst` cost is $O(NP + C_\text{total})$. In a fully sequential graph ($C_\text{total} = 0$), this is $O(NP)$. In a fully concurrent merge-fan ($C_\text{total} = N^2/4$), this is $O(N^2)$.
+**Full replay.** Topological sort costs $O(N \log N)$. The total `resolveAgainst` cost is $O(NW + C_\text{total})$. For a chain ($C_\text{total} = 0$): $O(NW)$. For a merge-fan ($C_\text{total} = N^2/4$): $O(N^2)$.
 
-**Sync with checkpoints.** A peer with $N$ local events receives $B$ concurrent events from a branch that diverged $a$ events ago. The geometric checkpoint covers the shared causal prefix, so only the $a + B$ branch events are replayed. The OT cost is $O(a \cdot B)$. When the fork was recent ($a \ll N$), materialization is fast even for large $B$.
+**Sync with checkpoints.** A peer receives $B$ concurrent events from a branch that diverged $a$ events ago. The geometric checkpoint covers the shared causal prefix, so only the $a + B$ branch events are replayed. The OT cost is $O(a \cdot B)$. When the fork was recent ($a \ll N$), materialization is fast even for large $B$.
 
 [@Tbl:complexity-comparison] compares the naive and optimized approaches.
 
-: Per-event `resolveAgainst` cost. $C_i$ = concurrent priors for event $i$. {#tbl:complexity-comparison}
+: Materialization cost. $C_i$ = incomparable predecessors of event $i$; $W$ = poset width. {#tbl:complexity-comparison}
 
-| Approach | Per event | Sequential | Merge-fan | Sync ($a$ local, $B$ remote) |
+| Approach | Per event | Chain | Merge-fan | Sync ($a$ local, $B$ remote) |
 |---|---|---|---|---|
 | Naive flat scan | $O(i P)$ | $O(N^2 P)$ | $O(N^2 P)$ | $O((a+B)^2 P)$ |
-| Per-peer index | $O(P + C_i)$ | $O(N P)$ | $O(N^2)$ | $O(a \cdot B)$ |
+| Per-peer index | $O(W + C_i)$ | $O(N W)$ | $O(N^2)$ | $O(a \cdot B)$ |
 
-**Lower bound.** The quadratic cost for concurrent branches is inherent to pairwise selector rewriting, not an implementation artifact. When event E carries a path-based selector such as `/speakers/0/name`, any concurrent structural edit that targets an overlapping path may shift, invalidate, or remap that selector. The materializer must examine each concurrent edit to determine its effect: the structural impact depends on the edit type and arguments, not only on the selector prefix. In the worst case --- $N$ concurrent edits all targeting the same list --- every pair requires a transformation, giving $\Omega(N^2)$ pairwise interactions. Systems that avoid this cost (such as Automerge and Loro) do so by replacing path-based selectors with unique opaque node IDs, so that concurrent edits never need rewriting. mydenicek deliberately retains path-based selectors because they are essential to Denicek's programming model: wildcards, relative references, and programming by demonstration all rely on structural paths rather than opaque identifiers.
+**Lower bound.** The quadratic cost for concurrent branches is inherent to pairwise selector rewriting, not an implementation artifact. When event E carries a path-based selector such as `/speakers/0/name`, any concurrent structural edit that targets an overlapping path may shift, invalidate, or remap that selector. The materializer must examine each incomparable predecessor to determine its effect: the structural impact depends on the edit type and arguments, not only on the selector prefix. In the worst case --- $N$ concurrent edits all targeting the same list --- every pair requires a transformation, giving $\Omega(N^2)$ pairwise interactions. Systems that avoid this cost (such as Automerge and Loro) do so by replacing path-based selectors with unique opaque node IDs, so that concurrent edits never need rewriting. mydenicek deliberately retains path-based selectors because they are essential to Denicek's programming model: wildcards, relative references, and programming by demonstration all rely on structural paths rather than opaque identifiers.
 
 ### mydenicek as a pure op-based CRDT {#sec:crdt-framing}
 
