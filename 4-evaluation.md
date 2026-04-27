@@ -380,7 +380,7 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms. At $N = 100$, merging two 50-event concurrent branches costs 14 ms total --- well within the interactive threshold. The linear workloads stay below a millisecond per event up to $N = 2000$, confirming the $O(S)$ amortized cost of linear extensions, where $S$ is the number of nodes matched by the edit's selector ([@Sec:complexity]).
 
-The merge-fan workload exposes the asymptotic cost of true concurrency. At $N=2000$ (two concurrent branches of 1000 events each) the workload costs 21.6 seconds. The per-peer index ([@Sec:complexity]) reduces the per-event cost from $O(NP)$ to $O(P + C_i)$ where $C_i$ is the number of concurrent priors. For a local-first system where offline editing is an explicit goal and concurrent branches may grow large, further optimization would be needed.
+The merge-fan workload exposes the asymptotic cost of true concurrency. At $N=2000$ (two concurrent branches of 1000 events each) the workload costs 21.6 seconds. Since events are stored per peer with contiguous sequence numbers, finding concurrent predecessors is $O(1)$ per peer, so the per-event cost is $O(C_i)$ where $C_i$ is the number of concurrent priors ([@Sec:complexity]). For a local-first system where offline editing is an explicit goal and concurrent branches may grow large, further optimization would be needed.
 
 Two observations mitigate this cost in practice:
 
@@ -389,14 +389,14 @@ Two observations mitigate this cost in practice:
 
 Further reducing the cost for large concurrent branches --- for instance, by replacing pairwise transformation with a batch-aware merge strategy --- is left as future work.
 
-**Memory footprint.** Events are held in memory as a `Map<EventId, Event>`. Each `Event` carries an `EventId`, a `parents` array, an `Edit` subclass instance with its own fields, and a `VectorClock`. The per-peer index adds $O(N)$ auxiliary storage during replay. On the sync-linear N=2000 workload the serialized on-disk JSON is approximately 0.4 MB (roughly 200 bytes per event, dominated by the vector-clock and edit payloads); in-memory the `Map` overhead adds a constant factor. This linear growth in event count is the main scalability constraint, mitigated by the server-side compaction mechanism described in [@Sec:sync], which materializes the document and discards old events once all active peers have acknowledged a common frontier.
+**Memory footprint.** Events are held in memory as a `Map<EventId, Event>`. Each `Event` carries an `EventId`, a `parents` array, an `Edit` subclass instance with its own fields, and a `VectorClock`. On the sync-linear N=2000 workload the serialized on-disk JSON is approximately 0.4 MB (roughly 200 bytes per event, dominated by the vector-clock and edit payloads); in-memory the `Map` overhead adds a constant factor. This linear growth in event count is the main scalability constraint, mitigated by the server-side compaction mechanism described in [@Sec:sync], which materializes the document and discards old events once all active peers have acknowledged a common frontier.
 
 ## Determinism audit {#sec:determinism-audit}
 
 The convergence proof requires that `topologicalOrder`, `resolveAgainst`, and `apply` are deterministic. We audited the implementation for JavaScript-level non-determinism:
 
 - **Topological order** uses a `BinaryHeap` keyed on `EventId` lexicographic order. The event `Map` is accessed only via `Map.get`, never iterated.
-- **`resolveAgainst`** uses a per-peer index that groups applied events by peer. For each peer, concurrent events are found via direct index lookup on sequence number, then iterated in topological order using advancing pointers. `transformLaterConcurrentEdit` dispatches deterministically on the edit's class.
+- **`resolveAgainst`** stores applied events per peer. For each peer, concurrent events are found via direct lookup on sequence number, then iterated in topological order. `transformLaterConcurrentEdit` dispatches deterministically on the edit's class.
 - **`apply`** methods are local mutations. `Object.keys` appears only in serialization paths (`toPlain`) and vector clock comparisons (order-independent). The formula engine keys results by absolute path strings.
 - **No hidden non-determinism**: no `Math.random`, `Date.now`, or hash-map iteration dependence in the materialization path.
 
@@ -406,7 +406,7 @@ The audit is informal. A mechanical check (e.g., a lint rule banning `Object.key
 
 The current implementation has several known limitations:
 
-**Materialization cost is quadratic for concurrent branches.** Linear extensions (the common case during local editing) extend a cached document in place at amortized $O(S)$ cost per event, where $S$ is the number of nodes matched by the edit's selector ([@Sec:complexity]). The per-peer index reduces per-event resolution from $O(NP)$ to $O(P + C_i)$. The worst case is $O(N^2)$ for a workload dominated by concurrent branching.
+**Materialization cost is quadratic for concurrent branches.** Linear extensions (the common case during local editing) extend a cached document in place at amortized $O(S)$ cost per event, where $S$ is the number of nodes matched by the edit's selector ([@Sec:complexity]). The worst case is $O(N^2)$ for a workload dominated by concurrent branching.
 
 **No character-level text editing.** Primitive values (strings, numbers, booleans) are replaced atomically. There is no character-level collaborative text editing --- concurrent edits to the same string field are resolved by last-writer-wins based on topological order. Supporting character-level editing would require integrating a text CRDT (such as Fugue) for primitive string values.
 
