@@ -40,7 +40,7 @@ Convergence requires only that all peers eventually receive the same event set. 
 
 ![Sync protocol sequence diagram.](img/sync-protocol.png){#fig:sync-protocol width=80%}
 
-The server operates in **relay mode**: it stores and forwards events without materializing documents or running edit transformations. The O(N²) materialization cost is entirely client-side. Rooms are loaded on first connection and evicted after 10 minutes of inactivity. Events are persisted to append-only NDJSON files.
+The server operates in **relay mode**: it stores and forwards events without materializing the event graph into a document. Rooms are loaded on first connection and evicted after 10 minutes of inactivity. Events are persisted to append-only NDJSON files.
 
 **Reliability** is achieved through frontier-based catch-up: each sync message includes frontiers, so dropped connections are recovered by resending missing events on reconnection. Duplicate events are detected by event ID and ignored. Out-of-order events are buffered until their parents arrive.
 
