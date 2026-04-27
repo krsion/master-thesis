@@ -390,17 +390,6 @@ Further reducing the cost for large concurrent branches --- for instance, by rep
 
 **Memory footprint.** Events are held in memory as a `Map<EventId, Event>`. Each `Event` carries an `EventId`, a `parents` array, an `Edit` subclass instance with its own fields, and a `VectorClock`. On the sync-linear N=2000 workload the serialized on-disk JSON is approximately 0.4 MB (roughly 200 bytes per event, dominated by the vector-clock and edit payloads); in-memory the `Map` overhead adds a constant factor. This linear growth in event count is the main scalability constraint, mitigated by the server-side compaction mechanism described in [@Sec:sync], which materializes the document and discards old events once all active peers have acknowledged a common frontier.
 
-## Determinism audit {#sec:determinism-audit}
-
-The convergence proof requires that `topologicalOrder`, `resolveAgainst`, and `apply` are deterministic. We audited the implementation for JavaScript-level non-determinism:
-
-- **Topological order** uses a `BinaryHeap` keyed on `EventId` lexicographic order. The event `Map` is accessed only via `Map.get`, never iterated.
-- **`resolveAgainst`** stores applied events per peer. For each peer, concurrent events are found via direct lookup on sequence number, then iterated in topological order. `transformLaterConcurrentEdit` dispatches deterministically on the edit's class.
-- **`apply`** methods are local mutations. `Object.keys` appears only in serialization paths (`toPlain`) and vector clock comparisons (order-independent). The formula engine keys results by absolute path strings.
-- **No hidden non-determinism**: no `Math.random`, `Date.now`, or hash-map iteration dependence in the materialization path.
-
-The audit is informal. A mechanical check (e.g., a lint rule banning `Object.keys` outside an allow-list) is left as future work.
-
 ## Limitations {#sec:limitations}
 
 The current implementation has several known limitations:
