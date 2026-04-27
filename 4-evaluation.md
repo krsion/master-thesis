@@ -146,7 +146,7 @@ Testing distributed systems is fundamentally harder than testing sequential prog
 - **Browser end-to-end tests** (Playwright) verify that two browser peers can sync edits via the deployed server, closing the loop from UI to transport to CRDT and back.
 - **Continuous integration** via GitHub Actions runs all layers on every push.
 
-In total, the test suite has 358 tests (337 in the core package, 21 in the sync package). Deno's built-in coverage tool reports **90% branch coverage and 81% line coverage** across the CRDT core, with the remaining gaps concentrated in defensive error-throwing branches and undo-specific inverse operations. The sync package achieves 95% branch coverage on the room logic (the core sync algorithm); the WebSocket client and server transport layers are covered by Playwright browser end-to-end tests rather than unit tests.
+In total, the test suite has 358 tests (337 in the core package, 21 in the sync package). Deno's built-in coverage tool reports **90% branch coverage** (fraction of decision branches --- if/else, switch cases --- taken by at least one test) **and 81% line coverage** (fraction of source lines executed) across the CRDT core. The remaining gaps are concentrated in defensive error-throwing branches and undo-specific inverse operations. The sync package achieves 95% branch coverage on the room logic; the WebSocket transport layers are covered by Playwright browser end-to-end tests rather than unit tests.
 
 ## Property-based tests {#sec:property-tests}
 
