@@ -324,10 +324,6 @@ Automerge and Loro excel at general-purpose collaborative JSON editing but lack 
 
 [@Tbl:approach-comparison] is evaluated against Denicek's requirements. For other use cases, Automerge and Loro offer advantages: character-level text editing, compact binary encoding for millions of operations, mature ecosystems, and peer-to-peer transport. mydenicek sacrifices these for native path-based selectors, wildcards, and structural edit rewriting.
 
-## Formative example results {#sec:results}
-
-All six formative examples pass their tests. The conference table with concurrent editing is the most significant: it exercises the full edit transformation pipeline --- wildcard expansion, structural transformations, formula creation, and concurrent list insertions --- in a single scenario, producing a consistent merged table from independently edited structures.
-
 ## Testing strategy {#sec:testing}
 
 Testing distributed systems is fundamentally harder than testing sequential programs: bugs arise from specific interleavings of concurrent events, message orderings, and failure patterns that are difficult to reproduce [@ozkan2025modelfuzz]. mydenicek addresses this through a layered testing strategy, organized as a testing pyramid:
@@ -381,10 +377,7 @@ For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 m
 
 The merge-fan workload exposes the asymptotic cost of true concurrency. At $N=2000$ (two concurrent branches of 1000 events each) the workload costs 21.6 seconds. Since events are stored per peer with contiguous sequence numbers, finding concurrent predecessors is $O(1)$ per peer, so the per-event cost is $O(C_i)$ where $C_i$ is the number of concurrent priors ([@Sec:complexity]). For a local-first system where offline editing is an explicit goal and concurrent branches may grow large, further optimization would be needed.
 
-Two observations mitigate this cost in practice:
-
-- For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms, well within the interactive threshold.
-- For the Denicek applications studied in [@Sec:formative-examples], the total event count per session is typically $\le 100$, and syncs happen after short offline intervals. Within that envelope the implementation is fast enough to feel interactive.
+For typical Denicek sessions ($N \le 100$), syncs happen after short offline intervals and all workloads complete in under 15 ms --- well within the interactive threshold.
 
 Further reducing the cost for large concurrent branches --- for instance, by replacing pairwise transformation with a batch-aware merge strategy --- is left as future work.
 
