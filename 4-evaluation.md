@@ -10,7 +10,7 @@ This chapter evaluates the mydenicek CRDT along three axes: *does it meet Denice
 
 | Requirement | Automerge | Loro | mydenicek (custom) |
 |---|---|---|---|
-| Atomic move/wrap | No (two-step) | Yes (movable tree) | Yes (structural selector rewriting) |
+| Atomic move/wrap | No (two-step) | Yes (movable tree) | Yes (selector rewriting) |
 | Path-based addressing | No (opaque IDs) | No (opaque IDs) | Yes (native) |
 | Wildcard selectors | No | No | Yes |
 | Relative references | No | No | Yes (path-based) |
