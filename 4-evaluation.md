@@ -91,13 +91,13 @@ The conference table is the most complex example. It demonstrates *schema evolut
 Five structural edits transform the list. The wildcard `*` ensures every row is transformed simultaneously:
 
 ```
-updateTag("speakers", "table")        -- list -> table
-updateTag("speakers/*", "td")         -- items -> cells
-wrapList("speakers/*")                -- cells -> rows
-wrapRecord("speakers/*/0/contact",    -- contact -> split-first formula
-           field="source", tag="split-first")
-insert("speakers/*", index=-1,        -- add email column
-       value=<td split-rest(source=ref(sibling))>)
+updateTag("speakers", "table")      -- list -> table
+updateTag("speakers/*", "td")       -- items -> cells
+wrapList("speakers/*")              -- cells -> rows
+wrapRecord("speakers/*/0/contact",  -- split-first
+    field="source", tag="split-first")
+insert("speakers/*", index=-1,      -- email column
+    value=<td split-rest(ref(sibling))>)
 ```
 
 ```

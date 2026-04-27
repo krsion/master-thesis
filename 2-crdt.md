@@ -137,7 +137,7 @@ This gives $n$ methods instead of $n^2$: each edit type implements `transformSel
 Two cases require more than selector rewriting:
 
 - **Payload rewriting.** A structural wildcard edit concurrent with a list insert must modify the *inserted node*, not just the insert's selector. Structural edits call `concurrent.rewriteInsertedNode(target, rewriteFn)` --- a virtual method overridden by `ListInsertEdit` to apply the rewrite to its payload.
-- **Index shifting.** List edits that shift indices use `concurrent.applyListIndexShift(target, threshold, delta)` --- each list edit type shifts its own indices. This replaces $3 \times 3 = 9$ pairwise rules with three single-method overrides.
+- **Index shifting.** List edits that shift indices call a virtual method on the concurrent edit, passing the target, threshold, and delta. Each list edit type shifts its own indices. This replaces $3 \times 3 = 9$ pairwise rules with three single-method overrides.
 
 ### CopyEdit and mirroring {#sec:copy-edit}
 

@@ -26,8 +26,8 @@ The full suite on the evaluated revision passes with 331 tests across 23 files (
 **Running the demos locally.**
 
 ```
-deno task sync-server    # start the relay server on ws://localhost:8080
-deno task mywebnicek:dev # start the web app on http://localhost:5173
+deno task sync-server    # relay server (ws://localhost:8080)
+deno task mywebnicek:dev # web app (http://localhost:5173)
 ```
 
 Deployed instances of the server and web app (used to reproduce the Playwright browser tests) are described in [@Sec:ci-hosting]. The live demo is at <https://krsion.github.io/mydenicek>.
