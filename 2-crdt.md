@@ -34,9 +34,9 @@ Reference nodes (described as the fourth node type above) store their target as 
 | Wildcard | `speakers/*` | Expand to all children of the target node |
 | Negative index | `insert(items, -1, ...)` | End-relative: `-1` = last position, `-2` = second-to-last |
 | Strict index | `speakers/!0` | Index at edit-creation time; not shifted by concurrent inserts |
-| Parent (`..`) | `../0/source` | Navigate up the tree |
 | Absolute reference | `/speakers/0` | Starts with `/`; resolved from document root |
 | Relative reference | `0/source` | Resolved from the reference node's own position |
+| Relative reference to parent | `../0/source` | Navigate up the tree with `..` |
 
 ## Event DAG {#sec:event-dag}
 
