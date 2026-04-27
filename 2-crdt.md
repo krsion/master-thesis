@@ -22,7 +22,7 @@ Nodes are addressed by *selectors* --- slash-separated paths that describe how t
 - **Strict indices** (`!0`): `speakers/!0` refers to the item at index 0 *at the time of the edit*, also added in mydenicek. Unlike plain `0`, strict indices are not shifted by concurrent insertions --- they always refer to the original position. This is essential for the recording and replay mechanism described in [@Sec:replay].
 - **Parent navigation** (`..`): used in references to navigate up the tree. `../../0/contact` goes up two levels, then navigates to `0/contact`.
 
-Reference nodes (described as the fourth node type above) store their target as a selector path in a `$ref` field: `{$ref: "../0/source"}` means "navigate up one level from this reference node's position, then down to `0/source`." The `$ref` notation distinguishes references from ordinary record fields in the serialized JSON representation.
+Reference nodes (described as the fourth node type above) store their target as a selector path. For example, a reference `"../0/source"` means "navigate up one level from this reference node's position, then down to `0/source`."
 
 [@Tbl:selector-notation] summarizes the selector notation used throughout this thesis.
 
@@ -34,9 +34,9 @@ Reference nodes (described as the fourth node type above) store their target as 
 | Wildcard | `speakers/*` | Expand to all children of the target node |
 | Negative index | `insert(items, -1, ...)` | End-relative: `-1` = last position, `-2` = second-to-last |
 | Strict index | `speakers/!0` | Index at edit-creation time; not shifted by concurrent inserts |
-| Parent (`..`) | `../../0/contact` | Navigate up the tree (used in `$ref` paths) |
-| Absolute reference | `$ref: "/speakers/0"` | Reference resolved from document root |
-| Relative reference | `$ref: "../0/source"` | Reference resolved from the reference node's own position |
+| Parent (`..`) | `../../0/contact` | Navigate up the tree (used in reference paths) |
+| Absolute reference | `/speakers/0` | Reference resolved from document root |
+| Relative reference | `../0/source` | Reference resolved from the reference node's own position |
 
 ## Event DAG {#sec:event-dag}
 
