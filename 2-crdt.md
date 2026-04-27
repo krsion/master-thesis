@@ -35,7 +35,7 @@ Reference nodes (described as the fourth node type above) store their target as 
 | Negative index | `insert(items, -1, ...)` | End-relative: `-1` = last position, `-2` = second-to-last |
 | Strict index | `speakers/!0` | Index at edit-creation time; not shifted by concurrent inserts |
 | Absolute reference | `/speakers/0` | Starts with `/`; resolved from document root |
-| Relative reference | `../0/source` | Uses `..` to navigate up; resolved from the reference node's position |
+| Relative reference | `0/source` | Resolved from the reference node's own position |
 
 ## Event DAG {#sec:event-dag}
 
