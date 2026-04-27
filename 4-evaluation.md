@@ -317,7 +317,6 @@ This uses the same edit transformations as concurrent editing. The only differen
 | Replay retargeting | No | No (ID-based) | Yes (selector rewriting) |
 | For-each semantics | No | No | Yes (wildcard expansion) |
 | Character-level text | Yes | Yes (Fugue) | No (LWW) |
-| Runtime deps | WASM + JS | WASM + JS | JS only (Deno `@std`) |
 
 Automerge and Loro excel at general-purpose collaborative JSON editing but lack the path-based features Denicek requires. The custom approach sacrifices character-level text editing (a limitation) but gains native support for all of Denicek's programming-by-demonstration features.
 
