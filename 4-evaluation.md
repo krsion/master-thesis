@@ -50,7 +50,7 @@ This example shows that the CRDT is extensible --- users can register domain-spe
 
 ### Counter: formulas and programming by demonstration {#sec:counter}
 
-The counter example demonstrates the *formula engine* and *recording/replay* (programming by demonstration). [@Fig:formative-counter] shows the counter after one increment.
+The Counter example demonstrates the *formula engine* and *recording/replay* (programming by demonstration). [@Fig:formative-counter] shows the counter after one increment.
 
 ![Counter example: the value 1 is computed by the `x-formula-plus` formula node wrapping the original 0. The "Increment" button replays three recorded edits.](img/formative-counter.png){#fig:formative-counter width=40%}
 
