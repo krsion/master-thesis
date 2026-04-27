@@ -70,38 +70,15 @@ When a new event's parents exactly match the current frontier (the common case d
 
 The event DAG under the happens-before relation is a **partially ordered set** (poset). Events from the same peer are totally ordered by sequence number, forming a **chain**. Two events are **comparable** (one is an ancestor of the other) or **incomparable** (concurrent). We treat the number of peers $P$ as a constant and let $N$ be the total number of events.
 
-The materializer groups applied events by peer in a **per-peer index**. Since sequence numbers are contiguous, the first incomparable event from peer Y is at index $V_E[Y] + 1$ --- skipping all comparable predecessors in $O(1)$:
-
-```
-function materialize(events):
-  order <- topologicalSort(events)          -- O(N log N)
-  doc <- initialDocument
-  peerIndex <- {} (peer -> [(event, edit, topoPos)])
-  for i, E in order:                        -- N iterations
-    concurrent <- []
-    for each peer Y in peerIndex:            -- O(P) = O(1)
-      start <- E.clock[Y] + 1                -- O(1) direct index
-      concurrent.addAll(peerIndex[Y][start:])
-    merge concurrent by topoPos              -- O(Ci) with P pointers
-    edit <- E.edit
-    for P in concurrent:                     -- Ci iterations
-      edit <- transform(P.edit, edit)         -- O(1)
-    apply(edit, doc)
-    peerIndex[E.peer].append(E, edit, i)
-  return doc
-```
-
-The per-event cost is $O(C_i)$, where $C_i$ is the number of incomparable predecessors. The total cost is $O(N + C_\text{total})$, where $C_\text{total} = \sum C_i$ is the total number of incomparable pairs in the poset. The cost is **output-sensitive**: it depends on the actual concurrency in the DAG.
-
-#### Concurrency structure
+Materialization has two phases. First, **topological sort** via Kahn's algorithm with `EventId` tie-breaking produces a total order in $O(N \log N)$. Second, **replay** applies each event's edit in order, transforming it through all incomparable predecessors. Each pairwise transformation is $O(1)$ (fixed dispatch on edit type). The per-peer index finds incomparable predecessors in $O(1)$ per peer (since sequence numbers are contiguous, the boundary is a direct array index). The total replay cost is therefore $O(N + C_\text{total})$, where $C_\text{total}$ is the number of incomparable pairs in the poset --- the total number of pairwise transformations actually performed. The overall cost is $O(N \log N + C_\text{total})$.
 
 $C_\text{total}$ has a closed form for common DAG shapes:
 
 - **Chain** (fully sequential): $C_\text{total} = 0$.
-- **Fork-and-merge** (common prefix, then two branches of lengths $a$ and $b$): every event in one branch is incomparable with every event in the other, so $C_\text{total} = a \cdot b$.
+- **Fork-and-merge** (two branches of lengths $a$ and $b$): $C_\text{total} = a \cdot b$.
 - **$m$-way fork** (branches $a_1, \ldots, a_m$): $C_\text{total} = \sum_{i < j} a_i \cdot a_j$.
 
-**Lower bound.** The quadratic cost for concurrent branches is inherent to pairwise selector rewriting, not an implementation artifact. Each incomparable predecessor must be examined because the structural impact of a concurrent edit depends on its type and arguments, not only on the selector prefix. In the worst case --- all events targeting the same list --- every incomparable pair requires a transformation, giving $\Omega(C_\text{total})$. Systems that avoid this cost (such as Automerge and Loro) replace path-based selectors with unique opaque node IDs, so concurrent edits never need rewriting. mydenicek retains path-based selectors because they are essential to Denicek's programming model: wildcards, relative references, and programming by demonstration all rely on structural paths.
+**Lower bound.** The $\Omega(C_\text{total})$ cost is inherent to pairwise selector rewriting. Each incomparable predecessor must be examined because the structural impact of a concurrent edit depends on its type and arguments, not only on the selector prefix. Systems that avoid this cost (such as Automerge and Loro) replace path-based selectors with unique opaque node IDs, so concurrent edits never need rewriting. mydenicek retains path-based selectors because they are essential to Denicek's programming model: wildcards, relative references, and programming by demonstration all rely on structural paths.
 
 ### mydenicek as a pure op-based CRDT {#sec:crdt-framing}
 
