@@ -77,8 +77,17 @@
 
 \ifEN\floatname{listing}{Listing}
 \else\floatname{listing}{Výpis kódu}\fi
+\lstdefinelanguage{TypeScript}{
+  keywords={const, let, var, function, return, if, else, for, while, new, true, false, null, undefined, import, export, from, type, interface, class, extends, implements, async, await, of, in},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]',
+  morestring=[b]`
+}
 \lstset{ % use this to define styling for any other language
-  language={},
+  language=TypeScript,
   tabsize=2,
   showstringspaces=false,
   basicstyle=\footnotesize\tt\color{black!75},
