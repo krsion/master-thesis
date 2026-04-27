@@ -1,7 +1,28 @@
 # Evaluation {#chap:evaluation}
 
+This chapter evaluates the mydenicek CRDT along three axes: *does it meet Denicek's requirements* (approach comparison), *does it produce correct results* (formative examples, testing, property-based tests), and *is it fast enough* (performance). We begin with the approach comparison that motivated the custom design, then demonstrate correctness through five formative examples that exercise the key features, and conclude with quantitative evaluation.
+
+## Approach comparison {#sec:comparison}
+
+[@Tbl:approach-comparison] summarizes the three approaches evaluated in this thesis against Denicek's key requirements.
+
+: Comparison of the three approaches against Denicek's requirements. {#tbl:approach-comparison}
+
+| Requirement | Automerge | Loro | mydenicek (custom) |
+|---|---|---|---|
+| Atomic move/wrap | No (two-step) | Yes (movable tree) | Yes (structural selector rewriting) |
+| Path-based addressing | No (opaque IDs) | No (opaque IDs) | Yes (native) |
+| Wildcard selectors | No | No | Yes |
+| Relative references | No | No | Yes ($ref paths) |
+| Replay retargeting | No | No (ID-based) | Yes (selector rewriting) |
+| For-each semantics | No | No | Yes (wildcard expansion) |
+| Character-level text | Yes | Yes (Fugue) | No (LWW) |
+
+Automerge and Loro excel at general-purpose collaborative JSON editing but lack the path-based features Denicek requires. The custom approach sacrifices character-level text editing but gains native support for all of Denicek's programming-by-demonstration features. The original Denicek uses a Git-like model where peers work on local branches and merge manually; mydenicek replaces this with automatic merge via deterministic replay.
+
 ## Formative examples {#sec:formative-examples}
 
+The following five examples demonstrate that mydenicek meets each requirement from [@Tbl:approach-comparison]. Each example is implemented as a test that constructs documents, applies edits, syncs between peers, and asserts the expected result.
 
 ### Hello World: custom primitive edits and replay {#sec:hello-world}
 
@@ -301,28 +322,6 @@ Recorded edit sequences survive structural refactoring. The "Add Speaker" button
 This uses the same edit transformations as concurrent editing. The only difference is that replay transforms through *all* later edits (not just concurrent ones), because the recorded edit's position in the DAG is at the recording point.
 
 
-
-## Approach comparison {#sec:comparison}
-
-[@Tbl:approach-comparison] summarizes the three approaches evaluated in this thesis against Denicek's key requirements.
-
-: Comparison of the three approaches against Denicek's requirements. {#tbl:approach-comparison}
-
-| Requirement | Automerge | Loro | mydenicek (custom) |
-|---|---|---|---|
-| Atomic move/wrap | No (two-step) | Yes (movable tree) | Yes (structural selector rewriting) |
-| Path-based addressing | No (opaque IDs) | No (opaque IDs) | Yes (native) |
-| Wildcard selectors | No | No | Yes |
-| Relative references | No | No | Yes ($ref paths) |
-| Replay retargeting | No | No (ID-based) | Yes (selector rewriting) |
-| For-each semantics | No | No | Yes (wildcard expansion) |
-| Character-level text | Yes | Yes (Fugue) | No (LWW) |
-
-Automerge and Loro excel at general-purpose collaborative JSON editing but lack the path-based features Denicek requires. The custom approach sacrifices character-level text editing (a limitation) but gains native support for all of Denicek's programming-by-demonstration features.
-
-**Comparison with the original Denicek.** The original Denicek uses a Git-like model: peers work on local branches and merge manually. mydenicek replaces this with automatic merge — the CRDT's deterministic replay resolves concurrent edits without user intervention. The trade-off is that automatic resolution follows fixed rules (topological order determines winners), whereas manual merge lets the user choose.
-
-[@Tbl:approach-comparison] is evaluated against Denicek's requirements. For other use cases, Automerge and Loro offer advantages: character-level text editing, compact binary encoding for millions of operations, mature ecosystems, and peer-to-peer transport. mydenicek sacrifices these for native path-based selectors, wildcards, and structural edit rewriting.
 
 ## Testing strategy {#sec:testing}
 
