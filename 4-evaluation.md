@@ -33,9 +33,9 @@ We start with a list of messages with inconsistent capitalization. A custom prim
 ```
 registerPrimitiveEdit("capitalize", value -> titleCase(value))
 
-recordedPeer.applyPrimitiveEdit("messages/0", "capitalize")
+e = recordedPeer.applyPrimitiveEdit("messages/0", "capitalize")
 sync(recordedPeer, replayPeer)
-replayPeer.replay(editId, "messages/*")
+replayPeer.replay(e, "messages/*")
 -- wildcard applies to all items
 ```
 
