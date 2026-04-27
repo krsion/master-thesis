@@ -91,29 +91,13 @@ Together, these give **strong eventual consistency**: any two replicas that have
 
 Convergence is the easy part. The hard part is **intention preservation** --- ensuring that the *result* of merging concurrent edits matches what users intended. References must survive structural edits, wildcards must expand over concurrent inserts, indices must shift through concurrent modifications, and recorded edits must replay after schema evolution. Convergence is guaranteed by the framework; intention preservation is validated empirically through the formative examples ([@Sec:formative-examples]) and property-based tests ([@Sec:property-tests]).
 
-## Edit types and selector transformation rules {#sec:edit-types}
+## Edit types {#sec:edit-types}
 
 The system supports 11 edit types: record operations (`RecordAdd`, `RecordDelete`, `RecordRename`), list operations (`ListInsert`, `ListRemove`, `ListReorder`), structural operations (`UpdateTag`, `WrapRecord`, `WrapList`), `CopyEdit` (subtree copy with managed mirroring), and `ApplyPrimitiveEdit` (extensible custom edits). Three additional inverse types (`UnwrapRecord`, `UnwrapList`, `RestoreSnapshot`) are produced only by `computeInverse()` for undo.
 
-### Concurrent structural conflicts
+### Selector rewriting {#sec:selector-rules}
 
-Several concurrent scenarios illustrate the resolution semantics.
-
-*Concurrent renames of the same field.* Alice renames `name` -> `fullName`, Bob renames `name` -> `title`. The first rename in replay order succeeds. The second's source selector is transformed through the first (`name` becomes `fullName`), so it renames `fullName` -> `title`. The field ends up as `title` on both peers.
-
-*Concurrent wraps of the same target.* Alice wraps `value` into a `formula` record, Bob wraps `value` into a `container` record. Both wraps succeed in sequence: the second wrap's selector is transformed through the first, producing a doubly-wrapped structure. Neither peer intended double nesting; this is a known compromise that preserves both edits.
-
-*Concurrent indexed insert and remove.* Starting from `["a", "b", "c"]`, Alice inserts `"NEW"` at index 0, Bob removes index 0. With non-strict indices, OT shifts the remove's target past the insertion: the remove still targets `"a"` (now at index 1), and the insert lands at 0. Both replay orders converge to `["NEW", "b", "c"]`.
-
-*Strict indices.* With `strict=true`, the index is not shifted by OT --- it refers to the position at replay time. A concurrent strict insert and strict remove at index 0 can cancel each other: if the insert replays first, the remove targets the *newly inserted* item, not the original. Non-strict indices provide better intent preservation for concurrent list modifications.
-
-*Negative indices.* Non-strict negative indices (e.g., `-1` for append) are resolved to absolute positions using a stored `listLength` and then shifted like positive indices. Strict negative indices are resolved at replay time and not shifted.
-
-*Double remove.* When both peers remove the same index concurrently, the second becomes a no-op conflict.
-
-### Selector rewriting rules {#sec:selector-rules}
-
-Each structural edit implements a `transformSelector` method that rewrites a concurrent edit's selector through its structural effect. [@Tbl:selector-rules] summarizes the rules.
+Each structural edit transforms concurrent edits' selectors through its structural effect. [@Tbl:selector-rules] summarizes the rules.
 
 : Selector rewriting rules. Each structural edit transforms concurrent selectors. {#tbl:selector-rules}
 
@@ -139,9 +123,11 @@ Negative indices are resolved to absolute positions using a stored `listLength` 
 
 **Composition.** Transformations compose sequentially. If Alice renames `speakers` -> `talks`, Bob wraps each item in a `<tr>` record, and Carol edits `speakers/0/name`, then Carol's selector is first transformed through Alice's rename (`talks/0/name`), then through Bob's wrap (`talks/0/value/name`). Each transformation is local --- it examines only whether the prior edit's target overlaps with the selector being transformed.
 
-### Two-level polymorphic design {#sec:ot-architecture}
+**Concurrent conflict resolution.** Several concurrent scenarios illustrate the semantics. Concurrent renames of the same field compose: Alice renames `name` -> `fullName`, Bob renames `name` -> `title`; the second rename's source is transformed through the first, yielding `fullName` -> `title`. Concurrent wraps produce double nesting (a known compromise). For concurrent list operations, non-strict indices shift through each other: an insert at index 0 concurrent with a remove at index 0 converges to `["NEW", "b", "c"]`. Strict indices (`strict=true`) are not shifted --- they refer to the position at replay time. When both peers remove the same index, the second becomes a no-op conflict.
 
-A naive transformation implementation requires a rule for every pair of edit types --- $n^2$ rules for $n$ edit types. With 11 edit types, that would be 121 hand-written rules. mydenicek avoids this through a two-level object-oriented design, shown in [@Fig:edit-class-diagram].
+### OT dispatch {#sec:ot-architecture}
+
+A naive transformation implementation requires a rule for every pair of edit types --- $n^2$ rules for $n$ edit types. With 11 edit types, that would be 121 hand-written rules. mydenicek avoids this through two base-class methods, shown in [@Fig:edit-class-diagram].
 
 ![Edit class hierarchy with two-level OT. All edit types extend `Edit` directly. Structural edits (blue) override `transformSelector` and optionally `transformLaterConcurrentEdit`. Data edits (green) return the identity transformation. CopyEdit (red) has two selectors and mirrors concurrent edits. Insert edits (orange) carry a payload and override virtual methods (`rewriteInsertedNode`, `applyListIndexShift`, `mapInsertedPayload`) for generic OT dispatch.](img/edit-class-diagram.png){#fig:edit-class-diagram width=75%}
 
