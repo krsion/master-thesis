@@ -180,7 +180,7 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 *local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *concurrent-sync*: two peers edit concurrently, then sync.
 
-For typical Denicek sessions ($N \le 100$), all workloads complete in under 2 ms. At $N = 2000$ with two fully concurrent branches of 1000 events each, materialization takes 173 ms. The measured scaling exponents match the complexity analysis: local-append and sync-linear scale linearly (exponent $\approx 1.0$), while concurrent-sync scales quadratically (exponent $\approx 1.9$).
+For typical Denicek sessions ($N \le 100$), all workloads complete in under 2 ms. At $N = 2000$ with two fully concurrent branches of 1000 events each, materialization takes 173 ms. The measured scaling exponents match the complexity analysis of [@Sec:complexity]: local-append and sync-linear scale linearly (exponent $\approx 1.0$), while concurrent-sync scales quadratically (exponent $\approx 1.9$).
 
 ## Limitations {#sec:limitations}
 
