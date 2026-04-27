@@ -93,13 +93,13 @@ Convergence is the easy part. The hard part is **intention preservation** --- en
 
 ## Edit types {#sec:edit-types}
 
-The system supports 11 edit types: record operations (`RecordAdd`, `RecordDelete`, `RecordRename`), list operations (`ListInsert`, `ListRemove`, `ListReorder`), structural operations (`UpdateTag`, `WrapRecord`, `WrapList`), `CopyEdit` (subtree copy with managed mirroring), and `ApplyPrimitiveEdit` (extensible custom edits). Three additional inverse types (`UnwrapRecord`, `UnwrapList`, `RestoreSnapshot`) are produced only by `computeInverse()` for undo.
+The system supports 11 edit types: record operations (`RecordAdd`, `RecordDelete`, `RecordRename`), list operations (`ListInsert`, `ListRemove`, `ListReorder`), structural operations (`UpdateTag`, `WrapRecord`, `WrapList`), `CopyEdit` (subtree copy with mirroring), and `ApplyPrimitiveEdit` (extensible custom edits). Three inverse types (`UnwrapRecord`, `UnwrapList`, `RestoreSnapshot`) are produced only by `computeInverse()` for undo.
 
 ### Selector rewriting {#sec:selector-rules}
 
-Each structural edit transforms concurrent edits' selectors through its structural effect. [@Tbl:selector-rules] summarizes the rules.
+When two edits are concurrent, the later one's selector must be rewritten through the earlier one's structural effect. [@Tbl:selector-rules] summarizes the rules.
 
-: Selector rewriting rules. Each structural edit transforms concurrent selectors. {#tbl:selector-rules}
+: Selector rewriting rules. {#tbl:selector-rules}
 
 +--------------------+------------------------------------------+----------------------------------------------+
 | Edit               | Rule                                     | Example                                      |
@@ -119,55 +119,41 @@ Each structural edit transforms concurrent edits' selectors through its structur
 | Reorder(f, t)      | f becomes t; range shifts                | items/1 becomes items/3                      |
 +--------------------+------------------------------------------+----------------------------------------------+
 
-Negative indices are resolved to absolute positions using a stored `listLength` before shifting. Strict indices (`strict=true`) shift concurrent selectors but are not themselves shifted by concurrent edits.
+Transformations compose sequentially: if Alice renames `speakers` -> `talks` and Bob wraps each item in a `<tr>` record, then Carol's selector `speakers/0/name` becomes `talks/0/name` (through rename), then `talks/0/value/name` (through wrap).
 
-**Composition.** Transformations compose sequentially. If Alice renames `speakers` -> `talks`, Bob wraps each item in a `<tr>` record, and Carol edits `speakers/0/name`, then Carol's selector is first transformed through Alice's rename (`talks/0/name`), then through Bob's wrap (`talks/0/value/name`). Each transformation is local --- it examines only whether the prior edit's target overlaps with the selector being transformed.
-
-**Concurrent conflict resolution.** Several concurrent scenarios illustrate the semantics:
-
-- *Concurrent renames.* Alice renames `name` -> `fullName`, Bob renames `name` -> `title`. The second rename's source is transformed through the first, yielding `fullName` -> `title`.
-- *Concurrent wraps.* Both wraps succeed in sequence, producing double nesting.
-- *Concurrent insert and remove.* Starting from `["a", "b", "c"]`, an insert at index 0 concurrent with a remove at index 0 converges to `["NEW", "b", "c"]` --- non-strict indices shift through each other.
-- *Strict indices.* With `strict=true`, the index is not shifted --- it refers to the position at replay time.
-- *Double remove.* When both peers remove the same index, the second becomes a no-op conflict.
+Concurrent conflicts are resolved deterministically: concurrent renames compose (both apply in replay order), concurrent wraps produce double nesting, concurrent list inserts and removes shift through each other, and double removes produce a no-op conflict.
 
 ### Edit transformation dispatch {#sec:ot-architecture}
 
-A naive transformation implementation requires a rule for every pair of edit types --- $n^2$ rules for $n$ edit types. With 11 edit types, that would be 121 hand-written rules. mydenicek avoids this through two base-class methods, shown in [@Fig:edit-class-diagram].
+A naive implementation requires $n^2$ pairwise rules for $n$ edit types. mydenicek avoids this with two virtual methods in the `Edit` base class ([@Fig:edit-class-diagram]):
 
-![Edit class hierarchy. All edit types extend `Edit` directly. Structural edits (blue) override `transformSelector` and optionally `transformLaterConcurrentEdit`. Data edits (green) return the identity transformation. CopyEdit (red) has two selectors and mirrors concurrent edits. Insert edits (orange) carry a payload and override virtual methods (`rewriteInsertedNode`, `applyListIndexShift`, `mapInsertedPayload`) for generic dispatch.](img/edit-class-diagram.png){#fig:edit-class-diagram width=75%}
+- **`transformSelector(sel)`** rewrites a selector through this edit's structural effect. Non-structural edits return the selector unchanged.
+- **`transformLaterConcurrentEdit(concurrent)`** returns a transformed version of a concurrent edit. The default delegates to `transformSelector`, handling most edit pairs.
 
-The design rests on two key methods in the `Edit` base class:
+This gives $n$ methods instead of $n^2$: each edit type implements `transformSelector` once, and it works for all concurrent edit types.
 
-- **`transformSelector(sel)`** --- given another edit's selector, returns the transformed selector after this edit's structural effect. For example, a rename from `speakers` to `talks` transforms the selector `speakers/0/name` into `talks/0/name`. Non-structural edits (add, set, etc.) return the selector unchanged. This corresponds to the "transform matching references" operation in the original Denicek [@petricek2025denicek, Appendix B2].
-- **`transformLaterConcurrentEdit(concurrent)`** --- given a concurrent edit that will replay *after* this one, returns a transformed version of the concurrent edit. The default implementation simply calls `concurrent.transform(this)`, which rewrites the concurrent edit's target selector through `transformSelector`. This handles the vast majority of edit pairs.
+![Edit class hierarchy. Structural edits (blue) override `transformSelector`. Data edits (green) return the identity. Insert edits (orange) override payload-rewriting methods. CopyEdit (red) mirrors concurrent edits to both target and source.](img/edit-class-diagram.png){#fig:edit-class-diagram width=75%}
 
-**Why this avoids $n^2$ rules.** The default `transformLaterConcurrentEdit` delegates to `transformSelector`, which each edit type implements once. A `RenameFieldEdit` knows how to transform *any* selector (not just selectors from specific edit types), so one method handles all pairs involving rename. This gives $n$ methods total instead of $n^2$. No `instanceof` checks are used for edit transformation dispatch: list index shifting is handled by two complementary virtual methods (`applyListIndexShift` for the forward direction, `listIndexEffect` for the reverse), and `CopyEdit` avoids double-wrapping `CompositeEdit` via a `skipMirroring` flag rather than a type test.
+Two cases require more than selector rewriting:
 
-**When the default is insufficient.** Selector rewriting alone does not handle cases where a structural edit must modify the *payload* of a concurrent list insert (this corresponds to the "apply to newly added" operation in the original Denicek [@petricek2025denicek, Appendix B1]). Consider: `updateTag("items/*", "tr")` is concurrent with `insert("items", -1, {$tag: "li", ...})`. The default would only transform the insert's target selector (which is `items`, unchanged by the tag edit). But the *inserted node* should also change its tag from `<li>` to `<tr>`. To handle this, structural edits call `concurrent.rewriteInsertedNode(target, rewriteFn)` --- a virtual method on `Edit` that is overridden by `ListInsertEdit` to modify its inserted payload. The caller provides the rewrite logic; the callee provides the payload. This avoids `instanceof` checks: structural edits do not need to know the concrete type of the concurrent edit.
-
-Similarly, list edits that shift indices (insert shifts by +1, remove shifts by −1) use `concurrent.applyListIndexShift(target, threshold, delta)` --- another virtual method where each list edit type knows how to shift its own indices. `ListInsertAtEdit` shifts its single index, `ListRemoveAtEdit` shifts and detects same-position collisions (returning a no-op), and `ListReorderEdit` shifts both its `from` and `to` indices. This replaces what would otherwise be $3 \times 3 = 9$ pairwise `instanceof` checks with three single-method overrides.
+- **Payload rewriting.** A structural wildcard edit concurrent with a list insert must modify the *inserted node*, not just the insert's selector. Structural edits call `concurrent.rewriteInsertedNode(target, rewriteFn)` --- a virtual method overridden by `ListInsertEdit` to apply the rewrite to its payload.
+- **Index shifting.** List edits that shift indices use `concurrent.applyListIndexShift(target, threshold, delta)` --- each list edit type shifts its own indices. This replaces $3 \times 3 = 9$ pairwise rules with three single-method overrides.
 
 ### CopyEdit and mirroring {#sec:copy-edit}
 
-`CopyEdit` extends `Edit` directly because it has two selectors --- `target` and `source` --- both of which must be checked for removal. If either is deleted by a concurrent edit, the copy becomes a no-op. More importantly, `CopyEdit` *mirrors* concurrent edits: when a concurrent edit modifies the source, the same modification is replicated onto the copy target. This is implemented by `transformLaterConcurrentEdit` wrapping the concurrent edit in a `CompositeEdit` that applies it to both the original target and the mirrored copy target. `CompositeEdit` is a proper `Edit` subclass that overrides all key methods (`apply`, `transform`, `transformLaterConcurrentEdit`, `computeInverse`) by delegating to its sub-edits internally. No other edit type needs to know about it --- it is transparent to the rest of the edit transformation pipeline.
+`CopyEdit` has two selectors --- `target` and `source`. When a concurrent edit modifies the source, the same modification is replicated onto the copy target by wrapping the concurrent edit in a `CompositeEdit` that applies to both locations.
 
-This mirroring mechanism is different from the concurrent insert payload rewriting described in [@Sec:ot-architecture]. Payload rewriting modifies *what gets inserted* --- the inserted node's content is changed before it enters the document. CopyEdit mirroring duplicates *where an edit applies* --- the concurrent edit itself is replicated to a second target. The two cannot be unified because they operate at different levels: one modifies a payload, the other duplicates an edit. The original Denicek takes a different approach that avoids this distinction: instead of modifying payloads, it copies the *edit sequence* and replays it on the copy target [@petricek2025denicek, Appendix B1]. That design uses a single mechanism for both concurrent inserts and copies, at the cost of tracking which edits to replay.
+This differs from payload rewriting ([@Sec:ot-architecture]): payload rewriting changes *what gets inserted*, mirroring duplicates *where an edit applies*.
 
 ### Wildcard edits and concurrent insertions {#sec:wildcard-concurrent}
 
-A notable property of the replay-based *eval* is how wildcard edits interact with concurrent insertions, illustrated in [@Fig:wildcard-diamond]. *This is a deliberate design choice*, not a consequence of the convergence proof: both "wildcard includes concurrent inserts" and "wildcard does not include concurrent inserts" produce a deterministic *eval* and therefore both yield strong eventual consistency. We choose the former because wildcard edits are a core feature of Denicek's end-user programming model --- users apply structural transformations to all items in a list (e.g., refactoring a conference list into a table, as demonstrated in [@Sec:conf-concurrent]). When one user refactors the list while another concurrently adds new items, the new items should also be refactored.
+Wildcard edits (e.g., `updateTag("speakers/*", "tr")`) affect concurrently inserted items --- a deliberate design choice, not a consequence of convergence. Both "include concurrent inserts" and "exclude them" are deterministic; we choose the former because wildcards are central to Denicek's programming model ([@Fig:wildcard-diamond]).
 
-When Alice applies `updateTag("speakers/*", "tr")` --- changing the tag of every item in the list --- and Bob concurrently inserts a new item via `insert("speakers", -1, ...)`, the result is that Alice's tag update also affects Bob's newly inserted item.
+![Wildcard edit and concurrent insertion. Alice's wildcard `updateTag` and Bob's `insert` are concurrent. After merge, Bob's inserted `<li> C` becomes `<tr> C`.](img/wildcard-diamond.png){#fig:wildcard-diamond width=55%}
 
-![Wildcard edit and concurrent insertion. Alice's wildcard `updateTag` and Bob's `insert` are concurrent. After merge, Bob's inserted `<li> C` becomes `<tr> C` --- the wildcard edit affects the concurrent insertion.](img/wildcard-diamond.png){#fig:wildcard-diamond width=55%}
+The mechanism depends on replay order: if the insert replays first, the wildcard naturally expands to include it; if the wildcard replays first, the insert's payload is rewritten to match. Both orders produce the same result.
 
-This holds regardless of replay order, but the mechanism differs in each case:
-
-- **Insert first** (Bob's `insert` is replayed before Alice's wildcard edit): Bob's new item is added to the list. When Alice's `updateTag("speakers/*", "tr")` is then replayed, the wildcard `*` expands to include *all items that exist at the point of replay* --- including Bob's concurrent insertion. The tag update naturally applies to the new item without any transformation needed.
-- **Edit first** (Alice's wildcard edit is replayed before Bob's `insert`): Alice's `updateTag` is applied to the existing items. When Bob's `insert` is then resolved against Alice's preceding wildcard edit, the selector-rewriting step modifies the inserted item: instead of inserting a `<li>` item, the transformed insert produces a `<tr>` item. This works because materialization replays events in a deterministic order --- when Bob's insert comes after Alice's wildcard edit in that order, the insert is transformed to be consistent with the already-applied edit.
-
-This semantics is uncommon in CRDTs. In most CRDT-based systems, an operation only affects the items that existed at the time the operation was created. Items inserted concurrently by other peers are not affected. Weidner [@weidner2023foreach] describes this as the *for-each* problem and proposes a dedicated CRDT operation to address it. In mydenicek, the replay-based *eval* naturally achieves the "for-each-including-concurrent-additions" semantics because the wildcard is expanded at replay time, not at creation time --- no special for-each CRDT is needed.
+This is uncommon in CRDTs --- most systems only affect items that existed when the operation was created. Weidner [@weidner2023foreach] calls this the *for-each* problem. In mydenicek, wildcards are expanded at replay time, not creation time, so the for-each semantics follows naturally.
 
 
 
