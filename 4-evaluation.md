@@ -26,9 +26,7 @@ The following five examples demonstrate that mydenicek meets each requirement fr
 
 ### Hello World: custom primitive edits and replay {#sec:hello-world}
 
-The first example demonstrates two fundamental capabilities: *custom primitive edits* and *wildcard replay*.
-
-We start with a list of messages with inconsistent capitalization. A custom primitive edit `capitalize` is registered that title-cases a string:
+The first example demonstrates *custom primitive edits* and *wildcard replay*.
 
 ```
 registerPrimitiveEdit("capitalize", value -> titleCase(value))
@@ -36,10 +34,14 @@ registerPrimitiveEdit("capitalize", value -> titleCase(value))
 e = recordedPeer.applyPrimitiveEdit("messages/0", "capitalize")
 sync(recordedPeer, replayPeer)
 replayPeer.replay(e, "messages/*")
--- wildcard applies to all items
 ```
 
-This example shows that the CRDT is extensible --- users can register domain-specific transformations that participate in the event DAG and can be replayed like any other edit.
+```
+Before:  messages = ["hello WORLD", "fOO bar"]
+After:   messages = ["Hello World", "Foo Bar"]
+```
+
+The CRDT is extensible --- users register domain-specific transformations that participate in the event DAG and can be replayed with wildcards.
 
 ### Counter: formulas and programming by demonstration {#sec:counter}
 
@@ -47,102 +49,68 @@ The Counter example demonstrates the *formula engine* and *recording/replay* (pr
 
 ![Counter example: the value 1 is computed by the `x-formula-plus` formula node wrapping the original 0. The "Increment" button replays three recorded edits.](img/formative-counter.png){#fig:formative-counter width=40%}
 
-The document starts with a simple `counter/value = 0`. We record three edits that implement "increment":
+The document starts with `counter/value = 0`. Three recorded edits implement "increment": wrap the value into a `plus(_, 1)` formula node, rename the inner field, and add the right operand:
 
 ```
-e1 = wrapRecord("counter/value", field="value", tag="x-formula-plus")
+e1 = wrapRecord("counter/value", field="value", tag="plus")
 e2 = rename("counter/value", "value" -> "left")
 e3 = add("counter/value", "right", 1)
 button.steps = [e1, e2, e3]
 ```
 
-After recording: `counter/value = { $tag: "x-formula-plus", left: 0, right: 1 }`, which the formula engine evaluates to 1. Each replay wraps another `x-formula-plus` layer around the previous result, computing `((0+1)+1) = 2`, then 3, and so on.
+```
+Before:  counter = 0
+After:   counter = plus(0, 1) -> 1
+Replay:  counter = plus(plus(0, 1), 1) -> 2
+```
+
+Each replay wraps another `plus` layer around the previous result. The formula engine evaluates the nested structure recursively.
 
 ### Conference List: adding items with recorded edits {#sec:conf-list}
 
-The conference list demonstrates how recorded edits work with an input field and a button to add items to a list. [@Fig:formative-conf-list] shows the rendered list.
+The conference list demonstrates recorded edits with an input field and a button. [@Fig:formative-conf-list] shows the rendered list.
 
 ![Conference list example: an input field, an "Add" button, and a bullet list of speakers. The button replays two recorded edits (insert + copy from input).](img/formative-conf-list.png){#fig:formative-conf-list width=40%}
 
-The document contains a list of speakers (each with a `"Name, email"` string), an input field, and an "Add" button. Two edits are recorded:
+Two edits are recorded: insert a new empty item, then copy the input field value into it:
 
 ```
-e1 = insert("conferenceList/items", index=!0, value=<li text="">)
-e2 = copy("conferenceList/items/!0/text", from="conferenceList/composer/input/value")
+e1 = insert("items", index=!0, value=<li text="">)
+e2 = copy("items/!0/text", from="input/value")
 button.steps = [e1, e2]
 ```
 
-The `!0` strict index refers to position 0 *at the time of recording*. During replay, the index is adjusted if concurrent insertions have shifted it. When the button is replayed, it creates a new item and fills it with the current input text. Two peers can concurrently add speakers --- after sync, both items appear in the list.
+The `!0` strict index refers to position 0 *at the time of recording*. During replay, it is adjusted if concurrent insertions have shifted it. Two peers can concurrently add speakers --- after sync, both items appear.
 
 ### Conference Table: structural transformation {#sec:conf-table}
 
-The conference table example is the most complex formative example. It demonstrates *schema evolution* --- refactoring a flat list into a structured table using only the edit operations available in the CRDT. [@Fig:formative-conf-table] shows the final table after the transformation. The document tree before and after the transformation:
-
-**Before** --- a flat conference list:
-
-```html
-<ul>
-  <li contact="Ada Lovelace, ada@example.com" />
-  <li contact="Grace Hopper, grace@example.com" />
-</ul>
-```
-
-**After** --- a two-column table with formula cells:
-
-```html
-<table>
-  <tr>
-    <td>
-      split-first(source="Ada Lovelace, ada@example.com")
-        = "Ada Lovelace"
-    </td>
-    <td>
-      split-rest(source=ref("../../0/contact/source"))
-        = "ada@example.com"
-    </td>
-  </tr>
-  <tr>
-    <td>
-      split-first(source="Grace Hopper, grace@example.com")
-        = "Grace Hopper"
-    </td>
-    <td>
-      split-rest(source=ref("../../0/contact/source"))
-        = "grace@example.com"
-    </td>
-  </tr>
-</table>
-```
+The conference table is the most complex example. It demonstrates *schema evolution* --- refactoring a flat list into a structured table. [@Fig:formative-conf-table] shows the final result.
 
 ![Conference table after structural transformation: names and emails are split into separate columns using `split-first` and `split-rest` formula nodes. The "Add Speaker" button adds complete table rows.](img/formative-conf-table.png){#fig:formative-conf-table width=40%}
 
-Starting from the conference list, Alice performs four structural edits. The wildcard `*` in all steps ensures that the transformation is applied to every row simultaneously:
+Five structural edits transform the list. The wildcard `*` ensures every row is transformed simultaneously:
 
 ```
-updateTag("speakers", "table")          -- <ul> -> <table>
-updateTag("speakers/*", "td")           -- <li> -> <td>
-wrapList("speakers/*")                  -- <td> -> <tr>[ <td> ]
-wrapRecord("speakers/*/0/contact",      -- contact string -> split-first formula
+updateTag("speakers", "table")        -- list -> table
+updateTag("speakers/*", "td")         -- items -> cells
+wrapList("speakers/*")                -- cells -> rows
+wrapRecord("speakers/*/0/contact",    -- contact -> split-first formula
            field="source", tag="split-first")
-insert("speakers/*", index=-1,          -- add email column with split-rest
-       value=<td><split-rest source=ref("../../0/contact/source")>)
+insert("speakers/*", index=-1,        -- add email column
+       value=<td split-rest(source=ref(sibling))>)
 ```
 
-```html
-<!-- Final result after formula evaluation -->
-<table>
-  <tr>
-    <td> "Ada Lovelace" </td>
-    <td> "ada@example.com" </td>
-  </tr>
-  <tr>
-    <td> "Grace Hopper" </td>
-    <td> "grace@example.com" </td>
-  </tr>
-</table>
+```
+Before:  <ul>  <li> "Ada, ada@..." </li>
+               <li> "Grace, grace@..." </li>  </ul>
+
+After:   <table>  <tr> <td> "Ada" </td>
+                       <td> "ada@..." </td> </tr>
+                  <tr> <td> "Grace" </td>
+                       <td> "grace@..." </td> </tr>  </table>
 ```
 
-The wildcard `*` in all four steps ensures that the transformation is applied to every row simultaneously. All edits are recorded as events in the DAG. Importantly, the "Add Speaker" button recorded in the list phase continues to work after the refactoring --- see [@Sec:replay-after-refactor].
+All edits are recorded as events in the DAG. Importantly, the "Add Speaker" button recorded in the list phase continues to work after the refactoring --- see [@Sec:replay-after-refactor].
 
 ### Conference Table: concurrent editing {#sec:conf-concurrent}
 
