@@ -132,7 +132,7 @@ doc.insert(
 );
 ```
 
-The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, edit transformation transforms this index if concurrent insertions have shifted it.
+The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, the index is adjusted if concurrent insertions have shifted it.
 
 When the button is replayed, it creates a new item and fills it with whatever text is currently in the input field. Two peers can concurrently add speakers --- after sync, both items appear in the list.
 
