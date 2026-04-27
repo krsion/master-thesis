@@ -28,9 +28,15 @@ The following five examples demonstrate that mydenicek meets each requirement fr
 
 The first example demonstrates two fundamental capabilities: *custom primitive edits* and *wildcard replay*.
 
-We start with a list of messages with inconsistent capitalization. A custom primitive edit `capitalize` is registered that title-cases a string. The edit is applied to one message on a "recorded" peer, then the events are synced to a "replay" peer. The replay peer replays the same edit targeting `messages/*` --- the wildcard causes the capitalize transformation to be applied to every item in the list.
+We start with a list of messages with inconsistent capitalization. A custom primitive edit `capitalize` is registered that title-cases a string:
 
-The `capitalize` transformation lowercases its input and capitalizes the first letter of each word. It is applied to a single message (`messages/0`) on the recorded peer, synced, and then replayed with a wildcard selector (`messages/*`) on the replay peer --- applying the transformation to every message in the list.
+```
+registerPrimitiveEdit("capitalize", value -> titleCase(value))
+
+recordedPeer.applyPrimitiveEdit("messages/0", "capitalize")
+sync(recordedPeer, replayPeer)
+replayPeer.replay(editId, "messages/*")    -- wildcard applies to all items
+```
 
 This example shows that the CRDT is extensible --- users can register domain-specific transformations that participate in the event DAG and can be replayed like any other edit.
 
@@ -42,24 +48,14 @@ The Counter example demonstrates the *formula engine* and *recording/replay* (pr
 
 The document starts with a simple `counter/value = 0`. We record three edits that implement "increment":
 
-1. **Wrap** `counter/value` into an `x-formula-plus` formula node, moving the original value (`0`) into the `value` field. The tree becomes `{ counter: { value: { $tag: "x-formula-plus", value: 0 } } }`.
-2. **Rename** the `value` field to `left` inside the formula node. The tree becomes `{ counter: { value: { $tag: "x-formula-plus", left: 0 } } }`.
-3. **Add** a `right` field with value `1` to the formula node. The tree becomes `{ counter: { value: { $tag: "x-formula-plus", left: 0, right: 1 } } }`.
-
-The three edit IDs are stored as replay steps in the button node (`counter/btn/steps`), each appended with index `-1`. Negative indices are end-relative --- `-1` means the last position, `-2` means before the last item, and so on. They are resolved at replay time relative to the current list length, so concurrent insertions do not shift them.
-
-Each time the button is "clicked" (the steps are replayed), a new `x-formula-plus` layer wraps the previous result:
-
 ```
-0 -> { $tag: "x-formula-plus",
-       left: 0, right: 1 }           = 1
-  -> { $tag: "x-formula-plus",
-       left: { $tag: "x-formula-plus",
-               left: 0, right: 1 },
-       right: 1 }                     = 2
+e1 = wrapRecord("counter/value", field="value", tag="x-formula-plus")
+e2 = rename("counter/value", "value" -> "left")
+e3 = add("counter/value", "right", 1)
+button.steps = [e1, e2, e3]
 ```
 
-The formula engine evaluates the nested structure recursively, computing `((0+1)+1) = 2`. This pattern works for any operation --- multiplication, concatenation, or custom formulas.
+After recording: `counter/value = { $tag: "x-formula-plus", left: 0, right: 1 }`, which the formula engine evaluates to 1. Each replay wraps another `x-formula-plus` layer around the previous result, computing `((0+1)+1) = 2`, then 3, and so on.
 
 ### Conference List: adding items with recorded edits {#sec:conf-list}
 
@@ -67,14 +63,15 @@ The conference list demonstrates how recorded edits work with an input field and
 
 ![Conference list example: an input field, an "Add" button, and a bullet list of speakers. The button replays two recorded edits (insert + copy from input).](img/formative-conf-list.png){#fig:formative-conf-list width=40%}
 
-The document contains a list of speakers (each with a `"Name, email"` string), an input field, and an "Add" button. Two edits are recorded to implement the "add speaker" action:
+The document contains a list of speakers (each with a `"Name, email"` string), an input field, and an "Add" button. Two edits are recorded:
 
-1. **Insert** a new `<li>` item with an empty `text` field at position `0` in `conferenceList/items`, using strict indexing.
-2. **Copy** the value from the input field (`conferenceList/composer/input/value`) into the newly inserted item's `text` field (`conferenceList/items/!0/text`).
+```
+e1 = insert("conferenceList/items", index=!0, value=<li text="">)
+e2 = copy("conferenceList/items/!0/text", from="conferenceList/composer/input/value")
+button.steps = [e1, e2]
+```
 
-These two edit IDs are stored as replay steps in the "Add" button (`conferenceList/composer/addAction/steps`). The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, the index is adjusted if concurrent insertions have shifted it.
-
-When the button is replayed, it creates a new item and fills it with whatever text is currently in the input field. Two peers can concurrently add speakers --- after sync, both items appear in the list.
+The `!0` strict index refers to position 0 *at the time of recording*. During replay, the index is adjusted if concurrent insertions have shifted it. When the button is replayed, it creates a new item and fills it with the current input text. Two peers can concurrently add speakers --- after sync, both items appear in the list.
 
 ### Conference Table: structural transformation {#sec:conf-table}
 
@@ -118,60 +115,17 @@ The conference table example is the most complex formative example. It demonstra
 
 ![Conference table after structural transformation: names and emails are split into separate columns using `split-first` and `split-rest` formula nodes. The "Add Speaker" button adds complete table rows.](img/formative-conf-table.png){#fig:formative-conf-table width=40%}
 
-Starting from the conference list (a `<ul>` with `<li>` items containing `"Name, email"` strings), Alice performs the following structural transformation. Each step shows the intermediate document state, demonstrating how the tree evolves:
+Starting from the conference list, Alice performs four structural edits. The wildcard `*` in all steps ensures that the transformation is applied to every row simultaneously:
 
-**Step 1: Change tags.** Update the list tag from `ul` to `table` (`speakers`) and each item tag from `li` to `td` (`speakers/*`).
-
-```html
-<!-- Before -->
-<ul>
-  <li contact="Ada..." />
-  <li contact="Grace..." />
-</ul>
-
-<!-- After -->
-<table>
-  <td contact="Ada..." />
-  <td contact="Grace..." />
-</table>
 ```
-
-**Step 2: Wrap each `<td>` in a `<tr>` row.** Wrap each cell (`speakers/*`) into a new `<tr>` list node.
-
-```html
-<!-- Before -->
-<table>
-  <td contact="Ada..." />
-  <td contact="Grace..." />
-</table>
-
-<!-- After -->
-<table>
-  <tr> <td contact="Ada..." /> </tr>
-  <tr> <td contact="Grace..." /> </tr>
-</table>
+updateTag("speakers", "table")          -- <ul> -> <table>
+updateTag("speakers/*", "td")           -- <li> -> <td>
+wrapList("speakers/*")                  -- <td> -> <tr>[ <td> ]
+wrapRecord("speakers/*/0/contact",      -- contact string -> split-first formula
+           field="source", tag="split-first")
+insert("speakers/*", index=-1,          -- add email column with split-rest
+       value=<td><split-rest source=ref("../../0/contact/source")>)
 ```
-
-**Step 3: Wrap the contact string in a `split-first` formula.** Wrap the contact string at `speakers/*/0/contact` into a `split-first` formula node, moving the original value into the `source` field.
-
-```html
-<!-- Before -->
-<tr>
-  <td contact="Ada Lovelace,
-        ada@example.com" />
-</tr>
-
-<!-- After -->
-<tr>
-  <td contact=
-    split-first(source="Ada Lovelace,
-           ada@example.com") />
-</tr>
-```
-
-After formula evaluation, the cell displays `"Ada Lovelace"`.
-
-**Step 4: Add the email column.** Insert a second `<td>` cell into each row (`speakers/*`) at position `-1`, containing a `split-rest` formula whose `source` is a relative reference (`../../0/contact/source`) pointing back to the name cell's original string.
 
 ```html
 <!-- Final result after formula evaluation -->
