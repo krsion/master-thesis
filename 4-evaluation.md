@@ -378,7 +378,7 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 *local-append* is a single peer issuing $N$ sequential insert edits. *sync-linear* builds $N$ events on peer $A$ and delivers them to peer $B$ in causal order. *merge-fan* has peer $A$ and peer $B$ edit disjoint subtrees concurrently and then sync.
 
-For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms. At $N = 100$, merging two 50-event concurrent branches costs 14 ms total --- well within the interactive threshold. The linear workloads stay below a millisecond per event up to $N = 2000$, confirming the $O(D)$ amortized cost of linear extensions ([@Sec:complexity]).
+For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms. At $N = 100$, merging two 50-event concurrent branches costs 14 ms total --- well within the interactive threshold. The linear workloads stay below a millisecond per event up to $N = 2000$, confirming the $O(D)$ amortized cost of linear extensions, where $D$ is the number of document-tree nodes ([@Sec:complexity]).
 
 The merge-fan workload exposes the asymptotic cost of true concurrency. At $N=2000$ (two concurrent branches of 1000 events each) the workload costs 21.6 seconds. The per-peer index ([@Sec:complexity]) reduces the per-event cost from $O(NP)$ to $O(P + C_i)$ where $C_i$ is the number of concurrent priors. For a local-first system where offline editing is an explicit goal and concurrent branches may grow large, further optimization would be needed.
 
@@ -406,7 +406,7 @@ The audit is informal. A mechanical check (e.g., a lint rule banning `Object.key
 
 The current implementation has several known limitations:
 
-**Materialization cost is quadratic for concurrent branches.** Linear extensions (the common case during local editing) extend a cached document in place at amortized $O(D)$ cost per event ([@Sec:complexity]). The per-peer index reduces per-event resolution from $O(NP)$ to $O(P + C_i)$. The worst case is $O(N^2)$ for a workload dominated by concurrent branching.
+**Materialization cost is quadratic for concurrent branches.** Linear extensions (the common case during local editing) extend a cached document in place at amortized $O(D)$ cost per event, where $D$ is the number of document-tree nodes ([@Sec:complexity]). The per-peer index reduces per-event resolution from $O(NP)$ to $O(P + C_i)$. The worst case is $O(N^2)$ for a workload dominated by concurrent branching.
 
 **No character-level text editing.** Primitive values (strings, numbers, booleans) are replaced atomically. There is no character-level collaborative text editing --- concurrent edits to the same string field are resolved by last-writer-wins based on topological order. Supporting character-level editing would require integrating a text CRDT (such as Fugue) for primitive string values.
 
