@@ -132,7 +132,7 @@ doc.insert(
 );
 ```
 
-The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, OT transforms this index if concurrent insertions have shifted it.
+The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, edit transformation transforms this index if concurrent insertions have shifted it.
 
 When the button is replayed, it creates a new item and fills it with whatever text is currently in the input field. Two peers can concurrently add speakers --- after sync, both items appear in the list.
 
@@ -282,7 +282,7 @@ The wildcard `*` in all four steps ensures that the transformation is applied to
 
 ### Conference Table: concurrent editing {#sec:conf-concurrent}
 
-Two peers start from the same conference list, disconnect, and make concurrent edits: **Alice** refactors the list into a table (as above), while **Bob** adds two new speakers via `insert`. When they reconnect and sync, Alice's wildcard edits automatically expand to include Bob's concurrently inserted items: `updateTag` changes their tags, `wrapList` wraps them in `<tr>` lists, and `insert` adds the split formula cells. The result is a table with all four speakers --- each with correctly split name and email columns --- even though Bob inserted plain `<li>` items into a `<ul>` list. This *wildcard-affects-concurrent-insertions* property ([@Sec:wildcard-concurrent]) is a direct consequence of the replay-based OT approach.
+Two peers start from the same conference list, disconnect, and make concurrent edits: **Alice** refactors the list into a table (as above), while **Bob** adds two new speakers via `insert`. When they reconnect and sync, Alice's wildcard edits automatically expand to include Bob's concurrently inserted items: `updateTag` changes their tags, `wrapList` wraps them in `<tr>` lists, and `insert` adds the split formula cells. The result is a table with all four speakers --- each with correctly split name and email columns --- even though Bob inserted plain `<li>` items into a `<ul>` list. This *wildcard-affects-concurrent-insertions* property ([@Sec:wildcard-concurrent]) is a direct consequence of the replay-based edit transformation approach.
 
 [@Fig:concurrent-initial;@Fig:concurrent-alice;@Fig:concurrent-bob;@Fig:concurrent-merged] show the four stages of this process.
 
@@ -298,7 +298,7 @@ Two peers start from the same conference list, disconnect, and make concurrent e
 
 Recorded edit sequences survive structural refactoring. The "Add Speaker" button was recorded against a flat `<ul>` list --- its steps insert a `<li>` item and copy the input value. After Alice refactors the list into a `<table>` with formula columns, clicking the button still works: each recorded step is retargeted through all structural edits that happened after recording. The replayed insert produces a complete table row with split-first and split-rest cells, as if recorded against the table.
 
-This uses the same OT transformations as concurrent editing. The only difference is that replay transforms through *all* later edits (not just concurrent ones), because the recorded edit's position in the DAG is at the recording point.
+This uses the same edit transformations as concurrent editing. The only difference is that replay transforms through *all* later edits (not just concurrent ones), because the recorded edit's position in the DAG is at the recording point.
 
 
 
@@ -327,7 +327,7 @@ Automerge and Loro excel at general-purpose collaborative JSON editing but lack 
 
 ## Formative example results {#sec:results}
 
-All six formative examples pass their tests. The conference table with concurrent editing is the most significant: it exercises the full OT pipeline — wildcard expansion, structural transformations, formula creation, and concurrent list insertions — in a single scenario, producing a consistent merged table from independently edited structures.
+All six formative examples pass their tests. The conference table with concurrent editing is the most significant: it exercises the full edit transformation pipeline --- wildcard expansion, structural transformations, formula creation, and concurrent list insertions --- in a single scenario, producing a consistent merged table from independently edited structures.
 
 ## Testing strategy {#sec:testing}
 

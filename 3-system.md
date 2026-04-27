@@ -32,7 +32,7 @@ Each `Edit` implements `computeInverse(preDoc)` returning the inverse edit (e.g.
 
 ## Recording and replay {#sec:replay}
 
-Programming by demonstration stores event IDs as replay steps (typically in a button node). On replay, the system captures the source event's edit and transforms its selector through every edit that is later in the topological order --- both structural edits (which rewrite the selector) and wildcard-targeting data edits (which modify the inserted payload). This is the same OT pipeline used for concurrent resolution. The result is a new event at the *time of replay*, at the replaying peer's current frontier --- not at the recording point. This means the replayed edit behaves as if a virtual peer had performed it concurrently with all the original events: the OT transformations retarget it through every structural change that happened since recording, without introducing actual virtual peers into the DAG. Strict indices (`!0`) ensure the replayed edit targets the same logical position rather than being shifted by later insertions.
+Programming by demonstration stores event IDs as replay steps (typically in a button node). On replay, the system captures the source event's edit and transforms its selector through every edit that is later in the topological order --- both structural edits (which rewrite the selector) and wildcard-targeting data edits (which modify the inserted payload). This is the same edit transformation pipeline used for concurrent resolution. The result is a new event at the *time of replay*, at the replaying peer's current frontier --- not at the recording point. This means the replayed edit behaves as if a virtual peer had performed it concurrently with all the original events: the edit transformations retarget it through every structural change that happened since recording, without introducing actual virtual peers into the DAG. Strict indices (`!0`) ensure the replayed edit targets the same logical position rather than being shifted by later insertions.
 
 ## Sync and server {#sec:sync}
 
@@ -40,7 +40,7 @@ Convergence requires only that all peers eventually receive the same event set. 
 
 ![Sync protocol sequence diagram.](img/sync-protocol.png){#fig:sync-protocol width=80%}
 
-The server operates in **relay mode**: it stores and forwards events without materializing documents or running OT. The O(N²) materialization cost is entirely client-side. Rooms are loaded on first connection and evicted after 10 minutes of inactivity. Events are persisted to append-only NDJSON files.
+The server operates in **relay mode**: it stores and forwards events without materializing documents or running edit transformations. The O(N²) materialization cost is entirely client-side. Rooms are loaded on first connection and evicted after 10 minutes of inactivity. Events are persisted to append-only NDJSON files.
 
 **Reliability** is achieved through frontier-based catch-up: each sync message includes frontiers, so dropped connections are recovered by resending missing events on reconnection. Duplicate events are detected by event ID and ignored. Out-of-order events are buffered until their parents arrive.
 
