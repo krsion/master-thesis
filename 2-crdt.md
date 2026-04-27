@@ -80,21 +80,24 @@ The overall cost is $O(N + C_\text{total})$.
 
 $C_\text{total}$ depends on the DAG shape. For a fully sequential chain, $C_\text{total} = 0$. For a fork into two branches of lengths $a$ and $b$, every event in one branch is incomparable with every event in the other, so $C_\text{total} = a \cdot b$. For an $m$-way fork with branches $a_1, \ldots, a_m$: $C_\text{total} = \sum_{i < j} a_i \cdot a_j$.
 
-### mydenicek as a pure op-based CRDT {#sec:crdt-framing}
+### Convergence {#sec:crdt-framing}
 
-As described in [@Sec:pure-op-crdt], mydenicek is a *pure operation-based CRDT* [@baquero2017pureop]. The replica state is a grow-only set (G-Set) that stores the event DAG. The document is produced by `materialize` (described above) --- a pure function that takes the event DAG and returns the document tree. Convergence requires only that `materialize` is deterministic; the G-Set guarantees eventual agreement on the event set ([@Sec:sync]).
+mydenicek is a *pure operation-based CRDT* [@baquero2017pureop] (see [@Sec:pure-op-crdt]). The replica state is a grow-only set (G-Set) of events. The document is produced by `materialize` --- a deterministic function from the event set to the document tree. Convergence follows from two properties:
 
-**Assumption (peer-ID uniqueness).** Every `EventId = (peer, seq)` produced across all replicas is globally unique, enforced at ingest.
+1. **Agreement on state.** The G-Set guarantees that any two replicas that have communicated (directly or transitively) hold the same event set ([@Sec:sync]).
+2. **Deterministic eval.** Given the same event set, `materialize` produces the same document. This holds because each step is deterministic: `topologicalOrder` uses `EventId` comparison (a strict total order), `resolveAgainst` is a sequential walk over the sorted events, and `apply` performs local mutations with no randomness.
 
-**Theorem (deterministic eval).** If two replicas hold the same event set, `materialize` produces the same document on both.
+Together, these give **strong eventual consistency**: any two replicas that have received the same set of events are in the same state.
 
-**Proof sketch.** `materialize` is a pure function: it composes `topologicalOrder` (deterministic — `EventId` comparison is a strict total order, no iteration-order dependence), `resolveAgainst` (pure — sequential walk dispatching stateless class methods), and `apply` (pure — local mutations, no randomness). Given the same event set, each step produces the same result. $\square$
+Convergence is the easy part. The hard part is **intention preservation** --- ensuring that the *result* of merging concurrent edits matches what users intended. References must survive structural edits, wildcards must expand over concurrent inserts, indices must shift through concurrent modifications, and recorded edits must replay after schema evolution. Convergence is guaranteed by the framework; intention preservation is validated empirically through the formative examples ([@Sec:formative-examples]) and property-based tests ([@Sec:property-tests]).
 
-**Strong eventual consistency** follows: the G-Set ensures replicas eventually hold the same event set; deterministic `materialize` produces the same document.
+## Edit types and selector transformation rules {#sec:edit-types}
 
-**Convergence vs. intention preservation.** Convergence follows from the G-Set and deterministic *eval*. The hard part is **intention preservation**: references must survive structural edits, wildcards must expand over concurrent inserts, indices must shift through concurrent modifications, and recorded edits must replay after schema evolution. These are design choices validated empirically ([@Sec:formative-examples]; [@Sec:property-tests]).
+The system supports 11 edit types: record operations (`RecordAdd`, `RecordDelete`, `RecordRename`), list operations (`ListInsert`, `ListRemove`, `ListReorder`), structural operations (`UpdateTag`, `WrapRecord`, `WrapList`), `CopyEdit` (subtree copy with managed mirroring), and `ApplyPrimitiveEdit` (extensible custom edits). Three additional inverse types (`UnwrapRecord`, `UnwrapList`, `RestoreSnapshot`) are produced only by `computeInverse()` for undo.
 
-**Concurrent structural conflicts.** Several concurrent scenarios illustrate the resolution semantics.
+### Concurrent structural conflicts
+
+Several concurrent scenarios illustrate the resolution semantics.
 
 *Concurrent renames of the same field.* Alice renames `name` -> `fullName`, Bob renames `name` -> `title`. The first rename in replay order succeeds. The second's source selector is transformed through the first (`name` becomes `fullName`), so it renames `fullName` -> `title`. The field ends up as `title` on both peers.
 
@@ -107,10 +110,6 @@ As described in [@Sec:pure-op-crdt], mydenicek is a *pure operation-based CRDT* 
 *Negative indices.* Non-strict negative indices (e.g., `-1` for append) are resolved to absolute positions using a stored `listLength` and then shifted like positive indices. Strict negative indices are resolved at replay time and not shifted.
 
 *Double remove.* When both peers remove the same index concurrently, the second becomes a no-op conflict.
-
-## Edit types and selector transformation rules {#sec:edit-types}
-
-The system supports 11 edit types: record operations (`RecordAdd`, `RecordDelete`, `RecordRename`), list operations (`ListInsert`, `ListRemove`, `ListReorder`), structural operations (`UpdateTag`, `WrapRecord`, `WrapList`), `CopyEdit` (subtree copy with managed mirroring), and `ApplyPrimitiveEdit` (extensible custom edits). Three additional inverse types (`UnwrapRecord`, `UnwrapList`, `RestoreSnapshot`) are produced only by `computeInverse()` for undo.
 
 ### Selector rewriting rules {#sec:selector-rules}
 
