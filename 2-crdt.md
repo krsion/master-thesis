@@ -64,11 +64,11 @@ Because the sort order and the selector-rewriting transformations are both deter
 
 ### Caching
 
-When a new event's parents exactly match the current frontier (the common case during local editing), the event is a *linear extension* of the graph. In that case, `resolveAgainst` is a no-op (every prior is a causal ancestor), so the edit is applied directly to the cached document in $O(D)$ time (where $D$ is the number of document-tree nodes) --- no topological sort, no concurrency scan. When another peer's incoming event invalidates the linear cache, the materializer rematerializes from scratch.
+When a new event's parents exactly match the current frontier (the common case during local editing), the event is a *linear extension* of the graph. In that case, `resolveAgainst` is a no-op (every prior is a causal ancestor), so the edit is applied directly to the cached document in $O(S)$ time (where $S$ is the number of nodes matched by the edit's selector) --- no topological sort, no concurrency scan. When another peer's incoming event invalidates the linear cache, the materializer rematerializes from scratch.
 
 ### Complexity {#sec:complexity}
 
-The event DAG under the happens-before relation is a **partially ordered set** (poset). Events from the same peer are totally ordered by sequence number, forming a **chain**. Two events are **comparable** (one is an ancestor of the other) or **incomparable** (concurrent). We treat the number of peers $P$ as a constant and let $N$ be the total number of events and $D$ the number of document-tree nodes.
+The event DAG under the happens-before relation is a **partially ordered set** (poset). Events from the same peer are totally ordered by sequence number, forming a **chain**. Two events are **comparable** (one is an ancestor of the other) or **incomparable** (concurrent). We treat the number of peers $P$ as a constant and let $N$ be the total number of events.
 
 The materializer groups applied events by peer in a **per-peer index**. Since sequence numbers are contiguous, the first incomparable event from peer Y is at index $V_E[Y] + 1$ --- skipping all comparable predecessors in $O(1)$:
 
