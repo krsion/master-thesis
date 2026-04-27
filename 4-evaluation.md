@@ -165,7 +165,7 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 ## Performance {#sec:performance}
 
-[@Tbl:perf-bench] reports wall-clock times for three synthetic workloads on a single thread (Deno 2, Windows x64).
+[@Tbl:perf-bench] reports wall-clock times for three synthetic workloads, single-threaded (Intel i7-12700H, 32 GB RAM, Deno 2.7, Windows 11).
 
 : Ingest and materialize cost on three workloads of size $N$. {#tbl:perf-bench}
 
