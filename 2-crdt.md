@@ -30,13 +30,12 @@ Reference nodes (described as the fourth node type above) store their target as 
 
 | Form | Example | Meaning |
 |------|---------|---------|
-| Field name | `speakers/0/name` | Navigate by field name or list index (root-relative) |
+| Field name | `speakers/0/name` | Navigate by field name or list index |
 | Wildcard | `speakers/*` | Expand to all children of the target node |
 | Negative index | `insert(items, -1, ...)` | End-relative: `-1` = last position, `-2` = second-to-last |
 | Strict index | `speakers/!0` | Index at edit-creation time; not shifted by concurrent inserts |
-| Parent (`..`) | `../../0/contact` | Navigate up the tree (used in reference paths) |
-| Absolute reference | `/speakers/0` | Reference resolved from document root |
-| Relative reference | `../0/source` | Reference resolved from the reference node's own position |
+| Absolute reference | `/speakers/0` | Starts with `/`; resolved from document root |
+| Relative reference | `../0/source` | Uses `..` to navigate up; resolved from the reference node's position |
 
 ## Event DAG {#sec:event-dag}
 
