@@ -392,16 +392,8 @@ Further reducing the cost for large concurrent branches --- for instance, by rep
 
 ## Limitations {#sec:limitations}
 
-The current implementation has several known limitations:
+**No formal proof of intention preservation.** Convergence follows from the G-Set and deterministic eval ([@Sec:crdt-framing]). However, intention preservation --- the property that concurrent edits produce results matching users' intent --- is validated only empirically, through formative examples and property-based tests. A formal proof (e.g., using TLA+ or VeriFx [@deporre2023verifx]) would strengthen the correctness argument but is beyond the scope of this thesis.
 
-**Materialization cost is quadratic for concurrent branches.** Linear extensions (the common case during local editing) extend a cached document in place at amortized $O(S)$ cost per event, where $S$ is the number of nodes matched by the edit's selector ([@Sec:complexity]). The worst case is $O(N^2)$ for a workload dominated by concurrent branching.
+**Materialization cost is quadratic for concurrent branches.** The cost $O(N + C_\text{total})$ is linear for sequential editing but quadratic in the worst case ($C_\text{total} = O(N^2)$ for two equal-length concurrent branches). This is inherent to pairwise selector rewriting and is acceptable for the small documents and short offline intervals typical of Denicek sessions.
 
-**No character-level text editing.** Primitive values (strings, numbers, booleans) are replaced atomically. There is no character-level collaborative text editing --- concurrent edits to the same string field are resolved by last-writer-wins based on topological order. Supporting character-level editing would require integrating a text CRDT (such as Fugue) for primitive string values.
-
-**CopyEdit undo snapshots the full target subtree.** The `CopyEdit` operation supports undo via `RestoreSnapshotEdit`, which snapshots every (possibly wildcard-expanded) target subtree before the copy and restores it on undo. This approach is correct and convergent --- the undo event syncs to all peers like any other edit --- but incurs memory overhead proportional to the size of the overwritten subtrees.
-
-**Vector clocks grow linearly with the number of peers.** Each event carries a vector clock with one entry per peer that has contributed to its causal history. For a session with $P$ peers, each vector clock has up to $P$ entries, and the serialized size of each event grows as $O(P)$. For the typical use case of 2--5 peers, this overhead is negligible. For large peer counts, alternative representations such as tree clocks could reduce this overhead but are not implemented.
-
-**In-memory event storage and no server hardening.** The sync server stores all events in memory with append-only JSON file persistence. There is no database-backed storage, rate limiting, or payload size enforcement. Rooms are evicted from memory after 10 minutes of inactivity, but room data files on disk are never deleted. These are acceptable trade-offs for a thesis prototype but would need to be addressed for a production deployment.
-
-
+**No character-level text editing.** Primitive values (strings, numbers, booleans) are replaced atomically --- concurrent edits to the same string field are resolved by last-writer-wins. Denicek operates on structured documents (trees of records, lists, and formulas), not free text, so character-level collaboration was not a priority. Supporting it would require integrating a text CRDT (such as Fugue) for primitive string values.
