@@ -30,21 +30,7 @@ The first example demonstrates two fundamental capabilities: *custom primitive e
 
 We start with a list of messages with inconsistent capitalization. A custom primitive edit `capitalize` is registered that title-cases a string. The edit is applied to one message on a "recorded" peer, then the events are synced to a "replay" peer. The replay peer replays the same edit targeting `messages/*` --- the wildcard causes the capitalize transformation to be applied to every item in the list.
 
-```typescript
-// Register a custom primitive edit
-registerPrimitiveEdit("capitalize", (value) => {
-  if (typeof value !== "string") throw new Error("expects string");
-  return value.toLowerCase().split(" ")
-    .map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
-});
-
-// Apply to one message, sync, then replay on all
-const eventId = recordedPeer.applyPrimitiveEdit(
-  "messages/0", "capitalize");
-sync(recordedPeer, replayPeer);
-replayPeer.replayEditFromEventId(eventId, "messages/*");
-// Result: all messages title-cased
-```
+The `capitalize` transformation lowercases its input and capitalizes the first letter of each word. It is applied to a single message (`messages/0`) on the recorded peer, synced, and then replayed with a wildcard selector (`messages/*`) on the replay peer --- applying the transformation to every message in the list.
 
 This example shows that the CRDT is extensible --- users can register domain-specific transformations that participate in the event DAG and can be replayed like any other edit.
 
@@ -56,55 +42,11 @@ The Counter example demonstrates the *formula engine* and *recording/replay* (pr
 
 The document starts with a simple `counter/value = 0`. We record three edits that implement "increment":
 
-```typescript
-// Step 1: Wrap the value in a formula node.
-// Before: { counter: { value: 0 } }
-const wrapId = doc.wrapRecord(
-  /* target */ "counter/value",
-  /* field  */ "value",
-  /* tag    */ "x-formula-plus",
-);
-// After:  { counter: { value: { $tag: "x-formula-plus",
-//                                value: 0 } } }
+1. **Wrap** `counter/value` into an `x-formula-plus` formula node, moving the original value (`0`) into the `value` field. The tree becomes `{ counter: { value: { $tag: "x-formula-plus", value: 0 } } }`.
+2. **Rename** the `value` field to `left` inside the formula node. The tree becomes `{ counter: { value: { $tag: "x-formula-plus", left: 0 } } }`.
+3. **Add** a `right` field with value `1` to the formula node. The tree becomes `{ counter: { value: { $tag: "x-formula-plus", left: 0, right: 1 } } }`.
 
-// Step 2: Rename "value" to "left" inside the formula.
-const renameId = doc.rename(
-  /* target */ "counter/value",
-  /* from   */ "value",
-  /* to     */ "left",
-);
-// After:  { counter: { value: { $tag: "x-formula-plus",
-//                                left: 0 } } }
-
-// Step 3: Add the "right" operand.
-const addRightId = doc.add(
-  /* target */ "counter/value",
-  /* field  */ "right",
-  /* value  */ 1,
-);
-// After:  { counter: { value: { $tag: "x-formula-plus",
-//                                left: 0, right: 1 } } }
-```
-
-The three event IDs are stored as replay steps in a button node. The `insert` call with index `-1` appends to the end of the list. Negative indices are end-relative --- `-1` means the last position, `-2` means before the last item, and so on. They are resolved at replay time relative to the current list length, so concurrent insertions do not shift them:
-
-```typescript
-doc.insert(
-  /* target */ "counter/btn/steps",
-  /* index  */ -1,
-  /* value  */ { $tag: "replay-step", eventId: wrapId },
-);
-doc.insert(
-  /* target */ "counter/btn/steps",
-  /* index  */ -1,
-  /* value  */ { $tag: "replay-step", eventId: renameId },
-);
-doc.insert(
-  /* target */ "counter/btn/steps",
-  /* index  */ -1,
-  /* value  */ { $tag: "replay-step", eventId: addRightId },
-);
-```
+The three edit IDs are stored as replay steps in the button node (`counter/btn/steps`), each appended with index `-1`. Negative indices are end-relative --- `-1` means the last position, `-2` means before the last item, and so on. They are resolved at replay time relative to the current list length, so concurrent insertions do not shift them.
 
 Each time the button is "clicked" (the steps are replayed), a new `x-formula-plus` layer wraps the previous result:
 
@@ -125,35 +67,12 @@ The conference list demonstrates how recorded edits work with an input field and
 
 ![Conference list example: an input field, an "Add" button, and a bullet list of speakers. The button replays two recorded edits (insert + copy from input).](img/formative-conf-list.png){#fig:formative-conf-list width=40%}
 
-The document contains a list of speakers (each with a `"Name, email"` string), an input field, and an "Add" button. We record two edits:
+The document contains a list of speakers (each with a `"Name, email"` string), an input field, and an "Add" button. Two edits are recorded to implement the "add speaker" action:
 
-```typescript
-// Record the "add speaker" recipe
-const pushId = doc.insert(
-  /* target */ "conferenceList/items",
-  /* index  */ 0,
-  /* value  */ { $tag: "li", text: "" },
-  /* strict */ true,
-);
-const copyId = doc.copy(
-  /* target */ "conferenceList/items/!0/text",
-  /* source */ "conferenceList/composer/input/value",
-);
+1. **Insert** a new `<li>` item with an empty `text` field at position `0` in `conferenceList/items`, using strict indexing.
+2. **Copy** the value from the input field (`conferenceList/composer/input/value`) into the newly inserted item's `text` field (`conferenceList/items/!0/text`).
 
-// Store as replay steps in the button
-doc.insert(
-  /* target */ "conferenceList/composer/addAction/steps",
-  /* index  */ -1,
-  /* value  */ { $tag: "replay-step", eventId: pushId },
-);
-doc.insert(
-  /* target */ "conferenceList/composer/addAction/steps",
-  /* index  */ -1,
-  /* value  */ { $tag: "replay-step", eventId: copyId },
-);
-```
-
-The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, the index is adjusted if concurrent insertions have shifted it.
+These two edit IDs are stored as replay steps in the "Add" button (`conferenceList/composer/addAction/steps`). The `!0` strict index is crucial: it refers to the item at position 0 *at the time of recording*. During replay, the index is adjusted if concurrent insertions have shifted it.
 
 When the button is replayed, it creates a new item and fills it with whatever text is currently in the input field. Two peers can concurrently add speakers --- after sync, both items appear in the list.
 
@@ -201,12 +120,7 @@ The conference table example is the most complex formative example. It demonstra
 
 Starting from the conference list (a `<ul>` with `<li>` items containing `"Name, email"` strings), Alice performs the following structural transformation. Each step shows the intermediate document state, demonstrating how the tree evolves:
 
-**Step 1: Change tags.** Retag the list and its items.
-
-```typescript
-alice.updateTag("speakers", "table");
-alice.updateTag("speakers/*", "td");
-```
+**Step 1: Change tags.** Update the list tag from `ul` to `table` (`speakers`) and each item tag from `li` to `td` (`speakers/*`).
 
 ```html
 <!-- Before -->
@@ -222,11 +136,7 @@ alice.updateTag("speakers/*", "td");
 </table>
 ```
 
-**Step 2: Wrap each `<td>` in a `<tr>` row.**
-
-```typescript
-alice.wrapList("speakers/*", "tr");
-```
+**Step 2: Wrap each `<td>` in a `<tr>` row.** Wrap each cell (`speakers/*`) into a new `<tr>` list node.
 
 ```html
 <!-- Before -->
@@ -242,15 +152,7 @@ alice.wrapList("speakers/*", "tr");
 </table>
 ```
 
-**Step 3: Wrap the contact string in a `split-first` formula.** The original value becomes the `source` field of the wrapper node.
-
-```typescript
-alice.wrapRecord(
-  /* target */ "speakers/*/0/contact",
-  /* field  */ "source",
-  /* tag    */ "split-first",
-);
-```
+**Step 3: Wrap the contact string in a `split-first` formula.** Wrap the contact string at `speakers/*/0/contact` into a `split-first` formula node, moving the original value into the `source` field.
 
 ```html
 <!-- Before -->
@@ -269,21 +171,7 @@ alice.wrapRecord(
 
 After formula evaluation, the cell displays `"Ada Lovelace"`.
 
-**Step 4: Add the email column.** Insert a second `<td>` into each `<tr>`, with a `split-rest` formula whose `source` is a reference to the name cell's source string.
-
-```typescript
-alice.insert(
-  /* target */ "speakers/*",
-  /* index  */ -1,
-  /* value  */ {
-    $tag: "td",
-    email: {
-      $tag: "split-rest",
-      source: { $ref: "../../0/contact/source" },
-    },
-  },
-);
-```
+**Step 4: Add the email column.** Insert a second `<td>` cell into each row (`speakers/*`) at position `-1`, containing a `split-rest` formula whose `source` is a relative reference (`../../0/contact/source`) pointing back to the name cell's original string.
 
 ```html
 <!-- Final result after formula evaluation -->
