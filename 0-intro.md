@@ -21,4 +21,4 @@ The main contributions are:
 
 ## Thesis structure {-}
 
-[@Chap:background] covers CRDTs, OT, causality, and related work. [@Chap:implementation] presents the mydenicek CRDT. [@Chap:system] describes the implementation. [@Chap:evaluation] evaluates correctness and performance on formative examples. [@Chap:conclusion] concludes with future work.
+[@Chap:background] covers CRDTs, OT, causality, and related work. [@Chap:implementation] presents the mydenicek CRDT design and implementation. [@Chap:evaluation] evaluates correctness and performance on formative examples. [@Chap:conclusion] concludes with future work.

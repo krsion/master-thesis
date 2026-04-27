@@ -37,7 +37,6 @@ thesis_chapters:
   - 0-intro
   - 1-background
   - 2-crdt
-  - 3-system
   - 4-evaluation
   - 5-conclusion
 
