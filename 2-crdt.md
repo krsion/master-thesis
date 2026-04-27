@@ -195,7 +195,7 @@ Convergence requires only that all peers eventually receive the same event set. 
 
 ![Sync protocol sequence diagram.](img/sync-protocol.png){#fig:sync-protocol width=80%}
 
-The server operates in **relay mode**: it stores and forwards events without materializing the event graph into a document. Events are persisted to append-only NDJSON files. Reliability is achieved through frontier-based catch-up: dropped connections are recovered by resending missing events on reconnection.
+The server operates in **relay mode**: it stores and forwards events without materializing the event graph into a document. Events are persisted to append-only NDJSON files. Reliability is achieved through frontier-based catch-up: dropped connections are recovered by resending missing events on reconnection. Remote events are accepted without edit validation — each peer validates locally before sending. The system assumes a trusted peer set and does not defend against Byzantine faults.
 
 ### Web application {#sec:webapp}
 
