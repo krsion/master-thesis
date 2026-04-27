@@ -72,11 +72,7 @@ The event DAG under the happens-before relation is a **partially ordered set** (
 
 Materialization has two phases. First, **topological sort** via Kahn's algorithm produces a total order in $O(N + E)$ where $E$ is the number of parent edges. Each event has at most $P$ parents, so $E \leq NP = O(N)$. When multiple events have indegree zero (i.e., they are concurrent), ties are broken by `EventId` comparison using a binary heap. Since each peer's events form a chain, at most $P$ events can have indegree zero at any time, so the heap never exceeds $P$ entries and each operation is $O(1)$. Second, **replay** applies each event's edit in order, transforming it through all incomparable predecessors. Each pairwise transformation is $O(1)$ (fixed dispatch on edit type). Since events are stored per peer and sequence numbers are contiguous, finding incomparable predecessors is $O(1)$ per peer. The total replay cost is $O(N + C_\text{total})$, where $C_\text{total}$ is the number of incomparable pairs in the poset --- the total number of pairwise transformations actually performed. The overall cost is $O(N + C_\text{total})$.
 
-$C_\text{total}$ has a closed form for common DAG shapes:
-
-- **Chain** (fully sequential): $C_\text{total} = 0$.
-- **Fork-and-merge** (two branches of lengths $a$ and $b$): $C_\text{total} = a \cdot b$.
-- **$m$-way fork** (branches $a_1, \ldots, a_m$): $C_\text{total} = \sum_{i < j} a_i \cdot a_j$.
+$C_\text{total}$ depends on the DAG shape. For a fully sequential chain, $C_\text{total} = 0$. For a fork into two branches of lengths $a$ and $b$, every event in one branch is incomparable with every event in the other, so $C_\text{total} = a \cdot b$. For an $m$-way fork with branches $a_1, \ldots, a_m$: $C_\text{total} = \sum_{i < j} a_i \cdot a_j$.
 
 **Lower bound.** The $\Omega(C_\text{total})$ cost is inherent to pairwise selector rewriting. Each incomparable predecessor must be examined because the structural impact of a concurrent edit depends on its type and arguments, not only on the selector prefix. Systems that avoid this cost (such as Automerge and Loro) replace path-based selectors with unique opaque node IDs, so concurrent edits never need rewriting. mydenicek retains path-based selectors because they are essential to Denicek's programming model: wildcards, relative references, and programming by demonstration all rely on structural paths.
 
