@@ -116,7 +116,7 @@ mydenicek implements this framework directly. The mapping is:
 | Causal broadcast | WebSocket relay + causal delivery buffer |
 | PO-Log pruning | Not feasible on relay server (see below) |
 
-The event DAG is strictly richer than a PO-Log: it stores explicit parent pointers, enabling checkpoint-based incremental materialization. PO-Log pruning is discussed in [@Sec:sync].
+The event DAG is strictly richer than a PO-Log: it stores explicit parent pointers, enabling incremental materialization. PO-Log pruning is discussed in [@Sec:sync].
 
 Common CRDT building blocks relevant to this thesis include:
 

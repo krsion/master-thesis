@@ -380,11 +380,11 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms. At $N = 100$, merging two 50-event concurrent branches costs 14 ms total --- well within the interactive threshold. The linear workloads stay below a millisecond per event up to $N = 2000$, confirming the $O(D)$ amortized cost of linear extensions ([@Sec:complexity]).
 
-The merge-fan workload exposes the asymptotic cost of true concurrency. At $N=2000$ (two concurrent branches of 1000 events each) the workload costs 21.6 seconds. The per-peer index ([@Sec:complexity]) reduces the per-event cost from $O(N P)$ to $O(P + C_i)$ where $C_i$ is the number of concurrent priors, and the geometric checkpoint covers the shared causal prefix, reducing replay to $O(BN)$ where $B$ is the concurrent branch size. For a local-first system where offline editing is an explicit goal and $B$ may grow large, further optimization would be needed.
+The merge-fan workload exposes the asymptotic cost of true concurrency. At $N=2000$ (two concurrent branches of 1000 events each) the workload costs 21.6 seconds. The per-peer index ([@Sec:complexity]) reduces the per-event cost from $O(NP)$ to $O(P + C_i)$ where $C_i$ is the number of concurrent priors. For a local-first system where offline editing is an explicit goal and concurrent branches may grow large, further optimization would be needed.
 
 Two observations mitigate this cost in practice:
 
-- A long run of local edits followed by a single sync with a small remote branch costs $O(BN)$ rather than $O(N^2)$, because the geometric checkpoint covers the shared causal prefix and only $B$ events are replayed.
+- For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms, well within the interactive threshold.
 - For the Denicek applications studied in [@Sec:formative-examples], the total event count per session is typically $\le 100$, and syncs happen after short offline intervals. Within that envelope the implementation is fast enough to feel interactive.
 
 Further reducing the cost for large concurrent branches --- for instance, by replacing pairwise transformation with a batch-aware merge strategy --- is left as future work.
@@ -406,7 +406,7 @@ The audit is informal. A mechanical check (e.g., a lint rule banning `Object.key
 
 The current implementation has several known limitations:
 
-**Materialization cost is quadratic for concurrent branches.** Linear extensions (the common case during local editing) extend a cached document in place at amortized $O(D)$ cost per event ([@Sec:complexity]). The per-peer index reduces per-event resolution from $O(NP)$ to $O(P + C_i)$, and geometric checkpoints resume from the shared causal prefix. The worst case is $O(N^2)$ for a workload dominated by concurrent branching with no shared causal prefix.
+**Materialization cost is quadratic for concurrent branches.** Linear extensions (the common case during local editing) extend a cached document in place at amortized $O(D)$ cost per event ([@Sec:complexity]). The per-peer index reduces per-event resolution from $O(NP)$ to $O(P + C_i)$. The worst case is $O(N^2)$ for a workload dominated by concurrent branching.
 
 **No character-level text editing.** Primitive values (strings, numbers, booleans) are replaced atomically. There is no character-level collaborative text editing --- concurrent edits to the same string field are resolved by last-writer-wins based on topological order. Supporting character-level editing would require integrating a text CRDT (such as Fugue) for primitive string values.
 

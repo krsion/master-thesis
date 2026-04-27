@@ -64,10 +64,7 @@ Because the sort order and the selector-rewriting transformations are both deter
 
 ### Caching
 
-Two optimizations avoid replaying from scratch on every call:
-
-- **Linear extension cache.** When a new event's parents exactly match the current frontier (the common case during local editing), the event is a *linear extension* of the graph. In that case, `resolveAgainst` is a no-op (every prior is a causal ancestor), so the edit is applied directly to the cached document in O(1) amortized time.
-- **Geometric checkpoint resumption.** When another peer's incoming event invalidates the linear cache, the materializer must rematerialize from scratch. During replay, it saves intermediate checkpoints at geometrically-spaced positions (after 1, 2, 4, 8, 16, ... events). On the next rematerialization, `findBestCheckpoint` looks for a checkpoint whose saved topological order is an exact *prefix* of the new topological order. A checkpoint is valid if and only if its prefix matches --- this is because `resolveAgainst` transforms each event through all prior concurrent events, so any event inserted in the middle of a checkpoint's order would invalidate the resolved edits after it. Geometric spacing ensures that short prefixes --- the common causal ancestors of the local and remote branches, whose relative order is stable across concurrent insertions --- are always captured. For a typical sync scenario where a long local history ($N$ events) receives a small concurrent branch ($B$ events), the checkpoint covers the shared causal prefix and only $B$ events need to be replayed, reducing the cost from $O(N^2)$ to $O(a \cdot B)$ where $a$ is the local branch length since the fork (derived in [@Sec:complexity]).
+When a new event's parents exactly match the current frontier (the common case during local editing), the event is a *linear extension* of the graph. In that case, `resolveAgainst` is a no-op (every prior is a causal ancestor), so the edit is applied directly to the cached document in $O(D)$ time --- no topological sort, no concurrency scan. When another peer's incoming event invalidates the linear cache, the materializer rematerializes from scratch.
 
 ### Complexity {#sec:complexity}
 
