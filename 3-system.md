@@ -44,8 +44,6 @@ The server operates in **relay mode**: it stores and forwards events without mat
 
 **Reliability** is achieved through frontier-based catch-up: each sync message includes frontiers, so dropped connections are recovered by resending missing events on reconnection. Duplicate events are detected by event ID and ignored. Out-of-order events are buffered until their parents arrive.
 
-**Causal stability.** Following Bauwens and Gonzalez Boix [@bauwens2020stability], the server tracks each peer's observation progress via a `CausalStabilityTracker`. On every sync exchange, the tracker is updated with the room's merged frontier clock. An event is *causally stable* when all known peers in the room have observed it. Stability information is useful for observability (detecting lagging peers) and as a prerequisite for future client-side metadata pruning ([@Sec:future-work]). However, **the server cannot use stability for compaction**: since it operates in relay mode and does not register application-specific edit implementations (e.g., `splitFirst`, `splitRest`), it cannot materialize the document. Compaction would require either (a) the server knowing all edit types (breaking the relay abstraction) or (b) a client sending a materialized snapshot (trading memory savings for network overhead). Neither is justified for the current use case.
-
 **Peer-ID uniqueness** is assumed: `EventId = (peer, seq)` must be globally unique. Collisions are detected at ingest and rejected rather than silently overwritten.
 
 ## Web application {#sec:webapp}
