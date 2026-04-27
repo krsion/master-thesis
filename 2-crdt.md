@@ -80,7 +80,7 @@ The overall cost is $O(N + C_\text{total})$.
 
 $C_\text{total}$ depends on the DAG shape. For a fully sequential chain, $C_\text{total} = 0$. For a fork into two branches of lengths $a$ and $b$, every event in one branch is incomparable with every event in the other, so $C_\text{total} = a \cdot b$. For an $m$-way fork with branches $a_1, \ldots, a_m$: $C_\text{total} = \sum_{i < j} a_i \cdot a_j$.
 
-### Convergence {#sec:crdt-framing}
+## Convergence {#sec:crdt-framing}
 
 mydenicek is a *pure operation-based CRDT* [@baquero2017pureop] (see [@Sec:pure-op-crdt]). The replica state is a grow-only set (G-Set) of events. The document is produced by `materialize` --- a deterministic function from the event set to the document tree. Convergence follows from two properties:
 
