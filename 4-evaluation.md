@@ -130,7 +130,7 @@ Two peers start from the same conference list, disconnect, and make concurrent e
 
 Recorded edit sequences survive structural refactoring. The "Add Speaker" button was recorded against a flat `<ul>` list --- its steps insert a `<li>` item and copy the input value. After Alice refactors the list into a `<table>` with formula columns, clicking the button still works: each recorded step is retargeted through all structural edits that happened after recording. The replayed insert produces a complete table row with split-first and split-rest cells, as if recorded against the table.
 
-This uses the same edit transformations as concurrent editing. The only difference is that replay transforms through *all* later edits (not just concurrent ones), because the recorded edit's position in the DAG is at the recording point.
+Replay reuses the same edit transformation mechanism as concurrent editing: the replayed edit is inserted into the DAG at the recording point, making all subsequent edits concurrent with it from the DAG's perspective. The selector rewriting rules then retarget it through every structural change that happened since recording.
 
 
 
