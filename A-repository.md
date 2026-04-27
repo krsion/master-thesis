@@ -21,7 +21,7 @@ deno task check     # type-check + lint across workspace
 deno task test      # run all tests
 ```
 
-The full suite on the evaluated revision passes with 331 tests across 23 files (unit, integration, property-based, and formative), including two 5-peer convergence test suites with 1000 fuzzing runs each.
+The full suite on the evaluated revision passes with 337 tests across 23 files (unit, integration, property-based, and formative), including two 5-peer convergence test suites with 1000 fuzzing runs each.
 
 **Running the demos locally.**
 

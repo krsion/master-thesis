@@ -2,7 +2,7 @@
 
 This thesis built mydenicek, a pure operation-based CRDT for collaborative editing of Denicek's tagged document trees. Edits are stored as immutable events in a grow-only DAG; documents are materialized by deterministic topological replay with selector rewriting. Convergence follows from the G-Set state and deterministic eval. The main contribution is **intention preservation** --- selector rewriting rules that keep references valid through structural edits, expand wildcards over concurrent inserts, and retarget recorded edits through schema evolution.
 
-The system was validated on five formative examples and 331 tests (including property-based convergence testing). All examples are available as interactive demos at <https://krsion.github.io/mydenicek>.
+The system was validated on five formative examples and 337 tests (including property-based convergence testing). All examples are available as interactive demos at <https://krsion.github.io/mydenicek>.
 
 ## Future work {#sec:future-work}
 
