@@ -175,10 +175,10 @@ The property suite caught several bugs during development: wildcard-over-concurr
 | local-append  | 2000 | 11.6  | 5.8  |
 | sync-linear   | 100  | 1.7   | 17   |
 | sync-linear   | 2000 | 10.0  | 5.0  |
-| merge-fan     | 100  | 13    | 129  |
-| merge-fan     | 2000 | 21625 | 10813|
+| concurrent-sync  | 100  | 13    | 129  |
+| concurrent-sync  | 2000 | 21625 | 10813|
 
-*local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *merge-fan*: two peers edit concurrently, then sync.
+*local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *concurrent-sync*: two peers edit concurrently, then sync.
 
 For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms. The merge-fan workload confirms the quadratic cost of true concurrency ([@Sec:complexity]): at $N = 2000$ (two branches of 1000 events), materialization takes 21 seconds. For the target use case --- small documents with frequent sync --- the implementation is fast enough to feel interactive.
 
