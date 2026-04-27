@@ -78,7 +78,7 @@ Materialization has two phases:
 
 The overall cost is $O(N + C_\text{total})$.
 
-$C_\text{total}$ depends on the DAG shape. For a fully sequential chain, $C_\text{total} = 0$. For a fork into two branches of lengths $a$ and $b$, every event in one branch is incomparable with every event in the other, so $C_\text{total} = a \cdot b$. For an $m$-way fork with branches $a_1, \ldots, a_m$: $C_\text{total} = \sum_{i < j} a_i \cdot a_j$.
+$C_\text{total}$ depends on the DAG shape. For a fully sequential chain, $C_\text{total} = 0$. For a fork into two branches of lengths $a$ and $b$, every event in one branch is incomparable with every event in the other, so $C_\text{total} = a \cdot b$. For an $m$-way fork with branches $a_1, \ldots, a_m$: $C_\text{total} = \sum_{i < j} a_i \cdot a_j$. The benchmarks in [@Sec:performance] confirm these predictions: the measured scaling exponents are $\approx 1.0$ for sequential workloads and $\approx 1.9$ for concurrent branches.
 
 ## Convergence {#sec:crdt-framing}
 
