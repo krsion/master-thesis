@@ -165,22 +165,22 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 ## Performance {#sec:performance}
 
-[@Tbl:perf-bench] reports wall-clock times for three synthetic workloads, single-threaded (Intel i7-12700H, 32 GB RAM, Deno 2.7, Windows 11).
+[@Tbl:perf-bench] reports benchmark results using Deno's built-in benchmarking framework (`deno bench`), which performs automatic warmup and reports statistical aggregates over multiple iterations.
 
-: Ingest and materialize cost on three workloads of size $N$. {#tbl:perf-bench}
+: Benchmark results (median of multiple iterations). Intel i7-12700H, Deno 2.7, Windows 11. {#tbl:perf-bench}
 
-| Workload | $N$ | Total (ms) | Per event (μs) |
-|---|---:|---:|---:|
-| local-append  | 100  | 5.0   | 50   |
-| local-append  | 2000 | 17.4  | 8.7  |
-| sync-linear   | 100  | 2.5   | 25   |
-| sync-linear   | 2000 | 14.4  | 7.2  |
-| concurrent-sync  | 100  | 32    | 319  |
-| concurrent-sync  | 2000 | 18079 | 9040 |
+| Workload | $N$ | Time (avg) | Min | Max | p75 |
+|---|---:|---:|---:|---:|---:|
+| local-append | 100 | 0.47 ms | 0.33 ms | 3.3 ms | 0.51 ms |
+| local-append | 2000 | 19 ms | 9.3 ms | 34 ms | 29 ms |
+| sync-linear | 100 | 0.99 ms | 0.71 ms | 2.8 ms | 1.1 ms |
+| sync-linear | 2000 | 22 ms | 19 ms | 34 ms | 22 ms |
+| concurrent-sync | 100 | 13 ms | 8.7 ms | 27 ms | 14 ms |
+| concurrent-sync | 2000 | 17.4 s | 16.0 s | 21.7 s | 18.1 s |
 
 *local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *concurrent-sync*: two peers edit concurrently, then sync.
 
-For typical Denicek sessions ($N \le 100$), all workloads complete in under 32 ms. The concurrent-sync workload confirms the quadratic cost of true concurrency ([@Sec:complexity]): at $N = 2000$ (two branches of 1000 events), materialization takes 18 seconds. For the target use case --- small documents with frequent sync --- the implementation is fast enough to feel interactive.
+For typical Denicek sessions ($N \le 100$), all workloads complete in under 13 ms. The concurrent-sync workload confirms the quadratic cost of true concurrency ([@Sec:complexity]): at $N = 2000$ (two branches of 1000 events), materialization takes 17 seconds. For the target use case --- small documents with frequent sync --- the implementation is fast enough to feel interactive.
 
 ## Limitations {#sec:limitations}
 
