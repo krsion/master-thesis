@@ -90,7 +90,7 @@ As described in [@Sec:pure-op-crdt], mydenicek is a *pure operation-based CRDT* 
 
 **Proof sketch.** `materialize` is a pure function: it composes `topologicalOrder` (deterministic — `EventId` comparison is a strict total order, no iteration-order dependence), `resolveAgainst` (pure — sequential walk dispatching stateless class methods), and `apply` (pure — local mutations, no randomness). Given the same event set, each step produces the same result. $\square$
 
-**Strong eventual consistency** follows: the G-Set ensures replicas eventually hold the same event set; deterministic `materialize` produces the same document. TP1/TP2 are not needed — the replay order is fixed by the DAG.
+**Strong eventual consistency** follows: the G-Set ensures replicas eventually hold the same event set; deterministic `materialize` produces the same document.
 
 **Convergence vs. intention preservation.** Convergence follows from the G-Set and deterministic *eval*. The hard part is **intention preservation**: references must survive structural edits, wildcards must expand over concurrent inserts, indices must shift through concurrent modifications, and recorded edits must replay after schema evolution. These are design choices validated empirically ([@Sec:formative-examples]; [@Sec:property-tests]).
 
