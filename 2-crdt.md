@@ -74,8 +74,6 @@ Materialization has two phases. First, **topological sort** via Kahn's algorithm
 
 $C_\text{total}$ depends on the DAG shape. For a fully sequential chain, $C_\text{total} = 0$. For a fork into two branches of lengths $a$ and $b$, every event in one branch is incomparable with every event in the other, so $C_\text{total} = a \cdot b$. For an $m$-way fork with branches $a_1, \ldots, a_m$: $C_\text{total} = \sum_{i < j} a_i \cdot a_j$.
 
-**Lower bound.** The $\Omega(C_\text{total})$ cost is inherent to pairwise selector rewriting. Each incomparable predecessor must be examined because the structural impact of a concurrent edit depends on its type and arguments, not only on the selector prefix. Systems that avoid this cost (such as Automerge and Loro) replace path-based selectors with unique opaque node IDs, so concurrent edits never need rewriting. mydenicek retains path-based selectors because they are essential to Denicek's programming model: wildcards, relative references, and programming by demonstration all rely on structural paths.
-
 ### mydenicek as a pure op-based CRDT {#sec:crdt-framing}
 
 As described in [@Sec:pure-op-crdt], mydenicek is a *pure operation-based CRDT* [@baquero2017pureop]. The replica state is a grow-only set (G-Set) that stores the event DAG. The document is produced by `materialize` (described above) --- a pure function that takes the event DAG and returns the document tree. Convergence requires only that `materialize` is deterministic; the G-Set guarantees eventual agreement on the event set ([@Sec:sync]).
