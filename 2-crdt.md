@@ -164,6 +164,18 @@ The implementation is a Deno/TypeScript[^deno] monorepo published on JSR[^jsr], 
 
 ![Architecture of the mydenicek monorepo. The core engine is transport-agnostic; the sync server operates in relay mode.](img/architecture.png){#fig:architecture width=70%}
 
+[@Tbl:loc] shows the size of each component. The API documentation is published at <https://jsr.io/@mydenicek/core/doc>.
+
+: Lines of TypeScript (non-empty, non-comment). {#tbl:loc}
+
+| Component | Source | Tests |
+|---|---:|---:|
+| `@mydenicek/core` (CRDT engine) | 5,770 | 6,898 |
+| `@mydenicek/sync` (WebSocket relay) | 1,050 | 673 |
+| `@mydenicek/react` (React bindings) | 364 | --- |
+| Web application | 2,775 | --- |
+| **Total** | **9,959** | **7,571** |
+
 ### Extensibility {#sec:extensibility}
 
 The core engine is extended via two registries:
