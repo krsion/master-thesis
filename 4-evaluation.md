@@ -35,7 +35,8 @@ registerPrimitiveEdit("capitalize", value -> titleCase(value))
 
 recordedPeer.applyPrimitiveEdit("messages/0", "capitalize")
 sync(recordedPeer, replayPeer)
-replayPeer.replay(editId, "messages/*")    -- wildcard applies to all items
+replayPeer.replay(editId, "messages/*")
+-- wildcard applies to all items
 ```
 
 This example shows that the CRDT is extensible --- users can register domain-specific transformations that participate in the event DAG and can be replayed like any other edit.
