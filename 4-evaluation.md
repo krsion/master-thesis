@@ -171,16 +171,16 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 | Workload | $N$ | Time (avg) | Min | Max | p75 |
 |---|---:|---:|---:|---:|---:|
-| local-append | 100 | 0.47 ms | 0.33 ms | 3.3 ms | 0.51 ms |
-| local-append | 2000 | 19 ms | 9.3 ms | 34 ms | 29 ms |
-| sync-linear | 100 | 0.99 ms | 0.71 ms | 2.8 ms | 1.1 ms |
-| sync-linear | 2000 | 22 ms | 19 ms | 34 ms | 22 ms |
-| concurrent-sync | 100 | 13 ms | 8.7 ms | 27 ms | 14 ms |
-| concurrent-sync | 2000 | 17.4 s | 16.0 s | 21.7 s | 18.1 s |
+| local-append | 100 | 0.69 ms | 0.38 ms | 2.8 ms | 0.82 ms |
+| local-append | 2000 | 12 ms | 9.3 ms | 19 ms | 14 ms |
+| sync-linear | 100 | 1.9 ms | 1.1 ms | 6.0 ms | 2.1 ms |
+| sync-linear | 2000 | 135 ms | 120 ms | 170 ms | 138 ms |
+| concurrent-sync | 100 | 1.9 ms | 1.3 ms | 5.0 ms | 2.2 ms |
+| concurrent-sync | 2000 | 209 ms | 189 ms | 223 ms | 221 ms |
 
 *local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *concurrent-sync*: two peers edit concurrently, then sync.
 
-For typical Denicek sessions ($N \le 100$), all workloads complete in under 13 ms. The concurrent-sync workload confirms the quadratic cost of true concurrency ([@Sec:complexity]): at $N = 2000$ (two branches of 1000 events), materialization takes 17 seconds. For the target use case --- small documents with frequent sync --- the implementation is fast enough to feel interactive.
+For typical Denicek sessions ($N \le 100$), all workloads complete in under 2 ms. At $N = 2000$ with two fully concurrent branches of 1000 events each, materialization takes 209 ms --- confirming the quadratic cost of true concurrency ([@Sec:complexity]) while remaining practical for moderate document sizes.
 
 ## Limitations {#sec:limitations}
 
