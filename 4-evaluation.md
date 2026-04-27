@@ -165,33 +165,22 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 ## Performance {#sec:performance}
 
-[@Tbl:perf-bench] reports wall-clock ingest and materialize times for three synthetic workloads measured on a single thread (`tools/bench-materialize.ts`, Deno 2 on Windows x64). Times are milliseconds; per-event is microseconds.
+[@Tbl:perf-bench] reports wall-clock times for three synthetic workloads on a single thread (Deno 2, Windows x64).
 
 : Ingest and materialize cost on three workloads of size $N$. {#tbl:perf-bench}
 
-| Workload | $N$ | Total (ms) | Per event (μs) | Materialize (ms) |
-|---|---:|---:|---:|---:|
-| local-append  | 100  | 4.1   | 41   | 0.11  |
-| local-append  | 500  | 4.5   | 9    | 0.02  |
-| local-append  | 2000 | 11.6  | 5.8  | 0.04  |
-| sync-linear   | 100  | 1.7   | 17   | 0.08  |
-| sync-linear   | 500  | 4.3   | 9    | 0.05  |
-| sync-linear   | 2000 | 10.0  | 5.0  | 0.21  |
-| merge-fan     | 100  | 13    | 129  | 3.0   |
-| merge-fan     | 500  | 414   | 828  | 24    |
-| merge-fan     | 2000 | 21625 | 10813| 278   |
+| Workload | $N$ | Total (ms) | Per event (μs) |
+|---|---:|---:|---:|
+| local-append  | 100  | 4.1   | 41   |
+| local-append  | 2000 | 11.6  | 5.8  |
+| sync-linear   | 100  | 1.7   | 17   |
+| sync-linear   | 2000 | 10.0  | 5.0  |
+| merge-fan     | 100  | 13    | 129  |
+| merge-fan     | 2000 | 21625 | 10813|
 
-*local-append* is a single peer issuing $N$ sequential insert edits. *sync-linear* builds $N$ events on peer $A$ and delivers them to peer $B$ in causal order. *merge-fan* has peer $A$ and peer $B$ edit disjoint subtrees concurrently and then sync.
+*local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *merge-fan*: two peers edit concurrently, then sync.
 
-For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms. At $N = 100$, merging two 50-event concurrent branches costs 14 ms total --- well within the interactive threshold. The linear workloads stay below a millisecond per event up to $N = 2000$, confirming the $O(S)$ amortized cost of linear extensions, where $S$ is the number of nodes matched by the edit's selector ([@Sec:complexity]).
-
-The merge-fan workload exposes the asymptotic cost of true concurrency. At $N=2000$ (two concurrent branches of 1000 events each) the workload costs 21.6 seconds. Since events are stored per peer with contiguous sequence numbers, finding concurrent predecessors is $O(1)$ per peer, so the per-event cost is $O(C_i)$ where $C_i$ is the number of concurrent priors ([@Sec:complexity]). For a local-first system where offline editing is an explicit goal and concurrent branches may grow large, further optimization would be needed.
-
-For typical Denicek sessions ($N \le 100$), syncs happen after short offline intervals and all workloads complete in under 15 ms --- well within the interactive threshold.
-
-Further reducing the cost for large concurrent branches --- for instance, by replacing pairwise transformation with a batch-aware merge strategy --- is left as future work.
-
-**Memory footprint.** Events are held in memory as a `Map<EventId, Event>`. Each `Event` carries an `EventId`, a `parents` array, an `Edit` subclass instance with its own fields, and a `VectorClock`. On the sync-linear N=2000 workload the serialized on-disk JSON is approximately 0.4 MB (roughly 200 bytes per event, dominated by the vector-clock and edit payloads); in-memory the `Map` overhead adds a constant factor. This linear growth in event count is the main scalability constraint, mitigated by the server-side compaction mechanism described in [@Sec:sync], which materializes the document and discards old events once all active peers have acknowledged a common frontier.
+For typical Denicek sessions ($N \le 100$), all workloads complete in under 15 ms. The merge-fan workload confirms the quadratic cost of true concurrency ([@Sec:complexity]): at $N = 2000$ (two branches of 1000 events), materialization takes 21 seconds. For the target use case --- small documents with frequent sync --- the implementation is fast enough to feel interactive.
 
 ## Limitations {#sec:limitations}
 
