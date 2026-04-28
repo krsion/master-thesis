@@ -169,20 +169,22 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 [@Tbl:perf-bench] reports benchmark results using Deno's built-in benchmarking framework (`deno bench`), which performs automatic warmup and reports statistical aggregates over multiple iterations.
 
-: Benchmark results (median of multiple iterations). Intel i7-12700H, Deno 2.7, Windows 11. {#tbl:perf-bench}
+: Benchmark results (multiple iterations with warmup). Intel i7-12700H, Deno 2.7, Windows 11. {#tbl:perf-bench}
 
-| Workload | $N$ | Time (avg) | Min | Max | p75 |
-|---|---:|---:|---:|---:|---:|
-| local-append | 100 | 0.45 ms | 0.32 ms | 1.4 ms | 0.50 ms |
-| local-append | 2000 | 9.6 ms | 7.5 ms | 16 ms | 9.9 ms |
-| sync-linear | 100 | 1.0 ms | 0.65 ms | 8.2 ms | 1.1 ms |
-| sync-linear | 2000 | 20 ms | 17 ms | 27 ms | 22 ms |
-| concurrent-sync | 100 | 1.5 ms | 1.2 ms | 3.5 ms | 1.6 ms |
-| concurrent-sync | 2000 | 173 ms | 165 ms | 176 ms | 176 ms |
+| Workload | $N$ | Time (avg) | Min | Max |
+|---|---:|---:|---:|---:|
+| local-append | 100 | 0.67 ms | 0.36 ms | 4.7 ms |
+| local-append | 2000 | 12 ms | 8.7 ms | 23 ms |
+| sync-linear | 100 | 1.2 ms | 0.72 ms | 5.8 ms |
+| sync-linear | 2000 | 40 ms | 19 ms | 61 ms |
+| concurrent-sync (2 peers) | 100 | 2.1 ms | 1.2 ms | 12 ms |
+| concurrent-sync (2 peers) | 2000 | 329 ms | 246 ms | 378 ms |
+| concurrent-sync (20 peers) | 2000 | 405 ms | 364 ms | 449 ms |
+| concurrent-sync (200 peers) | 2000 | 920 ms | 878 ms | 964 ms |
 
-*local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *concurrent-sync*: two peers edit concurrently, then sync.
+*local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *concurrent-sync*: $P$ peers edit disjoint subtrees concurrently, then sync all to one peer.
 
-For typical Denicek sessions ($N \le 100$), all workloads complete in under 2 ms. At $N = 2000$ with two fully concurrent branches of 1000 events each, materialization takes 173 ms. The measured scaling exponents match the complexity analysis of [@Sec:complexity]: local-append and sync-linear scale linearly (exponent $\approx 1.0$), while concurrent-sync scales quadratically (exponent $\approx 1.9$).
+For typical Denicek sessions ($N \le 100$), all workloads complete in under 4 ms. The measured scaling exponents match the complexity analysis of [@Sec:complexity]: local-append and sync-linear scale linearly (exponent $\approx 1.0$), while concurrent-sync scales quadratically (exponent $\approx 1.9$). The multi-peer results show that the number of peers has a modest effect when $P$ is small: at $N = 2000$, going from 2 to 20 peers increases time by only 1.2$\times$ (because shorter branches reduce $C_\text{total}$). At 200 peers, the $O(P)$ per-event cost of scanning peer boundaries becomes visible (2.8$\times$ slower than 2 peers despite similar $C_\text{total}$), confirming that the constant-$P$ assumption is appropriate for small-group collaboration but not for large peer counts.
 
 ## Limitations {#sec:limitations}
 
