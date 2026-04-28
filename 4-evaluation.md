@@ -98,7 +98,7 @@ Five structural edits transform the list. The wildcard `*` ensures every row is 
 ```
 updateTag("speakers", "table")      -- list -> table
 updateTag("speakers/*", "td")       -- items -> cells
-wrapList("speakers/*")              -- cells -> rows
+wrapList("speakers/*", "tr")         -- wrap each cell in a <tr> row
 wrapRecord("speakers/*/0/contact",  -- split-first
     field="source", tag="split-first")
 insert("speakers/*", index=-1,      -- email column
