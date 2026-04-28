@@ -196,7 +196,7 @@ Each `Edit` implements `computeInverse(preDoc)` returning the inverse edit (e.g.
 
 ### Recording and replay {#sec:replay}
 
-Programming by demonstration stores event IDs as replay steps (typically in a button node). On replay, the system captures the source event's edit and transforms its selector through every later edit in the topological order --- the same edit transformation pipeline used for concurrent resolution. The replayed edit behaves as if performed concurrently with all events since recording: the transformations retarget it through every structural change. Strict indices (`!0`) ensure that selectors survive the removal of temporary recording artifacts --- during recording, an item is inserted, edited, and then removed, and the strict index prevents the removal from invalidating the edit's target.
+Programming by demonstration stores event IDs as replay steps (typically in a button node). On replay, the system captures the source event's edit and transforms its selector through every later edit in the topological order --- the same edit transformation pipeline used for concurrent resolution. The replayed edit behaves as if performed concurrently with all events since recording: the transformations retarget it through every structural change. Strict indices (`!0`) pin a selector to a fixed position so it is not shifted by later list insertions or removals.
 
 ### Sync and server {#sec:sync}
 

@@ -87,9 +87,7 @@ replay(button)
 items = ["Grace", "Ada"]
 ```
 
-During replay, both edits are retargeted through any structural changes that happened after recording. Since they share the same base index, they stay in sync --- if a concurrent insert shifts position 0 to position 1, both edits shift together.
-
-In the full Denicek recording workflow, the temporary item is **removed** after recording (the user does not want the blank item in the document). This removal would shift regular indices, breaking the copy's target. **Strict indices** (`!0`) solve this: they are not shifted by concurrent insertions or removals, so the copy's selector survives the removal of the temporary recording artifact. The conference table example ([@Sec:conf-table]) uses this pattern.
+During replay, both edits are retargeted through any structural changes that happened after recording. Since they share the same base index, they stay in sync --- if a concurrent insert shifts position 0 to position 1, both edits shift together. When the position must not shift (e.g., "always insert at the front"), **strict indices** (`!0`) pin it in place.
 
 ### Conference Table: structural transformation {#sec:conf-table}
 
