@@ -72,13 +72,12 @@ The conference list demonstrates recorded edits with an input field and a button
 
 ![Conference list example: an input field, an "Add" button, and a bullet list of speakers. The button replays two recorded edits (insert + copy from input).](img/formative-conf-list.png){#fig:formative-conf-list width=40%}
 
-Two edits are recorded: insert a new empty item, then copy the input field value into it. The inserted item is removed afterward to restore the original document. The copy uses a strict index (`!0`) so that its selector survives the removal:
+Two edits are recorded: insert a new empty item, then copy the input field value into it. The copy uses a strict index (`!0`) so that its selector is not shifted by the preceding insert:
 
 ```
 e1 = insert("items", index=0, value=<li text="">)
 e2 = copy("items/!0/text", from="input/value")
 button.steps = [e1, e2]
-remove("items", 0)
 ```
 
 ```
