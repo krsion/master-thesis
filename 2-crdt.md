@@ -19,7 +19,7 @@ Nodes are addressed by *selectors* --- slash-separated paths that describe how t
 
 - **Wildcards** (`*`): `speakers/*` expands to all children of the `speakers` list. An edit targeting `speakers/*` is applied to every item.
 - **Negative indices** (`-1`, `-2`): end-relative list addressing, added in mydenicek. `-1` means the last position (append for insert, last item for remove), `-2` means second-to-last, and so on. Resolved to absolute positions at replay time using a stored `listLength`.
-- **Strict indices** (`!0`): `speakers/!0` refers to the item at index 0 *at the time of the edit*, also added in mydenicek. Unlike plain `0`, strict indices are not shifted by concurrent insertions or removals. This is essential for the recording and replay mechanism ([@Sec:replay]): during recording, a temporary item is inserted, edited, and then removed. The strict index ensures the edit's selector survives the removal of the recording artifact.
+- **Strict indices** (`!0`): `speakers/!0` refers to the item at index 0 *at the time of the edit*, also added in mydenicek. Unlike plain `0`, strict indices are not shifted by concurrent insertions or removals. Their use is described in [@Sec:replay].
 - **Parent navigation** (`..`): used in references to navigate up the tree. `../../0/contact` goes up two levels, then navigates to `0/contact`.
 
 Reference nodes (described as the fourth node type above) store their target as a selector path. For example, a reference `"../0/source"` means "navigate up one level from this reference node's position, then down to `0/source`."
