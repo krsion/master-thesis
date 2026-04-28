@@ -1,0 +1,359 @@
+{
+  "version": 1,
+  "runtime": "Deno/2.7.11 x86_64-pc-windows-msvc",
+  "cpu": "12th Gen Intel(R) Core(TM) i7-12700H",
+  "benches": [
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=2-A=2-E=100-N=202-C=10000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 7,
+            "min": 3922700.0,
+            "max": 9661800.0,
+            "avg": 5623386.0,
+            "p75": 7437200.0,
+            "p99": 9661800.0,
+            "p995": 9661800.0,
+            "p999": 9661800.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=2-A=2-E=500-N=1002-C=250000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 46707700.0,
+            "max": 53138900.0,
+            "avg": 49028617.0,
+            "p75": 50503900.0,
+            "p99": 53138900.0,
+            "p995": 53138900.0,
+            "p999": 53138900.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=2-A=2-E=1000-N=2002-C=1000000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 162983700.0,
+            "max": 172142600.0,
+            "avg": 169273700.0,
+            "p75": 170819900.0,
+            "p99": 172142600.0,
+            "p995": 172142600.0,
+            "p999": 172142600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=10-A=2-E=500-N=1010-C=250000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 49479100.0,
+            "max": 52644100.0,
+            "avg": 50987267.0,
+            "p75": 51533300.0,
+            "p99": 52644100.0,
+            "p995": 52644100.0,
+            "p999": 52644100.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=50-A=2-E=500-N=1050-C=250000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 64632500.0,
+            "max": 69417200.0,
+            "avg": 67165167.0,
+            "p75": 68095100.0,
+            "p99": 69417200.0,
+            "p995": 69417200.0,
+            "p999": 69417200.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=100-A=2-E=500-N=1100-C=250000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 4,
+            "min": 90599700.0,
+            "max": 97212000.0,
+            "avg": 94048500.0,
+            "p75": 96086100.0,
+            "p99": 97212000.0,
+            "p995": 97212000.0,
+            "p999": 97212000.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=2-A=2-E=200-N=402-C=40000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 9418700.0,
+            "max": 11052500.0,
+            "avg": 9913250.0,
+            "p75": 10567300.0,
+            "p99": 11052500.0,
+            "p995": 11052500.0,
+            "p999": 11052500.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=5-A=5-E=200-N=1005-C=400000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 57745900.0,
+            "max": 72660600.0,
+            "avg": 62440650.0,
+            "p75": 62525700.0,
+            "p99": 72660600.0,
+            "p995": 72660600.0,
+            "p999": 72660600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=10-A=5-E=200-N=1010-C=400000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 60736300.0,
+            "max": 64244600.0,
+            "avg": 61771734.0,
+            "p75": 62272200.0,
+            "p99": 64244600.0,
+            "p995": 64244600.0,
+            "p999": 64244600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=10-A=10-E=100-N=1010-C=450000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 64549300.0,
+            "max": 75265800.0,
+            "avg": 70454917.0,
+            "p75": 74422200.0,
+            "p99": 75265800.0,
+            "p995": 75265800.0,
+            "p999": 75265800.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=20-A=2-E=1000-N=2020-C=1000000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 173578400.0,
+            "max": 183443200.0,
+            "avg": 178442784.0,
+            "p75": 179279800.0,
+            "p99": 183443200.0,
+            "p995": 183443200.0,
+            "p999": 183443200.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=50-A=5-E=400-N=2050-C=1600000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 241925200.0,
+            "max": 252289300.0,
+            "avg": 245748917.0,
+            "p75": 251789300.0,
+            "p99": 252289300.0,
+            "p995": 252289300.0,
+            "p999": 252289300.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=100-A=10-E=200-N=2100-C=1800000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 4,
+            "min": 294623400.0,
+            "max": 314931700.0,
+            "avg": 302508625.0,
+            "p75": 303098100.0,
+            "p99": 314931700.0,
+            "p995": 314931700.0,
+            "p999": 314931700.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=5-A=2-E=1000-N=2005-C=1000000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 165366200.0,
+            "max": 179565200.0,
+            "avg": 171741634.0,
+            "p75": 175405800.0,
+            "p99": 179565200.0,
+            "p995": 179565200.0,
+            "p999": 179565200.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=20-A=10-E=100-N=1020-C=450000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 68124900.0,
+            "max": 74712300.0,
+            "avg": 71779417.0,
+            "p75": 73423900.0,
+            "p99": 74712300.0,
+            "p995": 74712300.0,
+            "p999": 74712300.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-regression.ts",
+      "group": null,
+      "name": "reg-P=200-A=2-E=500-N=1200-C=250000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 4,
+            "min": 186962000.0,
+            "max": 196112400.0,
+            "avg": 191987950.0,
+            "p75": 192901300.0,
+            "p99": 196112400.0,
+            "p995": 196112400.0,
+            "p999": 196112400.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    }
+  ]
+}

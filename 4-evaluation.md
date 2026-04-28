@@ -194,7 +194,11 @@ For typical Denicek sessions ($N \le 100$), all workloads complete in under 4 ms
 
 The multi-peer results show that the number of peers has a modest effect when $P$ is small: at $N = 2000$, going from 2 to 20 peers increases time by only 1.2$\times$ (because shorter branches reduce $C_\text{total}$). At 200 peers, the $O(P)$ per-event cost of scanning peer boundaries becomes visible (2.8$\times$ slower than 2 peers despite similar $C_\text{total}$).
 
-To isolate the $P$ factor, we measured 2 active peers with varying numbers of inactive peers (all registered in the DAG but not editing concurrently). With $C_\text{total}$ held constant, the overhead grows with $P$: at $P = 1000$ the workload is 31$\times$ slower than $P = 2$. This matches the $O(NP + C_\text{total} \cdot P)$ general complexity: the $P$-way merge in `resolveAgainst` scans all $P$ peer slots per transformation, so each of the $C_\text{total}$ pairwise transformations costs $O(P)$ rather than $O(1)$. For Denicek's target use case of small-group collaboration ($P \leq 20$), this overhead is negligible.
+To isolate the $P$ factor, we measured 2 active peers with varying numbers of inactive peers (all registered in the DAG but not editing concurrently). With $C_\text{total}$ held constant, the overhead grows with $P$, as predicted by the $NP$ term in the general complexity.
+
+To validate the full complexity formula, we ran 14 benchmarks with varying combinations of $N$, $P$, and $C_\text{total}$ and fit the model $\text{time} = \alpha \cdot NP + \beta \cdot C_\text{total}$ via least-squares regression. The fit achieves $R^2 = 0.92$ ([@Fig:bench-regression]), confirming that the two terms $NP$ and $C_\text{total}$ are sufficient to predict materialization time across a wide range of configurations.
+
+![Predicted vs measured materialization time for 14 benchmark configurations with varying $N$, $P$, and $C_\text{total}$. The model $\alpha \cdot NP + \beta \cdot C_\text{total}$ achieves $R^2 = 0.92$.](img/bench-regression.png){#fig:bench-regression width=55%}
 
 ## Limitations {#sec:limitations}
 
