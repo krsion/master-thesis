@@ -6,6 +6,8 @@ The implementation is published as `@mydenicek/core` and `@mydenicek/sync` on JS
 
 ## Future work {#sec:future-work}
 
+**Scaling to large peer counts.** The complexity analysis treats $P$ as a constant (2--5 peers). For larger groups, vector clock operations become $O(P)$ and dominate the cost. Analyzing and optimizing materialization for large $P$ and large documents is an open problem --- our benchmarks show that simple polynomial models break down beyond $P \approx 200$.
+
 **Incremental eval.** The linear extension cache already makes sequential appends incremental --- only new events are replayed. However, after receiving concurrent remote events, `materialize` still recomputes from scratch. Incremental re-evaluation that patches only the affected portion of the document would reduce cost for concurrent edits.
 
 **History compaction.** The grow-only event DAG grows without bound. Snapshotting the materialized state and pruning old events would reduce storage and replay cost for long-lived documents and new replicas joining late.
