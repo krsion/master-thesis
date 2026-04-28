@@ -52,7 +52,7 @@ The original Denicek defines three core operations on edit histories:
 2. **Merge** --- merge two edit histories that diverged from a common ancestor, using OT to transform one history's edits against the other's.
 3. **Check for conflicts** --- after merging, identify edits that could not be reconciled (e.g., concurrent deletion and modification of the same node) and report them to the user.
 
-Denicek's histories are *linear sequences* of edits. Merging two linear histories produces a new linear history. Importantly, merge is *not commutative* --- merging history A into B may produce a different result than merging B into A, because the OT transformation order differs. The paper mentions that histories could form a graph rather than a linear sequence, but does not elaborate on this direction.
+Denicek's histories are *linear sequences* of edits. Merging works similarly to `git rebase`: given two branches that diverged from a common ancestor, merge transforms one branch's edits through the other's, appending the transformed edits to produce a single linear history. Because the transformation is applied in one direction, merge is *not commutative* --- merging history A into B may produce a different result than merging B into A. The paper mentions that histories could form a graph rather than a linear sequence, but does not elaborate on this direction.
 
 This thesis takes exactly that step: replacing linear histories with a *causal event graph* (DAG), where merge order does not matter because all peers replay the same deterministic topological order. The formal framing of this approach as a pure operation-based CRDT is presented in [@Sec:crdt-framing], after the necessary background on CRDTs is introduced in [@Sec:crdts].
 
