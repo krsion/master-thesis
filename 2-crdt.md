@@ -145,13 +145,11 @@ This differs from payload rewriting ([@Sec:ot-architecture]): payload rewriting 
 
 ### Wildcard edits and concurrent insertions {#sec:wildcard-concurrent}
 
-Wildcard edits (e.g., `updateTag("speakers/*", "tr")`) affect concurrently inserted items --- a deliberate design choice, not a consequence of convergence. Both "include concurrent inserts" and "exclude them" are deterministic; we choose the former because wildcards are central to Denicek's programming model ([@Fig:wildcard-diamond]).
+Wildcard edits (e.g., `updateTag("speakers/*", "tr")`) affect concurrently inserted items --- a deliberate design choice matching the original Denicek semantics, not a consequence of convergence ([@Fig:wildcard-diamond]).
 
 ![Wildcard edit and concurrent insertion. Alice's wildcard `updateTag` and Bob's `insert` are concurrent. After merge, Bob's inserted `<li> C` becomes `<tr> C`.](img/wildcard-diamond.png){#fig:wildcard-diamond width=55%}
 
-The mechanism depends on replay order: if the insert replays first, the wildcard naturally expands to include it; if the wildcard replays first, the insert's payload is rewritten to match. Both orders produce the same result.
-
-This is uncommon in CRDTs --- most systems only affect items that existed when the operation was created. Weidner [@weidner2023foreach] calls this the *for-each* problem. In mydenicek, wildcards are expanded at replay time, not creation time, so the for-each semantics follows naturally.
+The mechanism depends on replay order: if the insert replays first, the wildcard naturally expands to include it; if the wildcard replays first, the insert's payload is rewritten to match. Both orders produce the same result. This is uncommon in CRDTs --- most systems only affect items that existed when the operation was created. Weidner [@weidner2023foreach] calls this the *for-each* problem. In mydenicek, wildcards are expanded at replay time, not creation time, so the for-each semantics follows naturally.
 
 ## Implementation details {#sec:impl-details}
 
