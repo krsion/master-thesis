@@ -14,4 +14,6 @@ The implementation is published as `@mydenicek/core` and `@mydenicek/sync` on JS
 
 **Formal verification.** Encoding the selector rewriting rules in VeriFx [@deporre2023verifx] or TLA+ would provide mechanical correctness guarantees beyond empirical testing.
 
+**Efficient peer-to-peer sync.** The current sync protocol relies on a centralized WebSocket relay server. Replacing it with a peer-to-peer protocol --- using techniques such as Bloom filter summaries or hash-graph anti-entropy --- would remove the single point of failure and reduce latency for co-located peers.
+
 **Character-level text.** Integrating a text CRDT (e.g., Fugue) for primitive strings would replace last-writer-wins semantics, though the interaction with selectors, undo, and the formula engine would require careful design.
