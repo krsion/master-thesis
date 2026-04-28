@@ -80,7 +80,7 @@ e2 = copy("items/!0/text", from="input/value")
 button.steps = [e1, e2]
 ```
 
-The `!0` strict index refers to position 0 *at the time of recording*. Unlike plain indices, it is not shifted by concurrent list insertions, ensuring it always targets the same original item. Two peers can concurrently add speakers --- after sync, both items appear.
+The `!0` strict index refers to position 0 *at the time of recording*. Unlike plain indices, it is not shifted by concurrent list insertions, ensuring it always targets the same original item.
 
 ### Conference Table: structural transformation {#sec:conf-table}
 
