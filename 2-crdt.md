@@ -19,7 +19,7 @@ Nodes are addressed by *selectors* --- slash-separated paths that describe how t
 
 - **Wildcards** (`*`): `speakers/*` expands to all children of the `speakers` list. An edit targeting `speakers/*` is applied to every item.
 - **Negative indices** (`-1`, `-2`): end-relative list addressing, added in mydenicek. `-1` means the last position (append for insert, last item for remove), `-2` means second-to-last, and so on. Resolved to absolute positions at replay time using a stored `listLength`.
-- **Strict indices** (`!0`): `speakers/!0` refers to the item at index 0 *at the time of the edit*, also added in mydenicek. Unlike plain `0`, strict indices are not shifted by concurrent insertions --- they always refer to the original position. This is essential for the recording and replay mechanism described in [@Sec:replay].
+- **Strict indices** (`!0`): `speakers/!0` refers to the item at index 0 *at the time of the edit*, also added in mydenicek. Unlike plain `0`, strict indices are not shifted by concurrent insertions or removals. This is essential for the recording and replay mechanism ([@Sec:replay]): during recording, a temporary item is inserted, edited, and then removed. The strict index ensures the edit's selector survives the removal of the recording artifact.
 - **Parent navigation** (`..`): used in references to navigate up the tree. `../../0/contact` goes up two levels, then navigates to `0/contact`.
 
 Reference nodes (described as the fourth node type above) store their target as a selector path. For example, a reference `"../0/source"` means "navigate up one level from this reference node's position, then down to `0/source`."
@@ -33,7 +33,7 @@ Reference nodes (described as the fourth node type above) store their target as 
 | Field name | `speakers/0/name` | Navigate by field name or list index |
 | Wildcard | `speakers/*` | Expand to all children of the target node |
 | Negative index | `insert(items, -1, ...)` | End-relative: `-1` = last position, `-2` = second-to-last |
-| Strict index | `speakers/!0` | Index at edit-creation time; not shifted by concurrent inserts |
+| Strict index | `speakers/!0` | Not shifted by concurrent inserts/removes; survives recording artifact removal |
 | Absolute reference | `/speakers/0` | Starts with `/`; resolved from document root |
 | Relative reference | `0/source` | Resolved from the reference node's own position |
 | Relative reference to parent | `../0/source` | Navigate up the tree with `..` |
@@ -196,7 +196,7 @@ Each `Edit` implements `computeInverse(preDoc)` returning the inverse edit (e.g.
 
 ### Recording and replay {#sec:replay}
 
-Programming by demonstration stores event IDs as replay steps (typically in a button node). On replay, the system captures the source event's edit and transforms its selector through every later edit in the topological order --- the same edit transformation pipeline used for concurrent resolution. The replayed edit behaves as if performed concurrently with all events since recording: the transformations retarget it through every structural change. Strict indices (`!0`) ensure the replayed edit targets the same logical position rather than being shifted by later insertions.
+Programming by demonstration stores event IDs as replay steps (typically in a button node). On replay, the system captures the source event's edit and transforms its selector through every later edit in the topological order --- the same edit transformation pipeline used for concurrent resolution. The replayed edit behaves as if performed concurrently with all events since recording: the transformations retarget it through every structural change. Strict indices (`!0`) ensure that selectors survive the removal of temporary recording artifacts --- during recording, an item is inserted, edited, and then removed, and the strict index prevents the removal from invalidating the edit's target.
 
 ### Sync and server {#sec:sync}
 

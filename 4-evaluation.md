@@ -75,8 +75,8 @@ The conference list demonstrates recorded edits with an input field and a button
 Two edits are recorded: insert a new empty item, then copy the input field value into it:
 
 ```
-e1 = insert("items", index=!0, value=<li text="">)
-e2 = copy("items/!0/text", from="input/value")
+e1 = insert("items", index=0, value=<li text="">)
+e2 = copy("items/0/text", from="input/value")
 button.steps = [e1, e2]
 ```
 
@@ -87,7 +87,9 @@ replay(button)
 items = ["Grace", "Ada"]
 ```
 
-The `!0` strict index refers to position 0 *at the time of recording*. Unlike plain indices, it is not shifted by later insertions --- so each replay inserts at the start of the list again, instead of being shifted to the item inserted during recording.
+During replay, both edits are retargeted through any structural changes that happened after recording. Since they share the same base index, they stay in sync --- if a concurrent insert shifts position 0 to position 1, both edits shift together.
+
+In the full Denicek recording workflow, the temporary item is **removed** after recording (the user does not want the blank item in the document). This removal would shift regular indices, breaking the copy's target. **Strict indices** (`!0`) solve this: they are not shifted by concurrent insertions or removals, so the copy's selector survives the removal of the temporary recording artifact. The conference table example ([@Sec:conf-table]) uses this pattern.
 
 ### Conference Table: structural transformation {#sec:conf-table}
 
