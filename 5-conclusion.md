@@ -6,7 +6,7 @@ The implementation is published as `@mydenicek/core` and `@mydenicek/sync` on JS
 
 ## Future work {#sec:future-work}
 
-**Scaling to large peer counts.** The complexity analysis treats $P$ as a constant (2--5 peers). For larger groups, vector clock operations become $O(P)$ and start to matter. Analyzing and optimizing materialization for large $P$ is an open problem.
+**Scaling to large peer counts.** The complexity analysis treats the number of peers $P$ as a constant (2--5 peers). For larger groups, vector clock operations become $O(P)$ and start to matter. Analyzing and optimizing materialization for large $P$ is an open problem.
 
 **Incremental eval.** The linear extension cache already makes sequential appends incremental --- only new events are replayed. However, after receiving concurrent remote events, `materialize` still recomputes from scratch. Incremental re-evaluation that patches only the affected portion of the document would reduce cost for concurrent edits.
 
