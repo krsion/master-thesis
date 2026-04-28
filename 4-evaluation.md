@@ -72,12 +72,13 @@ The conference list demonstrates recorded edits with an input field and a button
 
 ![Conference list example: an input field, an "Add" button, and a bullet list of speakers. The button replays two recorded edits (insert + copy from input).](img/formative-conf-list.png){#fig:formative-conf-list width=40%}
 
-Two edits are recorded: insert a new empty item, then copy the input field value into it:
+Two edits are recorded: insert a new empty item, then copy the input field value into it. The temporary item is removed after recording --- the user does not want the blank item in the document. The copy uses a strict index (`!0`) so that its selector is not invalidated by the removal:
 
 ```
 e1 = insert("items", index=0, value=<li text="">)
-e2 = copy("items/0/text", from="input/value")
+e2 = copy("items/!0/text", from="input/value")
 button.steps = [e1, e2]
+remove("items", 0)
 ```
 
 ```
@@ -86,8 +87,6 @@ set("input/value", "Grace")
 replay(button)
 items = ["Grace", "Ada"]
 ```
-
-During replay, both edits are retargeted through any structural changes that happened after recording. Since they share the same base index, they stay in sync --- if a concurrent insert shifts position 0 to position 1, both edits shift together. When the position must not shift (e.g., "always insert at the front"), **strict indices** (`!0`) pin it in place.
 
 ### Conference Table: structural transformation {#sec:conf-table}
 
