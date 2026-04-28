@@ -64,7 +64,7 @@ After:   counter = plus(0, 1) -> 1
 Replay:  counter = plus(plus(0, 1), 1) -> 2
 ```
 
-Each replay re-executes `wrapRecord("counter/value", ...)`, but the selector is internally transformed through all prior structural edits to match the original value's new location inside the nested wrappers. The formula engine evaluates the nested structure recursively.
+Each replay re-executes all three recorded edits (wrap, rename, add). Their selectors are internally transformed through all prior structural edits to match the original value's new location inside the nested wrappers. The formula engine evaluates the nested structure recursively.
 
 ### Conference List: adding items with recorded edits {#sec:conf-list}
 
