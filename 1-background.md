@@ -19,7 +19,7 @@ Nodes are addressed by *selector paths* --- slash-separated strings that describ
 Denicek provides four key end-user programming experiences:
 
 - **Programming by demonstration.** Users perform edits interactively --- such as adding a list item and copying a value from an input field --- and the system records these edits as a replayable script. When the user clicks a button, the recorded edits are replayed, potentially on different targets.
-- **Schema evolution.** Structural edits allow users to refactor the document's structure without losing data.
+- **Schema evolution.** Structural edits allow users to refactor the document's structure without losing data or breaking references.
 - **Collaborative editing.** Multiple peers can edit the same document concurrently, and the system merges their edits deterministically. Notably, Denicek supports wildcard selectors (`speakers/*`) that target all children of a node. When combined with concurrent insertions, this produces an unusual semantics: a wildcard edit affects not only items that existed when the edit was made, but also items inserted concurrently by other peers ([@Sec:wildcard-concurrent]).
 - **Formula recomputation.** Nodes can contain formulas that reference other nodes via relative paths. When the referenced data changes, the formula result is recomputed.
 
