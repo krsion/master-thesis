@@ -109,7 +109,7 @@ mydenicek implements this framework directly. The mapping is:
 
 | Baquero | mydenicek |
 |---------|-----------|
-| PO-Log | Event DAG (`Map<EventId, Event>`, each event stores parent IDs forming a DAG) |
+| PO-Log | Event DAG (abstractly a set of events; concretely stored as per-peer arrays for $O(1)$ indexed lookup) |
 | prepare | `Denicek.add()`, `.insert()`, etc. |
 | effect | `EventGraph.insertEvent()` |
 | eval | `EventGraph.materialize()` |

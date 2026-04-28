@@ -1,6 +1,6 @@
 # Evaluation {#chap:evaluation}
 
-This chapter evaluates the mydenicek CRDT along three axes: *does it meet Denicek's requirements* (approach comparison), *does it produce correct results* (formative examples, testing, property-based tests), and *is it fast enough* (performance). We begin with the approach comparison that motivated the custom design, then demonstrate correctness through five formative examples that exercise the key features, and conclude with quantitative evaluation.
+This chapter evaluates the mydenicek CRDT along three axes: *does it meet Denicek's requirements* (approach comparison), *does it produce correct results* (formative examples, testing, property-based tests), and *is it fast enough* (performance). We begin with the approach comparison that motivated the custom design, then demonstrate correctness through formative examples that exercise the key features, and conclude with quantitative evaluation.
 
 ## Approach comparison {#sec:comparison}
 
@@ -156,7 +156,7 @@ The tests run against five document schemas (flat list, flat record, nested list
 
 The invariants checked are:
 
-- **Convergence.** After a final full sync round, all peers serialize to the same JSON. This directly exercises the theorem of [@Sec:crdt-framing].
+- **Convergence.** After a final full sync round, all peers serialize to the same JSON. This directly exercises the convergence argument of [@Sec:crdt-framing].
 - **Idempotency.** Re-delivering an already-ingested event has no effect.
 - **Commutativity.** For two disjoint remote event batches, ingesting them in either order produces the same document.
 - **Associativity.** For three peers producing disjoint events, any pairwise merge order yields the same state.
