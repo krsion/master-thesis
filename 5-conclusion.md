@@ -6,7 +6,7 @@ The implementation is published as `@mydenicek/core` and `@mydenicek/sync` on JS
 
 ## Future work {#sec:future-work}
 
-**Incremental eval.** Currently, `materialize` recomputes the full document. Incremental eval that propagates only new events through the existing document would reduce per-edit cost for sequential editing.
+**Incremental eval.** The linear extension cache already makes sequential appends incremental --- only new events are replayed. However, after receiving concurrent remote events, `materialize` still recomputes from scratch. Incremental re-evaluation that patches only the affected portion of the document would reduce cost for concurrent edits.
 
 **History compaction.** The grow-only event DAG grows without bound. Snapshotting the materialized state and pruning old events would reduce storage and replay cost for long-lived documents and new replicas joining late.
 
