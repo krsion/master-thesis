@@ -78,7 +78,7 @@ Materialization has two phases:
 
 The overall cost is $O(N + C_\text{total})$.
 
-$C_\text{total}$ depends on the DAG shape. For a fully sequential chain, $C_\text{total} = 0$. For a fork into two branches of lengths $a$ and $b$, every event in one branch is incomparable with every event in the other, so $C_\text{total} = a \cdot b$. For an $m$-way fork with branches $a_1, \ldots, a_m$: $C_\text{total} = \sum_{i < j} a_i \cdot a_j$. The benchmarks in [@Sec:performance] confirm these predictions: the local-append benchmark (no concurrency) scales linearly in $N$ (exponent $\approx 1.0$), while the equal-branch concurrent benchmark scales as approximately $N^{1.9}$, consistent with $C_\text{total} = N^2/4$ and the additive $O(N)$ term.
+$C_\text{total}$ depends on the DAG shape. For a fully sequential chain, $C_\text{total} = 0$. For a fork into two branches of lengths $a$ and $b$, every event in one branch is incomparable with every event in the other, so $C_\text{total} = a \cdot b$. For an $m$-way fork with branches $a_1, \ldots, a_m$: $C_\text{total} = \sum_{i < j} a_i \cdot a_j$. The benchmarks in [@Sec:performance] confirm these predictions: the local-append benchmark (no concurrency) scales linearly in $N$, while the equal-branch concurrent benchmark scales with $C_\text{total} = (N/2)^2$.
 
 ## Convergence {#sec:crdt-framing}
 

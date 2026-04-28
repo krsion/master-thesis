@@ -182,7 +182,7 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 *local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *concurrent-sync*: two peers edit disjoint subtrees concurrently, then sync.
 
-For typical Denicek sessions ($N \le 100$), average runtime is under 4 ms for all workloads. The measured scaling exponents (log-log fit over $N = 100$--$100{,}000$) match the complexity analysis of [@Sec:complexity]: local-append scales linearly in $N$ (exponent $\approx 1.0$), while concurrent-sync with equal branches scales as approximately $N^{1.9}$, consistent with $C_\text{total} = N^2/4$. [@Fig:bench-n-scaling] isolates the $N$ term by measuring local-append with no concurrency; [@Fig:bench-c-scaling] shows the equal-branch concurrent case plotted against $C_\text{total} = N^2/4$.
+For typical Denicek sessions ($N \le 100$), average runtime is under 4 ms for all workloads. The measured scaling matches the complexity analysis of [@Sec:complexity]: local-append scales linearly in $N$, while concurrent-sync with equal branches scales with $C_\text{total} = (N/2)^2$. [@Fig:bench-n-scaling] isolates the $N$ term by measuring local-append with no concurrency; [@Fig:bench-c-scaling] shows the equal-branch concurrent case plotted against $C_\text{total} = N^2/4$.
 
 ![Local append: varying $N$ with no concurrency ($C_\text{total} = 0$). Time grows linearly, confirming the $O(N)$ term.](img/bench-n-scaling.png){#fig:bench-n-scaling width=70%}
 
