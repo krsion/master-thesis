@@ -81,7 +81,7 @@ button.steps = [e1, e2]
 ```
 
 ```
-items = ["Ada"]
+-- items is ["Ada"]
 set("input/value", "Grace")
 replay(button)
 -- items is now ["Grace", "Ada"]
