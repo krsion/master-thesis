@@ -22,7 +22,7 @@ Automerge and Loro excel at general-purpose collaborative JSON editing but lack 
 
 ## Formative examples {#sec:formative-examples}
 
-The following five examples demonstrate that mydenicek meets each requirement from [@Tbl:approach-comparison]. Each example is implemented as a test that constructs documents, applies edits, syncs between peers, and asserts the expected result.
+The following examples demonstrate that mydenicek meets each requirement from [@Tbl:approach-comparison]. Each example is implemented as a test that constructs documents, applies edits, syncs between peers, and asserts the expected result.
 
 ### Hello World: custom primitive edits and replay {#sec:hello-world}
 
@@ -80,7 +80,7 @@ e2 = copy("items/!0/text", from="input/value")
 button.steps = [e1, e2]
 ```
 
-The `!0` strict index refers to position 0 *at the time of recording*. During replay, it is adjusted if concurrent insertions have shifted it. Two peers can concurrently add speakers --- after sync, both items appear.
+The `!0` strict index refers to position 0 *at the time of recording*. Unlike plain indices, it is not shifted by concurrent list insertions, ensuring it always targets the same original item. Two peers can concurrently add speakers --- after sync, both items appear.
 
 ### Conference Table: structural transformation {#sec:conf-table}
 
@@ -142,11 +142,11 @@ Testing distributed systems is fundamentally harder than testing sequential prog
 - **Integration tests** (over 40 cases) test edit *interactions*: two concurrent edits on a shared document, the full `resolveAgainst` pipeline on a small DAG, reference rewriting through structural changes, and undo/redo across peers. A dedicated *concurrent pair matrix* (`concurrent-pair-matrix.test.ts`) systematically tests one scenario per non-trivial edit-type pair — 21 pairs covering all combinations where `transformSelector` or payload rewriting produces a non-identity result (e.g., rename+insert, wrapRecord+insert, copy+edit-on-source, updateTag+rename). Each test verifies both convergence and intention preservation.
 - **Property-based tests** using `fast-check` (described in [@Sec:property-tests]) randomize across all layers: they generate random edit sequences, random sync orderings, and assert convergence and intention preservation invariants. This is the highest-value layer — it exercises scenarios that hand-written tests would never cover.
 - **Formative example tests** (6 cases) simulate realistic multi-peer workflows: recording, replay, formula evaluation, schema evolution, and button replay after refactoring.
-- **Sync end-to-end tests** (21 cases) cover the WebSocket relay: synchronization, late join, concurrent edits, reconnection, compaction, and offline convergence.
-- **Browser end-to-end tests** (Playwright) verify that two browser peers can sync edits via the deployed server, closing the loop from UI to transport to CRDT and back.
+- **Sync end-to-end tests** (21 cases) cover the WebSocket relay: synchronization, late join, concurrent edits, reconnection, and offline convergence.
+- **Browser end-to-end tests** (Playwright) verify that two browser peers can sync edits via the deployed server, closing the loop from UI to transport to CRDT and back. These run separately from the 358-test unit suite.
 - **Continuous integration** via GitHub Actions runs all layers on every push.
 
-In total, the test suite has 358 tests (337 in the core package, 21 in the sync package) comprising approximately 6,900 lines of test code --- more than the 5,800 lines of the CRDT core itself. Deno's built-in coverage tool reports **90% branch coverage** (fraction of decision branches --- if/else, switch cases --- taken by at least one test) **and 81% line coverage** (fraction of source lines executed) across the CRDT core. The remaining gaps are concentrated in defensive error-throwing branches and undo-specific inverse operations. The sync package achieves 95% branch coverage on the room logic; the WebSocket transport layers are covered by Playwright browser end-to-end tests rather than unit tests.
+In total, the test suite has 358 tests (337 in the core package, 21 in the sync package) comprising approximately 7,600 lines of test code --- more than the 5,800 lines of the CRDT core itself. Deno's built-in coverage tool reports **90% branch coverage** (fraction of decision branches --- if/else, switch cases --- taken by at least one test) **and 81% line coverage** (fraction of source lines executed) across the CRDT core. The remaining gaps are concentrated in defensive error-throwing branches and undo-specific inverse operations. The sync package achieves 95% branch coverage on the room logic; the WebSocket transport layers are covered by Playwright browser end-to-end tests rather than unit tests.
 
 ## Property-based tests {#sec:property-tests}
 
@@ -182,7 +182,7 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 *local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *concurrent-sync*: two peers edit disjoint subtrees concurrently, then sync.
 
-For typical Denicek sessions ($N \le 100$), average runtime is under 4 ms for all workloads. The measured scaling matches the complexity analysis of [@Sec:complexity]: local-append scales linearly in $N$, while concurrent-sync with equal branches scales with $C_\text{total} = (N/2)^2$. [@Fig:bench-n-scaling] isolates the $N$ term by measuring local-append with no concurrency; [@Fig:bench-c-scaling] shows the equal-branch concurrent case plotted against $C_\text{total} = N^2/4$.
+For typical Denicek sessions ($N \le 100$), average runtime is under 4 ms for all workloads. The measured scaling matches the complexity analysis of [@Sec:complexity]: local-append scales linearly in $N$ (validated up to $N = 100{,}000$), while concurrent-sync with equal branches scales with $C_\text{total} = (N/2)^2$. [@Fig:bench-n-scaling] isolates the $N$ term by measuring local-append with no concurrency; [@Fig:bench-c-scaling] shows the equal-branch concurrent case plotted against $C_\text{total} = N^2/4$.
 
 ![Local append: varying $N$ with no concurrency ($C_\text{total} = 0$). Time grows linearly, confirming the $O(N)$ term.](img/bench-n-scaling.png){#fig:bench-n-scaling width=70%}
 

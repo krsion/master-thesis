@@ -116,7 +116,7 @@ mydenicek implements this framework directly. The mapping is:
 | Causal broadcast | WebSocket relay + causal delivery buffer |
 | PO-Log pruning | Not feasible on relay server (see below) |
 
-The event DAG is strictly richer than a PO-Log: it stores explicit parent pointers, enabling incremental materialization. PO-Log pruning is discussed in [@Sec:sync].
+The event DAG is strictly richer than a PO-Log: it stores explicit parent pointers, enabling incremental materialization. PO-Log pruning (compaction) is not implemented --- the relay server operates in append-only mode, and history compaction is left for future work ([@Sec:future-work]).
 
 Common CRDT building blocks relevant to this thesis include:
 
@@ -138,6 +138,6 @@ Several existing CRDT libraries were evaluated as potential backends for Denicek
 
 **Other systems.** Yjs [@yjs] shares Automerge's limitations (no atomic move, no path-based selectors). Eg-walker [@gentle2025egwalker] stores operations in a causal event graph with topological replay --- mydenicek borrows this architectural idea but applies it to trees with selector rewriting. Diamond Types [@diamondtypes] and json-joy [@jsonjoy] target text and JSON respectively but lack wildcard selectors. Weidner [@weidner2023foreach] identifies the *for-each problem*: operations applied to every element in a range miss concurrently inserted elements. mydenicek's wildcard selectors solve this without a dedicated for-each operation ([@Sec:wildcard-concurrent]).
 
-**Pure op-based CRDT frameworks.** Bauwens and Gonzalez Boix have developed an ecosystem for pure operation-based CRDTs: Flec [@bauwens2023nested] implements PO-Log-based CRDTs with nesting and composition; related work addresses metadata reduction via causal stability [@bauwens2020stability] and automated verification via VeriFx [@deporre2023verifx]. Weidner et al. [@weidner2023collabs] provide Collabs, a CRDT framework with a `TestingRuntimes` harness for deterministic network interleaving. mydenicek does not build on these frameworks because they address *convergence* (PO-Log management, metadata reduction) but not *intention preservation* --- the selector rewriting rules that are the hard, domain-specific part of mydenicek's design. Integrating with these frameworks is discussed in [@Sec:future-work].
+**Pure op-based CRDT frameworks.** Bauwens and Gonzalez Boix have developed an ecosystem for pure operation-based CRDTs: Flec [@bauwens2023nested] implements PO-Log-based CRDTs with nesting and composition; related work addresses metadata reduction via causal stability [@bauwens2020stability] and automated verification via VeriFx [@deporre2023verifx]. Weidner et al. [@weidner2023collabs] provide Collabs, a CRDT framework with a `TestingRuntimes` harness for deterministic network interleaving. mydenicek does not build on these frameworks because they address *convergence* (PO-Log management, metadata reduction) but not *intention preservation* --- the selector rewriting rules that are the hard, domain-specific part of mydenicek's design.
 
 
