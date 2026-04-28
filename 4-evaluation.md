@@ -133,7 +133,7 @@ Two peers start from the same conference list, disconnect, and make concurrent e
 
 ### Button replay after schema evolution {#sec:replay-after-refactor}
 
-Recorded edit sequences survive structural refactoring. The "Add Speaker" button was recorded against a flat `<ul>` list --- its steps insert a `<li>` item and copy the input value. After Alice refactors the list into a `<table>` with formula columns, clicking the button still works: each recorded step is retargeted through all structural edits that happened after recording. The replayed insert produces a complete table row with split-first and split-rest cells, as if recorded against the table.
+Recorded edit sequences survive structural refactoring. The "Add Speaker" button was recorded against a flat `<ul>` list --- its steps insert a `<li>` item and copy the input value. After Alice refactors the list into a `<table>` with formula columns, clicking the button still works: each recorded step is transformed through all structural edits that happened after recording. The replayed insert produces a complete table row with split-first and split-rest cells, as if recorded against the table.
 
 Replay reuses the same selector rewriting rules as concurrent editing. The system finds the recorded edit in the topological order, transforms it forward through every later edit that could affect it (structural edits and wildcard-targeting edits), and commits the adjusted edit as a new event at the current frontier.
 
@@ -151,7 +151,7 @@ Testing distributed systems is fundamentally harder than testing sequential prog
 - **Browser end-to-end tests** (Playwright) verify that two browser peers can sync edits via the deployed server, closing the loop from UI to transport to CRDT and back. These run separately from the 358-test unit suite.
 - **Continuous integration** via GitHub Actions runs all layers on every push.
 
-In total, the test suite has 358 tests (337 in the core package, 21 in the sync package) comprising approximately 7,600 lines of test code --- more than the 5,800 lines of the CRDT core itself. Deno's built-in coverage tool reports **90% branch coverage** (fraction of decision branches --- if/else, switch cases --- taken by at least one test) **and 81% line coverage** (fraction of source lines executed) across the CRDT core. The remaining gaps are concentrated in defensive error-throwing branches and undo-specific inverse operations. The sync package achieves 95% branch coverage on the room logic; the WebSocket transport layers are covered by Playwright browser end-to-end tests rather than unit tests.
+In total, the test suite has 358 tests (337 in the core package, 21 in the sync package) comprising approximately 7,600 lines of test code --- more than the 5,800 lines of the CRDT core itself. Deno's built-in coverage tool reports **90% branch coverage** (fraction of decision branches --- if/else, switch cases --- taken by at least one test) **and 81% line coverage** (fraction of source lines executed) across the CRDT core. The remaining gaps are concentrated in defensive error-throwing branches. The sync package achieves 95% branch coverage on the room logic; the WebSocket transport layers are covered by Playwright browser end-to-end tests rather than unit tests.
 
 ## Property-based tests {#sec:property-tests}
 
