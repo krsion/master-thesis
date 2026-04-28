@@ -64,7 +64,7 @@ After:   counter = plus(0, 1) -> 1
 Replay:  counter = plus(plus(0, 1), 1) -> 2
 ```
 
-Each replay wraps another `plus` layer around the previous result. The formula engine evaluates the nested structure recursively.
+Each replay wraps the inner value in another `plus` layer. The formula engine evaluates the nested structure recursively.
 
 ### Conference List: adding items with recorded edits {#sec:conf-list}
 
