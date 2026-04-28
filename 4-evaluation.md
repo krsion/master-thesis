@@ -84,7 +84,7 @@ button.steps = [e1, e2]
 items = ["Ada"]
 set("input/value", "Grace")
 replay(button)
-items = ["Grace", "Ada"]
+-- items is now ["Grace", "Ada"]
 ```
 
 ### Conference Table: structural transformation {#sec:conf-table}
