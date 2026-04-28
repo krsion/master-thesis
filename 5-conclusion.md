@@ -18,4 +18,6 @@ The implementation is published as `@mydenicek/core` and `@mydenicek/sync` on JS
 
 **Network-efficient encoding.** Events are currently serialized as JSON. A compact binary encoding would reduce bandwidth and improve sync performance, especially for large event histories.
 
+**Fine-grained retransmission.** When a single event is lost, the frontier-based catch-up resends all events that causally depend on it. A protocol that tracks individual missing events would avoid redundant retransmission.
+
 **Character-level text.** Integrating a text CRDT (e.g., Fugue) for primitive strings would replace last-writer-wins semantics, though the interaction with selectors, undo, and the formula engine would require careful design.
