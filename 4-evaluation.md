@@ -177,28 +177,16 @@ The property suite caught several bugs during development: wildcard-over-concurr
 | local-append | 2000 | 12 ms | 8.7 ms | 23 ms |
 | sync-linear | 100 | 1.2 ms | 0.72 ms | 5.8 ms |
 | sync-linear | 2000 | 40 ms | 19 ms | 61 ms |
-| concurrent-sync (2 peers) | 100 | 2.1 ms | 1.2 ms | 12 ms |
-| concurrent-sync (2 peers) | 2000 | 329 ms | 246 ms | 378 ms |
-| concurrent-sync (20 peers) | 2000 | 405 ms | 364 ms | 449 ms |
-| concurrent-sync (200 peers) | 2000 | 920 ms | 878 ms | 964 ms |
+| concurrent-sync | 100 | 2.1 ms | 1.2 ms | 12 ms |
+| concurrent-sync | 2000 | 329 ms | 246 ms | 378 ms |
 
-*local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *concurrent-sync*: $P$ peers edit disjoint subtrees concurrently, then sync all to one peer.
+*local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *concurrent-sync*: two peers edit disjoint subtrees concurrently, then sync.
 
-For typical Denicek sessions ($N \le 100$), all workloads complete in under 4 ms. The measured scaling exponents match the complexity analysis of [@Sec:complexity]: local-append and sync-linear scale linearly (exponent $\approx 1.0$), while concurrent-sync scales quadratically (exponent $\approx 1.9$). [@Fig:bench-n-scaling;@Fig:bench-c-scaling;@Fig:bench-p-scaling] visualize how time grows when varying each parameter independently.
+For typical Denicek sessions ($N \le 100$), all workloads complete in under 4 ms. The measured scaling exponents match the complexity analysis of [@Sec:complexity]: local-append and sync-linear scale linearly (exponent $\approx 1.0$), while concurrent-sync scales quadratically (exponent $\approx 1.9$). [@Fig:bench-n-scaling] and [@Fig:bench-c-scaling] visualize how time grows when varying $N$ and $C_\text{total}$ independently.
 
 ![Varying $N$ with $P=2$ and equal branches. The measured curve closely follows the $O(N^2)$ reference, confirming the quadratic cost of pairwise selector rewriting.](img/bench-n-scaling.png){#fig:bench-n-scaling width=70%}
 
 ![Varying $C_\text{total}$ (by adjusting branch asymmetry) with $N=2000$ and $P=2$. Time grows linearly with the number of incomparable pairs.](img/bench-c-scaling.png){#fig:bench-c-scaling width=70%}
-
-![Varying $P$ (inactive peers) with $N=2000$ and constant $C_\text{total}$ (log–log scale). Time grows faster than $O(P)$ because the $P$-way merge scans all peer slots per transformation.](img/bench-p-scaling.png){#fig:bench-p-scaling width=70%}
-
-The multi-peer results show that the number of peers has a modest effect when $P$ is small: at $N = 2000$, going from 2 to 20 peers increases time by only 1.2$\times$ (because shorter branches reduce $C_\text{total}$). At 200 peers, the $O(P)$ per-event cost of scanning peer boundaries becomes visible (2.8$\times$ slower than 2 peers despite similar $C_\text{total}$).
-
-To isolate the $P$ factor, we measured 2 active peers with varying numbers of inactive peers ([@Fig:bench-p-scaling]). With $C_\text{total}$ held constant, time grows modestly up to $P = 20$ (the target use case) but accelerates for larger $P$: at $P = 1000$ the workload is 31$\times$ slower than $P = 2$. This superlinear growth arises because each event's vector clock has $O(P)$ entries, and operations on these clocks (validation, dominance checks) contribute overhead that grows with $P$ even when the number of active peers is small. For Denicek's target use case ($P \leq 20$), the constant-$P$ assumption holds and the overhead is negligible.
-
-To validate the overall complexity formula, we ran 14 benchmarks with varying combinations of $N$, $P$, and $C_\text{total}$ and fit the model $\text{time} = \alpha \cdot NP + \beta \cdot C_\text{total}$ via least-squares regression. For $P \leq 200$, the fit achieves $R^2 = 0.92$ ([@Fig:bench-regression]), confirming that the two terms $NP$ and $C_\text{total}$ are sufficient to predict materialization time.
-
-![Predicted vs measured materialization time for 14 benchmark configurations with varying $N$, $P \leq 200$, and $C_\text{total}$. The model $\alpha \cdot NP + \beta \cdot C_\text{total}$ achieves $R^2 = 0.92$.](img/bench-regression.png){#fig:bench-regression width=55%}
 
 ## Limitations {#sec:limitations}
 
