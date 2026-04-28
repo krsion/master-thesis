@@ -182,11 +182,11 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 *local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *concurrent-sync*: two peers edit disjoint subtrees concurrently, then sync.
 
-For typical Denicek sessions ($N \le 100$), all workloads complete in under 4 ms. The measured scaling exponents match the complexity analysis of [@Sec:complexity]: local-append and sync-linear scale linearly (exponent $\approx 1.0$), while concurrent-sync scales quadratically (exponent $\approx 1.9$). [@Fig:bench-n-scaling] and [@Fig:bench-c-scaling] visualize how time grows when varying $N$ and $C_\text{total}$ independently.
+For typical Denicek sessions ($N \le 100$), average runtime is under 4 ms for all workloads. The measured scaling exponents (log-log fit over $N = 100$--$100{,}000$) match the complexity analysis of [@Sec:complexity]: local-append scales linearly in $N$ (exponent $\approx 1.0$), while concurrent-sync with equal branches scales as approximately $N^{1.9}$, consistent with $C_\text{total} = N^2/4$. [@Fig:bench-n-scaling] isolates the $N$ term by measuring local-append with no concurrency; [@Fig:bench-c-scaling] shows the equal-branch concurrent case plotted against $C_\text{total} = N^2/4$.
 
 ![Local append: varying $N$ with no concurrency ($C_\text{total} = 0$). Time grows linearly, confirming the $O(N)$ term.](img/bench-n-scaling.png){#fig:bench-n-scaling width=70%}
 
-![Concurrent sync with equal branches ($P=2$, $C_\text{total} = N^2/4$). Time grows linearly with $C_\text{total}$, confirming the $O(C_\text{total})$ term dominates for concurrent workloads.](img/bench-c-scaling.png){#fig:bench-c-scaling width=70%}
+![Concurrent sync with equal branches ($P=2$, $C_\text{total} = N^2/4$). Plotted against $C_\text{total}$, runtime is close to linear, consistent with the dominant $O(C_\text{total})$ term ($N$ co-varies as $2\sqrt{C_\text{total}}$).](img/bench-c-scaling.png){#fig:bench-c-scaling width=70%}
 
 ## Limitations {#sec:limitations}
 
