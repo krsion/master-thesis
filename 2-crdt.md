@@ -170,7 +170,8 @@ The implementation is a Deno/TypeScript[^deno] monorepo published on JSR[^jsr], 
 | `@mydenicek/sync` (WebSocket relay) | 1,050 | 673 |
 | `@mydenicek/react` (React bindings) | 364 | --- |
 | Web application | 2,775 | --- |
-| **Total** | **9,959** | **7,571** |
+| Sync server | 558 | --- |
+| **Total** | **10,517** | **7,571** |
 
 ### Extensibility {#sec:extensibility}
 
