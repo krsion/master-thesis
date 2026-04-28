@@ -33,6 +33,6 @@ deno task sync-server    # relay server (ws://localhost:8080)
 deno task mywebnicek:dev # web app (http://localhost:5173)
 ```
 
-The live demo is at <https://krsion.github.io/mydenicek>. The server is deployed on Deno Deploy; the web app is hosted on GitHub Pages via CI/CD.
+The live demo is at <https://krsion.github.io/mydenicek>.
 
 **Thesis repository.** The Markdown-plus-LaTeX source of this thesis is at <https://github.com/krsion/master-thesis>.
