@@ -184,7 +184,15 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 *local-append*: single peer, sequential inserts. *sync-linear*: $N$ events delivered causally. *concurrent-sync*: $P$ peers edit disjoint subtrees concurrently, then sync all to one peer.
 
-For typical Denicek sessions ($N \le 100$), all workloads complete in under 4 ms. The measured scaling exponents match the complexity analysis of [@Sec:complexity]: local-append and sync-linear scale linearly (exponent $\approx 1.0$), while concurrent-sync scales quadratically (exponent $\approx 1.9$). The multi-peer results show that the number of peers has a modest effect when $P$ is small: at $N = 2000$, going from 2 to 20 peers increases time by only 1.2$\times$ (because shorter branches reduce $C_\text{total}$). At 200 peers, the $O(P)$ per-event cost of scanning peer boundaries becomes visible (2.8$\times$ slower than 2 peers despite similar $C_\text{total}$).
+For typical Denicek sessions ($N \le 100$), all workloads complete in under 4 ms. The measured scaling exponents match the complexity analysis of [@Sec:complexity]: local-append and sync-linear scale linearly (exponent $\approx 1.0$), while concurrent-sync scales quadratically (exponent $\approx 1.9$). [@Fig:bench-n-scaling;@Fig:bench-c-scaling;@Fig:bench-p-scaling] visualize how time grows when varying each parameter independently.
+
+![Varying $N$ with $P=2$ and equal branches. The measured curve closely follows the $O(N^2)$ reference, confirming the quadratic cost of pairwise selector rewriting.](img/bench-n-scaling.png){#fig:bench-n-scaling width=70%}
+
+![Varying $C_\text{total}$ (by adjusting branch asymmetry) with $N=2000$ and $P=2$. Time grows linearly with the number of incomparable pairs.](img/bench-c-scaling.png){#fig:bench-c-scaling width=70%}
+
+![Varying $P$ (inactive peers) with $N=2000$ and constant $C_\text{total}$ (log–log scale). Time grows faster than $O(P)$ because the $P$-way merge scans all peer slots per transformation.](img/bench-p-scaling.png){#fig:bench-p-scaling width=70%}
+
+The multi-peer results show that the number of peers has a modest effect when $P$ is small: at $N = 2000$, going from 2 to 20 peers increases time by only 1.2$\times$ (because shorter branches reduce $C_\text{total}$). At 200 peers, the $O(P)$ per-event cost of scanning peer boundaries becomes visible (2.8$\times$ slower than 2 peers despite similar $C_\text{total}$).
 
 To isolate the $P$ factor, we measured 2 active peers with varying numbers of inactive peers (all registered in the DAG but not editing concurrently). With $C_\text{total}$ held constant, the overhead grows with $P$: at $P = 1000$ the workload is 31$\times$ slower than $P = 2$. This matches the $O(NP + C_\text{total} \cdot P)$ general complexity: the $P$-way merge in `resolveAgainst` scans all $P$ peer slots per transformation, so each of the $C_\text{total}$ pairwise transformations costs $O(P)$ rather than $O(1)$. For Denicek's target use case of small-group collaboration ($P \leq 20$), this overhead is negligible.
 

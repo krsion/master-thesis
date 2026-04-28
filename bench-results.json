@@ -1,0 +1,623 @@
+{
+  "version": 1,
+  "runtime": "Deno/2.7.11 x86_64-pc-windows-msvc",
+  "cpu": "12th Gen Intel(R) Core(TM) i7-12700H",
+  "benches": [
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart1-N=100",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 306,
+            "min": 1171100.0,
+            "max": 5680600.0,
+            "avg": 1689998.0,
+            "p75": 1777200.0,
+            "p99": 3308700.0,
+            "p995": 4340100.0,
+            "p999": 5680600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart1-N=200",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 148,
+            "min": 3000200.0,
+            "max": 4788700.0,
+            "avg": 3629365.0,
+            "p75": 3814700.0,
+            "p99": 4762700.0,
+            "p995": 4788700.0,
+            "p999": 4788700.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart1-N=400",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 60,
+            "min": 8926100.0,
+            "max": 11449500.0,
+            "avg": 10137944.0,
+            "p75": 10512700.0,
+            "p99": 11449500.0,
+            "p995": 11449500.0,
+            "p999": 11449500.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart1-N=600",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 36,
+            "min": 17058300.0,
+            "max": 22823600.0,
+            "avg": 19610823.0,
+            "p75": 20050200.0,
+            "p99": 22823600.0,
+            "p995": 22823600.0,
+            "p999": 22823600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart1-N=800",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 26,
+            "min": 28779000.0,
+            "max": 33832500.0,
+            "avg": 31602050.0,
+            "p75": 32146000.0,
+            "p99": 33832500.0,
+            "p995": 33832500.0,
+            "p999": 33832500.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart1-N=1000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 45507400.0,
+            "max": 64399500.0,
+            "avg": 50721184.0,
+            "p75": 55989100.0,
+            "p99": 64399500.0,
+            "p995": 64399500.0,
+            "p999": 64399500.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart1-N=1500",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 86655800.0,
+            "max": 97519600.0,
+            "avg": 93494300.0,
+            "p75": 96745300.0,
+            "p99": 97519600.0,
+            "p995": 97519600.0,
+            "p999": 97519600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart1-N=2000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 162257200.0,
+            "max": 167644200.0,
+            "avg": 163752784.0,
+            "p75": 164567100.0,
+            "p99": 167644200.0,
+            "p995": 167644200.0,
+            "p999": 167644200.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart1-N=3000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 4,
+            "min": 353148800.0,
+            "max": 367330200.0,
+            "avg": 358095675.0,
+            "p75": 356035600.0,
+            "p99": 367330200.0,
+            "p995": 367330200.0,
+            "p999": 367330200.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart1-N=4000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 4,
+            "min": 601850800.0,
+            "max": 629278500.0,
+            "avg": 617469375.0,
+            "p75": 627050900.0,
+            "p99": 629278500.0,
+            "p995": 629278500.0,
+            "p999": 629278500.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart2-C=1999",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 15,
+            "min": 100509500.0,
+            "max": 116049600.0,
+            "avg": 107901614.0,
+            "p75": 111213000.0,
+            "p99": 116049600.0,
+            "p995": 116049600.0,
+            "p999": 116049600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart2-C=19900",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 15,
+            "min": 105491400.0,
+            "max": 121165300.0,
+            "avg": 113431800.0,
+            "p75": 117084100.0,
+            "p99": 121165300.0,
+            "p995": 121165300.0,
+            "p999": 121165300.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart2-C=97500",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 15,
+            "min": 107475700.0,
+            "max": 123694100.0,
+            "avg": 115442654.0,
+            "p75": 118398300.0,
+            "p99": 123694100.0,
+            "p995": 123694100.0,
+            "p999": 123694100.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart2-C=190000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 15,
+            "min": 109234700.0,
+            "max": 133414400.0,
+            "avg": 118586974.0,
+            "p75": 122751100.0,
+            "p99": 133414400.0,
+            "p995": 133414400.0,
+            "p999": 133414400.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart2-C=360000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 14,
+            "min": 123983500.0,
+            "max": 157314700.0,
+            "avg": 132675072.0,
+            "p75": 135554700.0,
+            "p99": 157314700.0,
+            "p995": 157314700.0,
+            "p999": 157314700.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart2-C=640000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 14,
+            "min": 142065500.0,
+            "max": 149524100.0,
+            "avg": 146576486.0,
+            "p75": 148609400.0,
+            "p99": 149524100.0,
+            "p995": 149524100.0,
+            "p999": 149524100.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart2-C=840000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 14,
+            "min": 144226800.0,
+            "max": 172348500.0,
+            "avg": 156870272.0,
+            "p75": 158397600.0,
+            "p99": 172348500.0,
+            "p995": 172348500.0,
+            "p999": 172348500.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart2-C=960000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 157095300.0,
+            "max": 180659800.0,
+            "avg": 165273567.0,
+            "p75": 171832600.0,
+            "p99": 180659800.0,
+            "p995": 180659800.0,
+            "p999": 180659800.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart2-C=1000000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 165643500.0,
+            "max": 178229500.0,
+            "avg": 172797317.0,
+            "p75": 177444900.0,
+            "p99": 178229500.0,
+            "p995": 178229500.0,
+            "p999": 178229500.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart3-P=2",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 170199400.0,
+            "max": 178293300.0,
+            "avg": 173051417.0,
+            "p75": 174264300.0,
+            "p99": 178293300.0,
+            "p995": 178293300.0,
+            "p999": 178293300.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart3-P=5",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 171743800.0,
+            "max": 180323100.0,
+            "avg": 175193850.0,
+            "p75": 177815100.0,
+            "p99": 180323100.0,
+            "p995": 180323100.0,
+            "p999": 180323100.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart3-P=10",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 173063100.0,
+            "max": 210211600.0,
+            "avg": 188662200.0,
+            "p75": 198911800.0,
+            "p99": 210211600.0,
+            "p995": 210211600.0,
+            "p999": 210211600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart3-P=20",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 178230700.0,
+            "max": 191645900.0,
+            "avg": 183714134.0,
+            "p75": 187979900.0,
+            "p99": 191645900.0,
+            "p995": 191645900.0,
+            "p999": 191645900.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart3-P=50",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 195928800.0,
+            "max": 214667500.0,
+            "avg": 204496617.0,
+            "p75": 210012400.0,
+            "p99": 214667500.0,
+            "p995": 214667500.0,
+            "p999": 214667500.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart3-P=100",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 6,
+            "min": 251935300.0,
+            "max": 271751900.0,
+            "avg": 260829550.0,
+            "p75": 266266300.0,
+            "p99": 271751900.0,
+            "p995": 271751900.0,
+            "p999": 271751900.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart3-P=200",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 4,
+            "min": 378845300.0,
+            "max": 410291100.0,
+            "avg": 397541925.0,
+            "p75": 409193300.0,
+            "p99": 410291100.0,
+            "p995": 410291100.0,
+            "p999": 410291100.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart3-P=500",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 4,
+            "min": 1389547700.0,
+            "max": 1410390100.0,
+            "avg": 1402713475.0,
+            "p75": 1406548100.0,
+            "p99": 1410390100.0,
+            "p995": 1410390100.0,
+            "p999": 1410390100.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-thesis-charts.ts",
+      "group": null,
+      "name": "chart3-P=1000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 4,
+            "min": 5354852600.0,
+            "max": 9614860700.0,
+            "avg": 7644074675.0,
+            "p75": 9536321200.0,
+            "p99": 9614860700.0,
+            "p995": 9614860700.0,
+            "p999": 9614860700.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    }
+  ]
+}
