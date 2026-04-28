@@ -81,8 +81,10 @@ button.steps = [e1, e2]
 ```
 
 ```
-Before:  input/value = "Grace", items = ["Ada"]
-Replay:  items = ["Grace", "Ada"]
+items = ["Ada"]
+set("input/value", "Grace")
+replay(button)
+items = ["Grace", "Ada"]
 ```
 
 The `!0` strict index refers to position 0 *at the time of recording*. Unlike plain indices, it is not shifted by later insertions --- so each replay inserts at the start of the list again, instead of being shifted to the item inserted during recording.
