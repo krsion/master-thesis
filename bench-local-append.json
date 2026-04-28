@@ -1,0 +1,227 @@
+{
+  "version": 1,
+  "runtime": "Deno/2.7.11 x86_64-pc-windows-msvc",
+  "cpu": "12th Gen Intel(R) Core(TM) i7-12700H",
+  "benches": [
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-local-append.ts",
+      "group": null,
+      "name": "la-100",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 1225,
+            "min": 317500.0,
+            "max": 1159100.0,
+            "avg": 411307.0,
+            "p75": 437600.0,
+            "p99": 807600.0,
+            "p995": 917200.0,
+            "p999": 1014600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-local-append.ts",
+      "group": null,
+      "name": "la-200",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 628,
+            "min": 674200.0,
+            "max": 1460500.0,
+            "avg": 807952.0,
+            "p75": 848400.0,
+            "p99": 1257400.0,
+            "p995": 1299700.0,
+            "p999": 1460500.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-local-append.ts",
+      "group": null,
+      "name": "la-500",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 257,
+            "min": 1721500.0,
+            "max": 3035600.0,
+            "avg": 2030301.0,
+            "p75": 2104800.0,
+            "p99": 2800600.0,
+            "p995": 2877400.0,
+            "p999": 3035600.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-local-append.ts",
+      "group": null,
+      "name": "la-1000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 134,
+            "min": 3529700.0,
+            "max": 5461800.0,
+            "avg": 4034198.0,
+            "p75": 4243700.0,
+            "p99": 5457400.0,
+            "p995": 5461800.0,
+            "p999": 5461800.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-local-append.ts",
+      "group": null,
+      "name": "la-2000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 71,
+            "min": 7206600.0,
+            "max": 10345100.0,
+            "avg": 8318995.0,
+            "p75": 8781200.0,
+            "p99": 10345100.0,
+            "p995": 10345100.0,
+            "p999": 10345100.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-local-append.ts",
+      "group": null,
+      "name": "la-5000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 31,
+            "min": 20857300.0,
+            "max": 29557700.0,
+            "avg": 24507568.0,
+            "p75": 25214100.0,
+            "p99": 29557700.0,
+            "p995": 29557700.0,
+            "p999": 29557700.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-local-append.ts",
+      "group": null,
+      "name": "la-10000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 21,
+            "min": 44156300.0,
+            "max": 56948400.0,
+            "avg": 49146672.0,
+            "p75": 50256400.0,
+            "p99": 56948400.0,
+            "p995": 56948400.0,
+            "p999": 56948400.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-local-append.ts",
+      "group": null,
+      "name": "la-20000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 4,
+            "min": 93024700.0,
+            "max": 98850900.0,
+            "avg": 96047100.0,
+            "p75": 96796600.0,
+            "p99": 98850900.0,
+            "p995": 98850900.0,
+            "p999": 98850900.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-local-append.ts",
+      "group": null,
+      "name": "la-50000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 4,
+            "min": 240586100.0,
+            "max": 251994000.0,
+            "avg": 245084550.0,
+            "p75": 244691800.0,
+            "p99": 251994000.0,
+            "p995": 251994000.0,
+            "p999": 251994000.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    },
+    {
+      "origin": "file:///C:/Users/ondre/source/repos/mydenicek-core/packages/core/tools/bench-local-append.ts",
+      "group": null,
+      "name": "la-100000",
+      "baseline": false,
+      "results": [
+        {
+          "ok": {
+            "n": 4,
+            "min": 461810400.0,
+            "max": 496615800.0,
+            "avg": 473392775.0,
+            "p75": 469151100.0,
+            "p99": 496615800.0,
+            "p995": 496615800.0,
+            "p999": 496615800.0,
+            "highPrecision": true,
+            "usedExplicitTimers": false
+          }
+        }
+      ]
+    }
+  ]
+}

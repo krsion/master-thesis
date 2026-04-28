@@ -184,9 +184,9 @@ The property suite caught several bugs during development: wildcard-over-concurr
 
 For typical Denicek sessions ($N \le 100$), all workloads complete in under 4 ms. The measured scaling exponents match the complexity analysis of [@Sec:complexity]: local-append and sync-linear scale linearly (exponent $\approx 1.0$), while concurrent-sync scales quadratically (exponent $\approx 1.9$). [@Fig:bench-n-scaling] and [@Fig:bench-c-scaling] visualize how time grows when varying $N$ and $C_\text{total}$ independently.
 
-![Varying $N$ with $P=2$ and equal branches. The measured curve closely follows the $O(N^2)$ reference, confirming the quadratic cost of pairwise selector rewriting.](img/bench-n-scaling.png){#fig:bench-n-scaling width=70%}
+![Local append: varying $N$ with no concurrency ($C_\text{total} = 0$). Time grows linearly, confirming the $O(N)$ term.](img/bench-n-scaling.png){#fig:bench-n-scaling width=70%}
 
-![Varying $C_\text{total}$ (by adjusting branch asymmetry) with $N=2000$ and $P=2$. Time grows linearly with the number of incomparable pairs.](img/bench-c-scaling.png){#fig:bench-c-scaling width=70%}
+![Varying $C_\text{total}$ (by adjusting branch asymmetry) with $N=2000$ and $P=2$. Time grows linearly with the number of incomparable pairs, confirming the $O(C_\text{total})$ term.](img/bench-c-scaling.png){#fig:bench-c-scaling width=70%}
 
 ## Limitations {#sec:limitations}
 
