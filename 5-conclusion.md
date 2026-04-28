@@ -14,8 +14,6 @@ The implementation is published as `@mydenicek/core` and `@mydenicek/sync` on JS
 
 **Formal verification.** Encoding the selector rewriting rules in VeriFx [@deporre2023verifx] or TLA+ would provide mechanical correctness guarantees beyond empirical testing.
 
-**Transactions.** Currently, each edit produces a separate event. A multi-edit replay (e.g., a button that inserts an item and copies a value) creates multiple events that can be interleaved with concurrent edits from other peers. Atomic transactions --- groups of events that are always applied together in topological order --- would prevent such interleaving.
-
 **Peer-to-peer sync.** The current sync protocol relies on a centralized WebSocket relay server. Enabling true peer-to-peer sync would remove the single point of failure and reduce latency for co-located peers.
 
 **Network-efficient encoding.** Events are currently serialized as JSON. A compact binary encoding would reduce bandwidth and improve sync performance, especially for large event histories.
