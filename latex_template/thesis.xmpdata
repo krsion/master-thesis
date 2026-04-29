@@ -13,5 +13,5 @@ $keywords-cs$$sep$\sep
 $endfor$
 $endif$
 }
-\Subject{Abstract of thesis}
+\Subject{$if(master)$Master thesis$else$$if(bachelor)$Bachelor thesis$else$$if(doctoral)$Doctoral thesis$else$$if(rigorous)$Rigorous thesis$endif$$endif$$endif$$endif$}
 \Publisher{Charles University}
