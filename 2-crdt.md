@@ -1,4 +1,4 @@
-# Implementation {#chap:implementation}
+# Design and implementation {#chap:implementation}
 
 mydenicek is a pure operation-based CRDT for collaborative editing of tagged document trees. The replica state is a grow-only set of edit events; the document is computed by a deterministic *eval* function (`materialize`) that replays events in topological order, transforming edits through concurrent structural changes. [@Fig:data-flow] shows the data flow. The following sections describe the core CRDT design --- the document model, event DAG, materialization algorithm, convergence argument, and edit transformation rules --- followed by implementation details of the complete system.
 
