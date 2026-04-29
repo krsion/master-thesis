@@ -1,6 +1,6 @@
 ---
 # enable various forms of TODOs like macro \xxx during the build, turn off before compiling the final version
-todos: true
+todos: false
 
 lang-en: true # false - czech language
 title-style: 'mff' # 'mff' (MFF style), 'cuni' (old-style with cuni.cz logo), 'natur' (nature faculty logo)
