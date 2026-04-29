@@ -208,7 +208,7 @@ The server operates in **relay mode**: it stores and forwards events without mat
 
 The sync server is deployed on Azure Container Apps. We chose Container Apps over both serverless platforms (Azure Functions, AWS Lambda) and traditional PaaS (Azure App Service): serverless platforms impose per-request timeouts that break long-lived WebSocket sessions, while App Service's free F1 tier caps concurrent WebSocket connections at five[^f1-ws-limit] and paid tiers run the container continuously even when no peers are connected. Container Apps runs long-lived processes without request timeouts and scales to zero when idle, so a deployed but unused room incurs no compute cost. The NDJSON event log is persisted to a mounted Azure Files share at `/mnt/sync-data`, since the container's local filesystem is ephemeral and would be lost on each restart or scale-to-zero event. The main drawback is cold-start latency: the first peer to connect after a period of inactivity waits a few seconds while the container is pulled and started.
 
-[^f1-ws-limit]: See the App Service WebSocket per-instance limits at <https://learn.microsoft.com/en-us/azure/app-service/overview-hosting-plans>.
+[^f1-ws-limit]: The free F1 tier of App Service is limited to 5 concurrent WebSocket connections per instance, see <https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits#azure-app-service-limits>.
 
 ### Web application {#sec:webapp}
 
