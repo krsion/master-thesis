@@ -14,7 +14,7 @@ Convergence --- all peers reaching the same state --- is the baseline guarantee.
 The main contributions are:
 
 - Evaluation of document-based representations in two CRDT libraries (Automerge, Loro) for tree-structured collaborative editing, identifying concrete limitations: the concurrent wrap problem and the retargeting problem ([@Chap:background]).
-- A novel pure operation-based CRDT for tagged-tree documents with path-based selectors, wildcards, relative references, and strict indices, together with a proof sketch of strong eventual consistency ([@Chap:implementation]).
+- A novel pure operation-based CRDT for tagged-tree documents with path-based selectors, wildcards, relative references, and strict indices, together with a proof of strong eventual consistency ([@Chap:implementation]).
 - Semantics that preserves user intent across concurrent edits, including explicit invariants: wildcard edits affect concurrent insertions, references survive structural changes, and indices shift correctly ([@Chap:evaluation]).
 - Programming-by-demonstration support built on the same underlying event graph: recorded edits are retargeted through later structural changes, enabling replay after schema evolution ([@Chap:evaluation]).
 

@@ -4,7 +4,7 @@ The mydenicek implementation evaluated in this thesis is maintained as a separat
 
 **Repository.** <https://github.com/krsion/mydenicek>
 
-**Published packages.** [`@mydenicek/core@0.5.0`](https://jsr.io/@mydenicek/core) and [`@mydenicek/sync@0.1.4`](https://jsr.io/@mydenicek/sync).
+**Published packages.** [`@mydenicek/core@0.5.0`](https://jsr.io/@mydenicek/core), [`@mydenicek/react@0.4.1`](https://jsr.io/@mydenicek/react), and [`@mydenicek/sync@0.1.4`](https://jsr.io/@mydenicek/sync).
 
 **Evaluated revision.** Commit [`532bdf90`](https://github.com/krsion/mydenicek/commit/532bdf90) is the revision against which all measurements, tests, and benchmarks reported in this thesis were produced.
 
