@@ -206,10 +206,16 @@ Convergence requires only that all peers eventually receive the same event set. 
 
 The server operates in **relay mode**: it stores and forwards events without materializing the event graph into a document. Events are persisted to append-only NDJSON files. Reliability is achieved through frontier-based catch-up: dropped connections are recovered by resending missing events on reconnection. Remote events are accepted without edit validation — each peer validates locally before sending. The system assumes a trusted peer set and does not defend against Byzantine faults.
 
+The sync server is deployed on Azure Container Apps. Container Apps was chosen over serverless alternatives (Azure Functions, AWS Lambda) because it runs long-lived container processes without per-request timeouts --- a requirement for WebSocket connections that must remain open for the duration of an editing session. It also scales to zero when no peers are connected, so a deployed but idle room incurs no compute cost; the container cold-starts on the first incoming connection.
+
 ### Web application {#sec:webapp}
 
 The web application (`apps/mywebnicek`) is a single-page React application. The interface provides three panels ([@Fig:webapp-ui]): rendered HTML, raw JSON, and an event DAG visualization. A command bar executes edits via `/selector command args` syntax.
 
 ![The mydenicek web application after merging concurrent edits. Left: rendered conference table. Center: raw JSON. Right: event DAG showing a fork-and-merge.](img/concurrent-merged.png){#fig:webapp-ui width=95%}
 
-The source code is at <https://github.com/krsion/mydenicek> and the live demo at <https://krsion.github.io/mydenicek>.
+The web application is built into a static bundle and served from GitHub Pages, which is sufficient because the frontend is fully client-side --- it talks directly to the Azure-hosted sync server over WebSocket and needs no application server of its own. The source code is at <https://github.com/krsion/mydenicek> and the live demo at <https://krsion.github.io/mydenicek>.
+
+### CI/CD {#sec:cicd}
+
+Two GitHub Actions pipelines automate testing and deployment. The continuous-integration pipeline runs on every push to the main branch: it executes the full test suite (unit, property-based, and concurrent-pair-matrix tests) for `@mydenicek/core` and `@mydenicek/sync`, type-checks all packages, builds the web frontend, and on success deploys the frontend to GitHub Pages and the sync server image to Azure Container Apps via an OIDC-authenticated workflow (no long-lived secrets in the repository). A separate release pipeline, triggered manually by tagging a version, publishes the public packages (`@mydenicek/core`, `@mydenicek/react`, `@mydenicek/sync`) to JSR with Sigstore provenance attestation, linking each published package to the exact source commit and workflow run that produced it.
